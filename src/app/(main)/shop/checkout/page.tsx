@@ -334,7 +334,7 @@ export default function CheckoutPage() {
                     </div>
                     <p className="font-body text-sm text-tertiary">
                       In production, this would integrate with a payment processor like Stripe.
-                      For this demo, clicking "Complete Purchase" will simulate a successful payment.
+                      For this demo, clicking &quot;Complete Purchase&quot; will simulate a successful payment.
                     </p>
                   </div>
                 </section>

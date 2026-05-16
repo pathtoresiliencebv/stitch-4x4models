@@ -17,8 +17,8 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "4x4 Models | Premium Toyota Off-Road Adventures",
-  description: "Your hub for Toyota 4x4 off-road content, vehicle guides, gear reviews, and adventure stories.",
+  title: "4x4 Models",
+  description: "Premium 4x4 products, builds, and stories.",
 };
 
 export default function RootLayout({

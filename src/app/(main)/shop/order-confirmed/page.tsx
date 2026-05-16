@@ -33,23 +33,22 @@ interface OrderConfirmation {
 
 export default function OrderConfirmedPage() {
   const { clearCart } = useCart();
-  const [order, setOrder] = useState<OrderConfirmation | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [order] = useState<OrderConfirmation | null>(() => {
+    if (typeof window === "undefined") return null;
+    const orderData = sessionStorage.getItem("order_confirmation");
+    if (!orderData) return null;
+    try {
+      return JSON.parse(orderData);
+    } catch (e) {
+      console.error("Failed to parse order data", e);
+      return null;
+    }
+  });
+  const [loading] = useState(false);
 
   useEffect(() => {
     // Clear cart when arriving at confirmation
     clearCart();
-
-    // Read order data from sessionStorage
-    const orderData = sessionStorage.getItem("order_confirmation");
-    if (orderData) {
-      try {
-        setOrder(JSON.parse(orderData));
-      } catch (e) {
-        console.error("Failed to parse order data", e);
-      }
-    }
-    setLoading(false);
 
     // Clean up session storage
     sessionStorage.removeItem("order_confirmation");

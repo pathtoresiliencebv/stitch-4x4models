@@ -1,4 +1,4 @@
-import { fetchAPI } from './api-config';
+import { fetchAPI } from '../api-config';
 import type { Order, CreateOrderData } from '@/types/order';
 
 export const orderService = {

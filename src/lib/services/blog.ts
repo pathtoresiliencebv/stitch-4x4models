@@ -1,4 +1,4 @@
-import { fetchAPI } from './api-config';
+import { fetchAPI } from '../api-config';
 import type { BlogPost, BlogListParams } from '@/types/blog';
 
 interface BlogResponse {

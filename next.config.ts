@@ -7,6 +7,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
       },
+      {
+        protocol: "https",
+        hostname: "media.base44.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.cloudfront.net",
+      },
     ],
   },
 };

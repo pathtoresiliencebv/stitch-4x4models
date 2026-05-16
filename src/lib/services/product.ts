@@ -1,4 +1,4 @@
-import { fetchAPI } from './api-config';
+import { fetchAPI } from '../api-config';
 import type { Product, ProductCategory, ProductListParams } from '@/types/product';
 
 interface ProductsResponse {

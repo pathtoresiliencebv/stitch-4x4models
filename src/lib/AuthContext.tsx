@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useCallback, useContext, useState, useEffect, ReactNode } from 'react';
 
 const API_URL = 'https://stimulating-growth-suite-ai.base44.app/api';
 const APP_ID = '699871557dfcaafa02868052';
@@ -28,11 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const token = localStorage.getItem('4x4_token');
       if (token) {
@@ -58,7 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      void checkAuth();
+    }, 0);
+    return () => window.clearTimeout(timeout);
+  }, [checkAuth]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
