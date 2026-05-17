@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -11,70 +11,21 @@ import {
   ChevronRight,
   User,
 } from "lucide-react";
+import { blogService } from "@/lib/services/blog";
 
-// Mock data for journal articles
-const articles = [
-  {
-    slug: "simpson-desert-expedition",
-    category: "EXPEDITION",
-    date: "OCT 14, 2023",
-    title: "Exploring the Simpson Desert",
-    excerpt:
-      "A 600km unassisted crossing through one of the most remote and challenging environments in Australia. Gear breakdowns, navigational challenges, and the sheer isolation of the dunes.",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDF5dhK-IX3wz1fwpS2bw7CJqcMmYJbhr1QnszuKBQGstDdp2zOlMsdmxHom8AnYeD8SBIshser7-40HQ9EqoRgXjCT7lyHu6kC1Jy2nT99q6OL5yfJv2OydygDhI1spJkaTPjySRCDPt3SpT0cpcyt22Q1y5Zz5nO3Lp-8MjMZuAx7K738dgv5b01VZXDL6ev89KyY3UiiztiJd87nClMW0eYSKLB8I6qVutlzjIudMhPXkDR0yAleYE48x7G-mne9vm4-Nt79a8WF",
-    alt: "Rugged Toyota Land Cruiser tackling a steep sandy dune in the Simpson Desert at sunset",
-    author: "M. Johnson",
-  },
-  {
-    slug: "dual-battery-systems",
-    category: "TECH",
-    date: "OCT 10, 2023",
-    title: "12V Dual Battery Systems Explained",
-    excerpt:
-      "A deep dive into DC-DC chargers, AGM vs Lithium, and wiring diagrams for a reliable fridge and camp lighting setup.",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCeYvMc9rb6DaFWg_rOdCq6OlMK5lA98IWwbVf47KWFF6ycYC-uung_lfTjNZjhE6czhvN54Jgz_NtLzBpgeGHC-PmwHmeE9yHM7MhjLbm0Qa_Qn5Nz6-5EGg1EswKzu0juW1onDBWiKWcFOLmcukN6Fgdv8lFa-R8QBFK313fSSy5aEKXDcmjwVZ3LXG2kIwVcx4LDdbWMqRDLujNLyIfMRlkDaywNktyqxbqIt4cWjgpLYzIAvDLm_GW3xRTOwDXnyBnu8H14IrgA",
-    alt: "Close up of a heavy duty recovery winch mounted on a steel bullbar",
-    author: "S. Davis",
-  },
-  {
-    slug: "rubicon-stock-fj",
-    category: "TRAILS",
-    date: "OCT 08, 2023",
-    title: "Conquering the Rubicon in a Stock FJ",
-    excerpt:
-      "Is it possible? We took a lightly modified FJ Cruiser through one of America's toughest trails to find out its limits.",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDhSISQzUMdEmQpn2w9IvX005GlPw0S1VE8W7GBSbvRtj5h8uT1UZVH-_A8It9nccEFgxH2sxRWro3WZ21m1GuAXkCF97GuYGDtO7aZw6u-WF5CqqQdux_JVe_yJQmB7Iqtr1jk0Jsb3fbO3IoExSy2Cj1YzNdbncwvVNJK25dCZyoats0S2ZyQaC84ofDbLO_-9qFx1gT-lNxvSIBYt7vxo0qoEYtdvSaVK0JOHxIlf69m_8UpLrQR6lvkFvI36vVOMjUo4RfsijF0",
-    alt: "A rugged mountain trail winding through dense pine forest under a moody sky",
-    author: "T. Reynolds",
-  },
-  {
-    slug: "rtt-comparison",
-    category: "GEAR",
-    date: "OCT 05, 2023",
-    title: "Hard-Shell vs Soft-Shell RTTs",
-    excerpt:
-      "Comparing setup times, aerodynamics, and durability across 5 major brands in severe weather conditions.",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBmNRjZHZJa60Fc1DXSHTaItLVi0kbD2I9QPfRTABc2vnBNrWBlAqONJZveRAAmIcEXOaq-pWfwPy2QYFnPIW6DG5U7AhtAkVCVYs85NfOeXQbNP0S6kTlKu0LCnapOtFEJkOTfqtTx-tUs9ipoREkWy4UiccfoJj-KRspjPt2NbimkLw1Ut4TxQydkX-3eJS_Yuw0nHo_dUgs8855hNEAXPGHZ9LnNYgpLMB6RlRqIl5f8sw3MaAUZUD9P9_G9EXK-OIwjM3j7G9LE",
-    alt: "A rooftop tent deployed on a Toyota Tacoma parked by a calm alpine lake at dawn",
-    author: "A. Clark",
-  },
-  {
-    slug: "cv-axle-repair",
-    category: "MAINTENANCE",
-    date: "OCT 03, 2023",
-    title: "Field Repairs: Broken CV Axle",
-    excerpt:
-      "Step-by-step guide to swapping a CV axle on the trail with limited tools. What you need in your recovery kit.",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDTUp3okCR_Z6SYau90RNSn-sh_U4xQI_rJT81PR8eRZ6ynP66ows02P4zk3KzpWXzWMt0A0SDyXUUmO7V3_wOmbivIHt-AI9alRFv2qaN9Go_NR-4e-q8G95jUJFHfHJG-RCUkBmUURP8-ZWGtD0edwg4CziwGXyfPl3jXisenHma8LqLIVVO_l9VIH9kKSC6kjXOACK5dxLm8R178L1qmZOfAl7AlQhDmp42SyK3q6ltjQGmKlMj7RBvzCFOWJMww6-0ukg0fmDLY",
-    alt: "Mechanic's hands holding a heavy duty socket wrench working on an off-road vehicle",
-    author: "K. Vance",
-  },
-];
+// Types for article from API
+interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  featured_image_url: string;
+  featured_image_alt: string;
+  author: string;
+  created_at: string;
+  status: string;
+}
 
 const latestNews = [
   {
@@ -98,12 +49,32 @@ const vehicleFilters = [
   "FJ Cruiser",
 ];
 
-const categoryFilters = ["Gear Reviews", "Technical Guides", "Trail Reports"];
+const categoryFilters = ["EXPEDITION", "TECH", "TRAILS", "GEAR", "MAINTENANCE"];
 
 export default function JournalPage() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    async function fetchArticles() {
+      try {
+        setLoading(true);
+        const data = await blogService.list({ status: "published" });
+        setArticles(data.records);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch articles:", err);
+        setError("Failed to load articles. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchArticles();
+  }, []);
 
   const toggleVehicle = (vehicle: string) => {
     setSelectedVehicles((prev) =>
@@ -184,54 +155,68 @@ export default function JournalPage() {
       {/* Main Content Area */}
       <main className="w-full lg:w-2/3 flex flex-col gap-12">
         {/* Hero Post */}
-        <article className="bg-surface-container-high rounded-lg overflow-hidden flex flex-col group cursor-pointer relative">
-          <div className="relative h-96 w-full overflow-hidden rounded-t-none">
-            <Image
-              src={articles[0].image}
-              alt={articles[0].alt}
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-surface-dim to-transparent opacity-80" />
+        {loading ? (
+          <div className="h-96 bg-surface-container-high rounded-lg animate-pulse flex items-center justify-center">
+            <span className="text-tertiary font-label uppercase tracking-widest">Loading...</span>
           </div>
-          <div className="absolute bottom-0 left-0 p-8 w-full z-10 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/15">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="bg-secondary-container text-on-secondary-container text-xs font-label uppercase px-3 py-1 rounded-sm tracking-widest">
-                {articles[0].category}
-              </span>
-              <span className="text-tertiary text-sm font-label uppercase">
-                {articles[0].date}
-              </span>
+        ) : error ? (
+          <div className="h-96 bg-surface-container-high rounded-lg flex items-center justify-center">
+            <span className="text-error font-label uppercase tracking-widest">{error}</span>
+          </div>
+        ) : articles.length > 0 ? (
+          <article className="bg-surface-container-high rounded-lg overflow-hidden flex flex-col group cursor-pointer relative">
+            <div className="relative h-96 w-full overflow-hidden rounded-t-none">
+              <Image
+                src={articles[0].featured_image_url}
+                alt={articles[0].featured_image_alt || articles[0].title}
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-surface-dim to-transparent opacity-80" />
             </div>
-            <Link href={`/journal/${articles[0].slug}`}>
-              <h1 className="text-4xl lg:text-5xl font-headline font-bold tracking-tighter mb-4 text-on-surface group-hover:text-primary transition-colors">
-                {articles[0].title}
-              </h1>
-            </Link>
-            <p className="text-on-surface-variant font-body text-base leading-relaxed mb-6 max-w-3xl">
-              {articles[0].excerpt}
-            </p>
-            <Link
-              href={`/journal/${articles[0].slug}`}
-              className="bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold py-3 px-6 rounded-sm hover:brightness-110 transition-all flex items-center gap-2 w-fit"
-            >
-              READ FULL REPORT
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            <div className="absolute bottom-0 left-0 p-8 w-full z-10 bg-surface/80 backdrop-blur-xl border-t border-outline-variant/15">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="bg-secondary-container text-on-secondary-container text-xs font-label uppercase px-3 py-1 rounded-sm tracking-widest">
+                  {articles[0].category}
+                </span>
+                <span className="text-tertiary text-sm font-label uppercase">
+                  {new Date(articles[0].created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase()}
+                </span>
+              </div>
+              <Link href={`/journal/${articles[0].slug}`}>
+                <h1 className="text-4xl lg:text-5xl font-headline font-bold tracking-tighter mb-4 text-on-surface group-hover:text-primary transition-colors">
+                  {articles[0].title}
+                </h1>
+              </Link>
+              <p className="text-on-surface-variant font-body text-base leading-relaxed mb-6 max-w-3xl">
+                {articles[0].excerpt}
+              </p>
+              <Link
+                href={`/journal/${articles[0].slug}`}
+                className="bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold py-3 px-6 rounded-sm hover:brightness-110 transition-all flex items-center gap-2 w-fit"
+              >
+                READ FULL REPORT
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </article>
+        ) : (
+          <div className="h-96 bg-surface-container-high rounded-lg flex items-center justify-center">
+            <span className="text-tertiary font-label uppercase tracking-widest">No articles yet</span>
           </div>
-        </article>
+        )}
 
         {/* Grid Posts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {filteredArticles.slice(1).map((article) => (
+          {!loading && !error && filteredArticles.slice(1).map((article) => (
             <article
               key={article.slug}
               className="bg-surface-container-high rounded-lg flex flex-col h-full group cursor-pointer border border-outline-variant/15 hover:border-primary/30 transition-colors"
             >
               <div className="h-48 w-full overflow-hidden rounded-t-none relative">
                 <Image
-                  src={article.image}
-                  alt={article.alt}
+                  src={article.featured_image_url}
+                  alt={article.featured_image_alt || article.title}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -257,6 +242,13 @@ export default function JournalPage() {
               </div>
             </article>
           ))}
+          {loading && (
+            <>
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-surface-container-high rounded-lg h-80 animate-pulse" />
+              ))}
+            </>
+          )}
         </div>
 
         <div className="flex justify-center mt-8">

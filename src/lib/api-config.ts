@@ -1,7 +1,7 @@
 export const API_CONFIG = {
   baseUrl: 'https://stimulating-growth-suite-ai.base44.app/api',
-  appId: '699871557dfcaafa02868052',
-  apiKey: '4d740112ee914feea4c1d567d68ce926',
+  appId: '6a09fd6a73c15fa19aeb41f8',
+  apiKey: 'f497a9fa558244729d43461df1f9b91b',
 } as const;
 
 export async function fetchAPI<T>(

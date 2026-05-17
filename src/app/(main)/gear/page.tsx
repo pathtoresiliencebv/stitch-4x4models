@@ -1,53 +1,49 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star, ChevronRight, Check } from "lucide-react";
+import { productService } from "@/lib/services/product";
 
-const products = [
-  {
-    href: "/gear/tactical-recovery-tracks",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuADrYaS3cwtu8nyEuaFg8pXEAETQJ_haHOR5pLgfJt7EvpUHcHqOSFmv2JZdOhwowRKtEmESGW48kesYnxmbwKaJswZW8FfO0T5M1G_zvowO4pe1_Chc_IjYGsMrRGT-QOTKhoe_qXlDmPkgzPQcqpVXY6jQ1Of5z_MvRXrE0UitWSWsrPWGgVkalkvyBZmi7lN9hdtOpGRm6tT8j0h8aiDke4tF7O4snZx15AdQSgElQ9AQyii1sVNJoXaTq2miuMUyVm1MRaUsfo6",
-    alt: "Heavy-duty 4x4 recovery winch mounted on steel bumper, rugged outdoor setting",
-    category: "Recovery",
-    title: "Heavy-Duty Recovery Winch 12,000lb",
-    rating: 4.8,
-    reviews: 124,
-    price: "$899.00",
-    description:
-      "Essential self-recovery gear. IP68 rated waterproof, synthetic rope, and wireless remote control.",
-  },
-  {
-    href: "/gear/tactical-recovery-tracks/modern-edition",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDjP4WwXfIuM9KWMR8wxV8A4MjJZeu2ITwF5defUzM2JWk3yih6Zzj0PMCi_gBSMmzYowWWXjhThoic4HJjLVT6VnpppbP9O0C6Hg44srIPDYZmqo8WKcbF5mTxFOLqeu95N2EnIMQJrFz-obWtNPMJLrVdvhwHpsrzzWmqNUzsjbrseMsBk32elwXQK5M6JoYpw29HckvqN8ysh2MHiFsF0jp3wyeaxWU-lbJ5lnP6J2ZeKs9yKtF6d8XedHOvkBeZHr_82wf-86zh",
-    alt: "High-performance yellow and silver off-road shock absorber and coil spring suspension system installed under a dirty 4x4 vehicle wheel well",
-    category: "Suspension",
-    title: "Old Man Emu BP-51 Suspension Kit",
-    rating: 5.0,
-    reviews: 89,
-    price: "$2,450.00",
-    description:
-      "Bypass shock absorbers offering unprecedented ride comfort and control for heavy loads and rough terrain.",
-  },
-  {
-    href: "/gear/tactical-recovery-tracks/sleek-edition",
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAVSdPhVCQwcqYhbXI9gFz_-iGtDaUSBTav6JCb81PoBRY6fijJkZpGpZ0VMYdaXZ2zdEIfnPgExLORwc3jTqQsR5v_Pl6bGvj99fA3dDxxp1djZnZNVGePYAYKJ48Yw_Fa0RPw82JVaEFYZ78Vrtuk0FVvlhcG8mLKZRHhEQBtQSUAoPXdrwRhYG5s3yO0Y_ztD6f6_RhPpViB-hJxYNhjSLLiqF8wUJghLnYUmkUx11vAxmsWIYhNKb_JMsBlRCGh4Y7iTg-kwybg",
-    alt: "Close-up of rugged all-terrain tire tread pattern on matte black beadlock wheel, dusty off-road environment",
-    category: "Tires",
-    title: "BFGoodrich All-Terrain T/A KO2",
-    rating: 4.6,
-    reviews: 312,
-    price: "From $240.00",
-    description:
-      "Tough sidewalls, excellent traction in mud, snow, and rocks. The industry standard for overland travel.",
-  },
-];
+interface Product {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  price: number;
+  rating: number;
+  reviews_count: number;
+  featured_image_url: string;
+  featured_image_alt: string;
+}
 
 const brands = ["ARB", "TJM", "Old Man Emu"];
 const vehicleModels = ["Land Cruiser 70", "Hilux", "Tacoma"];
 const gearTypes = ["Suspension", "Tires", "Camping", "Recovery", "Lighting"];
 
 export default function GearPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        setLoading(true);
+        const data = await productService.list({ limit: 50 });
+        setProducts(data.records);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch products:", err);
+        setError("Failed to load products. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
   return (
     <div className="max-w-screen-2xl mx-auto w-full px-4 md:px-8">
       {/* Breadcrumb */}
@@ -76,76 +72,88 @@ export default function GearPage() {
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Product Grid */}
         <main className="flex-1 min-w-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            {products.map((product) => (
-              <article
-                key={product.href}
-                className="bg-surface-container-high rounded-lg overflow-hidden flex flex-col group relative"
-              >
-                <div className="h-64 w-full bg-surface-container-lowest relative overflow-hidden rounded-t-none">
-                  <Image
-                    src={product.image}
-                    alt={product.alt}
-                    fill
-                    className="object-cover mix-blend-luminosity group-hover:mix-blend-normal transition-all duration-500 scale-105 group-hover:scale-100"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                  <div className="absolute top-4 left-4 bg-secondary-container text-on-secondary-container text-label-md px-3 py-1 font-label uppercase tracking-widest font-medium rounded-sm">
-                    {product.category}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-surface-container-high rounded-lg h-96 animate-pulse" />
+              ))}
+            </div>
+          ) : error ? (
+            <div className="bg-surface-container-high rounded-lg p-12 text-center">
+              <span className="text-error font-label uppercase tracking-widest">{error}</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+              {products.map((product) => (
+                <article
+                  key={product.slug}
+                  className="bg-surface-container-high rounded-lg overflow-hidden flex flex-col group relative"
+                >
+                  <div className="h-64 w-full bg-surface-container-lowest relative overflow-hidden rounded-t-none">
+                    <Image
+                      src={product.featured_image_url}
+                      alt={product.featured_image_alt || product.title}
+                      fill
+                      className="object-cover mix-blend-luminosity group-hover:mix-blend-normal transition-all duration-500 scale-105 group-hover:scale-100"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                    <div className="absolute top-4 left-4 bg-secondary-container text-on-secondary-container text-label-md px-3 py-1 font-label uppercase tracking-widest font-medium rounded-sm">
+                      {product.category}
+                    </div>
                   </div>
-                </div>
-                <div className="p-6 flex flex-col flex-1">
-                  <h2 className="text-headline-md font-headline text-on-surface mb-2 line-clamp-2">
-                    {product.title}
-                  </h2>
-                  <div className="flex items-center gap-1 text-primary mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={14}
-                        className={
-                          i < Math.floor(product.rating)
-                            ? "fill-primary text-primary"
-                            : i === Math.floor(product.rating) && product.rating % 1 >= 0.5
-                            ? "fill-primary/50 text-primary"
-                            : "text-primary/30"
-                        }
-                      />
-                    ))}
-                    <span className="text-body-md text-on-surface-variant ml-2">
-                      {product.rating} ({product.reviews} Reviews)
-                    </span>
-                  </div>
-                  <p className="text-body-md text-on-surface-variant mb-6 flex-1">
-                    {product.description}
-                  </p>
-                  <div className="flex items-center justify-between mt-auto border-t border-outline-variant/15 pt-4">
-                    <span className="text-title-lg font-bold font-body text-on-surface">
-                      {product.price}
-                    </span>
-                    <Link
-                      href={product.href}
-                      className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-6 py-2 rounded-sm font-label uppercase tracking-widest text-sm font-bold hover:brightness-110 transition-all flex items-center gap-2"
-                    >
-                      Details{" "}
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                  <div className="p-6 flex flex-col flex-1">
+                    <h2 className="text-headline-md font-headline text-on-surface mb-2 line-clamp-2">
+                      {product.title}
+                    </h2>
+                    <div className="flex items-center gap-1 text-primary mb-4">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={14}
+                          className={
+                            i < Math.floor(product.rating)
+                              ? "fill-primary text-primary"
+                              : i === Math.floor(product.rating) && product.rating % 1 >= 0.5
+                              ? "fill-primary/50 text-primary"
+                              : "text-primary/30"
+                          }
+                        />
+                      ))}
+                      <span className="text-body-md text-on-surface-variant ml-2">
+                        {product.rating} ({product.reviews_count} Reviews)
+                      </span>
+                    </div>
+                    <p className="text-body-md text-on-surface-variant mb-6 flex-1">
+                      {product.excerpt}
+                    </p>
+                    <div className="flex items-center justify-between mt-auto border-t border-outline-variant/15 pt-4">
+                      <span className="text-title-lg font-bold font-body text-on-surface">
+                        ${product.price.toFixed(2)}
+                      </span>
+                      <Link
+                        href={`/gear/${product.slug}`}
+                        className="bg-gradient-to-br from-primary to-primary-container text-on-primary px-6 py-2 rounded-sm font-label uppercase tracking-widest text-sm font-bold hover:brightness-110 transition-all flex items-center gap-2"
                       >
-                        <path d="M5 12h14M12 5l7 7-7 7" />
-                      </svg>
-                    </Link>
+                        Details{" "}
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    </div>
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
+                </article>
+              ))}
+            </div>
+          )}
         </main>
 
         {/* Sidebar Filter */}
