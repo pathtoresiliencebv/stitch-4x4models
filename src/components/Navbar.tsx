@@ -1,68 +1,108 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Menu, ShoppingCart, X } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 import { useCart } from "@/lib/CartContext";
-import type { ProductCategory, Webshop } from "@/types/base44";
+import { Menu, X, ShoppingCart, User, LogOut } from "lucide-react";
 
-export default function Navbar({ webshop, categories = [] }: { webshop?: Webshop; categories?: ProductCategory[] }) {
+export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
   const { itemCount } = useCart();
-  const name = webshop?.name || "4x4 Models";
-
-  const links = [
-    { href: "/producten", label: "Products" },
-    { href: "/collecties", label: "Collections" },
-    { href: "/blog", label: "Journal" },
-  ];
 
   return (
-    <header className="glass-nav fixed top-0 z-50 w-full border-b border-surface-container-highest/20">
-      <div className="mx-auto flex max-w-screen-2xl items-center justify-between px-6 py-4">
-        <Link href="/" className="font-headline text-xl font-bold uppercase tracking-tight text-primary">
-          {name}
+    <header className="glass-nav fixed top-0 w-full z-50 transition-all duration-300 border-b border-surface-container-highest/20">
+      <div className="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
+        <Link href="/" className="flex items-center">
+          <Image src="/images/logo.png" alt="4x4models" width={40} height={40} className="object-contain" />
         </Link>
 
-        <nav className="hidden items-center gap-7 font-headline text-sm font-bold uppercase tracking-tight md:flex">
-          {links.map((link) => (
-            <Link key={link.href} href={link.href} className="text-on-surface transition hover:text-primary">
-              {link.label}
-            </Link>
-          ))}
-          {categories.slice(0, 3).map((category) => (
-            <Link key={category.id} href={`/collecties/${category.slug}`} className="text-on-surface-variant transition hover:text-primary">
-              {category.name}
-            </Link>
-          ))}
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex gap-8 font-headline font-bold tracking-tighter uppercase text-sm">
+          <Link className="text-on-surface hover:text-primary transition-colors duration-300" href="/vehicles">
+            Vehicles
+          </Link>
+          <Link className="text-on-surface hover:text-primary transition-colors duration-300" href="/gear">
+            Gear & Mods
+          </Link>
+          <Link className="text-on-surface hover:text-primary transition-colors duration-300" href="/journal">
+            Journal
+          </Link>
+          <Link className="text-on-surface hover:text-primary transition-colors duration-300" href="/shop">
+            Shop
+          </Link>
         </nav>
 
-        <div className="flex items-center gap-4">
-          <Link href="/winkelwagen" className="relative text-on-surface transition hover:text-primary" aria-label="Cart">
-            <ShoppingCart className="h-5 w-5" />
-            {itemCount > 0 ? (
-              <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-bold text-on-primary">
-                {itemCount > 9 ? "9+" : itemCount}
+        <div className="flex gap-4 items-center">
+          <Link href="/shop/cart" className="relative text-on-surface hover:text-primary transition-colors">
+            <ShoppingCart className="w-5 h-5" />
+            {itemCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-primary text-on-primary text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                {itemCount > 9 ? '9+' : itemCount}
               </span>
-            ) : null}
+            )}
           </Link>
-          <button className="text-on-surface md:hidden" onClick={() => setIsOpen((value) => !value)} aria-label="Open menu">
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+
+          {isAuthenticated ? (
+            <div className="hidden md:flex items-center gap-4">
+              <span className="text-on-surface-variant text-sm">{user?.full_name}</span>
+              <button
+                onClick={logout}
+                className="text-on-surface hover:text-primary transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
+          ) : (
+            <Link href="/login" className="hidden md:block text-on-surface hover:text-primary transition-colors">
+              <User className="w-5 h-5" />
+            </Link>
+          )}
+
+          <button
+            className="md:hidden text-on-surface hover:text-primary transition-colors"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
       </div>
 
-      {isOpen ? (
-        <nav className="border-t border-surface-container-high bg-surface px-6 py-5 font-headline text-sm font-bold uppercase tracking-tight md:hidden">
-          <div className="flex flex-col gap-4">
-            {[...links, ...categories.map((category) => ({ href: `/collecties/${category.slug}`, label: category.name }))].map((link) => (
-              <Link key={link.href} href={link.href} onClick={() => setIsOpen(false)} className="text-on-surface transition hover:text-primary">
-                {link.label}
+      {/* Mobile Nav */}
+      {isOpen && (
+        <div className="md:hidden bg-surface border-t border-surface-container-high">
+          <nav className="flex flex-col p-6 gap-4 font-headline font-bold tracking-tighter uppercase text-sm">
+            <Link className="text-on-surface hover:text-primary transition-colors" href="/vehicles" onClick={() => setIsOpen(false)}>
+              Vehicles
+            </Link>
+            <Link className="text-on-surface hover:text-primary transition-colors" href="/gear" onClick={() => setIsOpen(false)}>
+              Gear & Mods
+            </Link>
+            <Link className="text-on-surface hover:text-primary transition-colors" href="/journal" onClick={() => setIsOpen(false)}>
+              Journal
+            </Link>
+            <Link className="text-on-surface hover:text-primary transition-colors" href="/shop" onClick={() => setIsOpen(false)}>
+              Shop
+            </Link>
+
+            {isAuthenticated ? (
+              <button
+                onClick={() => { logout(); setIsOpen(false); }}
+                className="text-left text-on-surface hover:text-primary transition-colors"
+              >
+                Sign Out
+              </button>
+            ) : (
+              <Link className="text-on-surface hover:text-primary transition-colors" href="/login" onClick={() => setIsOpen(false)}>
+                Sign In
               </Link>
-            ))}
-          </div>
-        </nav>
-      ) : null}
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }

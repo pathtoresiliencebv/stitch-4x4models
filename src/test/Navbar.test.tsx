@@ -15,8 +15,8 @@ const renderWithProviders = (ui: React.ReactElement) => {
 };
 
 describe('Navbar', () => {
-  it('renders the Toyota Rigs logo text', () => {
+  it('renders the 4x4models logo', () => {
     renderWithProviders(<Navbar />);
-    expect(screen.getByText('Toyota Rigs')).toBeInTheDocument();
+    expect(screen.getByAltText('4x4models')).toBeInTheDocument();
   });
 });

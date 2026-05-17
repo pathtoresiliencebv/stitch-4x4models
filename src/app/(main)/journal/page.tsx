@@ -9,6 +9,7 @@ import {
   Bookmark,
   Rss,
   ChevronRight,
+  User,
 } from "lucide-react";
 
 // Mock data for journal articles
@@ -132,7 +133,54 @@ export default function JournalPage() {
   });
 
   return (
-    <div className="container mx-auto px-4 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
+    <div className="flex flex-col min-h-screen relative">
+      {/* Ambient Noise Layer */}
+      <div className="pointer-events-none fixed inset-0 z-0 bg-noise mix-blend-overlay opacity-5" />
+
+      {/* TopNavBar */}
+      <nav className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl">
+        <div className="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
+          <Link href="/" className="flex items-center">
+            <Image src="/images/logo.png" alt="4x4models" width={40} height={40} className="object-contain" />
+          </Link>
+
+          {/* Desktop Links */}
+          <ul className="hidden md:flex gap-8 font-headline tracking-tight uppercase text-sm">
+            <li>
+              <Link className="text-on-surface hover:text-primary transition-colors pb-1" href="/vehicles">
+                Explore
+              </Link>
+            </li>
+            <li>
+              <Link className="text-on-surface hover:text-primary transition-colors pb-1" href="/journal">
+                Journal
+              </Link>
+            </li>
+            <li>
+              <Link className="text-on-surface hover:text-primary transition-colors pb-1" href="/shop">
+                Shop
+              </Link>
+            </li>
+            <li>
+              <Link className="text-on-surface hover:text-primary transition-colors pb-1" href="/vehicles/merch">
+                Merch
+              </Link>
+            </li>
+          </ul>
+
+          {/* Trailing Actions */}
+          <div className="flex items-center gap-4">
+            <button className="text-on-surface hover:text-primary transition-all duration-300 p-2 rounded scale-95 active:opacity-80">
+              <User className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+        <div className="bg-surface-container-high h-[1px] w-full" />
+      </nav>
+
+      {/* Main Content */}
+      <main className="flex-1 z-10 pt-24 pb-24">
+      <div className="container mx-auto px-4 lg:px-8 py-8 flex flex-col lg:flex-row gap-8">
       {/* Main Content Area */}
       <main className="w-full lg:w-2/3 flex flex-col gap-12">
         {/* Hero Post */}
@@ -333,6 +381,8 @@ export default function JournalPage() {
           </div>
         </div>
       </aside>
+      </div>
+      </main>
     </div>
   );
 }

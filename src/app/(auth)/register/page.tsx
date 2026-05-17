@@ -36,7 +36,7 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-headline font-bold text-primary uppercase tracking-tight">
-            Toyota Rigs
+            4x4models
           </h1>
           <p className="text-on-surface-variant mt-2">Create your account</p>
         </div>

@@ -258,7 +258,7 @@ export default function OrderConfirmedPage() {
           </Link>
         </div>
         <div className="font-body text-[0.75rem] tracking-wider uppercase text-[#ea6b1e]">
-          © 2026 Toyota Rigs. Engineered for the Outback.
+          © 2026 4x4models. Engineered for the Outback.
         </div>
       </footer>
     </div>

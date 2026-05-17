@@ -13,13 +13,8 @@ export default function TacomaPage() {
       {/* TopNavBar */}
       <nav className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl">
         <div className="flex justify-between items-center px-6 py-4 max-w-screen-2xl mx-auto">
-          <Link href="/vehicles" className="text-xl font-headline font-bold tracking-tighter text-primary uppercase flex items-center gap-2">
-            <span className="bg-primary/20 p-1.5 rounded-sm">
-              <svg className="w-4 h-4 text-primary" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M5 11h4a2 2 0 0 1 2 2v2H5v-4zm14 4h-4v4h4v-4zm-9-2h2a2 2 0 0 0 2-2V9h-4v4zM5 17h4v4H5v-4zm10 0h4v4h-4v-4z"/>
-              </svg>
-            </span>
-            Toyota Rigs
+          <Link href="/vehicles" className="flex items-center">
+            <Image src="/images/logo.png" alt="4x4models" width={40} height={40} className="object-contain" />
           </Link>
 
           {/* Desktop Links */}
