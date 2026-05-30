@@ -32,46 +32,50 @@ export default function Footer({
   labels = {},
 }: FooterProps) {
   const href = (path: string) => `/${lang}${path}`;
+  const linkClass = "group flex items-center justify-between border-b border-outline-variant/10 py-2 text-sm text-on-surface-variant transition-colors hover:text-primary";
+  const headingClass = "mb-4 font-headline text-sm font-bold uppercase text-on-surface";
 
   return (
-    <footer className="bg-surface-container-low border-t border-surface-container-high">
-      <div className="max-w-screen-2xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <h3 className="text-lg font-headline font-bold tracking-tighter text-primary uppercase mb-4">
+    <footer className="premium-section border-t border-outline-variant/15 bg-surface">
+      <div className="mx-auto max-w-screen-2xl px-4 py-10 sm:px-6 sm:py-14">
+        <div className="premium-panel grid gap-8 px-5 py-8 sm:px-8 md:grid-cols-[1.5fr_1fr_1fr_1fr] md:gap-10">
+          <div className="max-w-sm">
+            <p className="premium-kicker mb-4">{brandName}</p>
+            <h3 className="mb-5 font-headline text-3xl font-bold uppercase leading-tight text-on-surface">
               {brandName}
             </h3>
-            <p className="text-on-surface-variant text-sm">
+            <p className="premium-copy text-sm">
               {tagline}
             </p>
           </div>
           <div>
-            <h4 className="font-headline font-bold tracking-tighter uppercase text-sm mb-4">{labels.explore || "Explore"}</h4>
-            <nav className="flex flex-col gap-2 text-sm text-on-surface-variant">
-              <Link href={href("/vehicles")} className="hover:text-primary transition-colors">{labels.vehicles || "Vehicles"}</Link>
-              <Link href={href("/gear")} className="hover:text-primary transition-colors">{labels.gear || "Gear & Mods"}</Link>
-              <Link href={href("/journal")} className="hover:text-primary transition-colors">{labels.journal || "Journal"}</Link>
-              <Link href={href("/shop")} className="hover:text-primary transition-colors">{labels.shop || "Shop"}</Link>
+            <h4 className={headingClass}>{labels.explore || "Explore"}</h4>
+            <nav className="flex flex-col">
+              <Link href={href("/vehicles")} className={linkClass}>{labels.vehicles || "Vehicles"}<span aria-hidden="true">+</span></Link>
+              <Link href={href("/gear")} className={linkClass}>{labels.gear || "Gear & Mods"}<span aria-hidden="true">+</span></Link>
+              <Link href={href("/journal")} className={linkClass}>{labels.journal || "Journal"}<span aria-hidden="true">+</span></Link>
+              <Link href={href("/shop")} className={linkClass}>{labels.shop || "Shop"}<span aria-hidden="true">+</span></Link>
             </nav>
           </div>
           <div>
-            <h4 className="font-headline font-bold tracking-tighter uppercase text-sm mb-4">{labels.support || "Support"}</h4>
-            <nav className="flex flex-col gap-2 text-sm text-on-surface-variant">
-              <Link href="#" className="hover:text-primary transition-colors">{labels.about || "About"}</Link>
-              <Link href="#" className="hover:text-primary transition-colors">{labels.contact || "Contact"}</Link>
-              <Link href="#" className="hover:text-primary transition-colors">{labels.faq || "FAQ"}</Link>
+            <h4 className={headingClass}>{labels.support || "Support"}</h4>
+            <nav className="flex flex-col">
+              <Link href="#" className={linkClass}>{labels.about || "About"}<span aria-hidden="true">+</span></Link>
+              <Link href="#" className={linkClass}>{labels.contact || "Contact"}<span aria-hidden="true">+</span></Link>
+              <Link href="#" className={linkClass}>{labels.faq || "FAQ"}<span aria-hidden="true">+</span></Link>
             </nav>
           </div>
           <div>
-            <h4 className="font-headline font-bold tracking-tighter uppercase text-sm mb-4">{labels.legal || "Legal"}</h4>
-            <nav className="flex flex-col gap-2 text-sm text-on-surface-variant">
-              <Link href="#" className="hover:text-primary transition-colors">{labels.privacy || "Privacy policy"}</Link>
-              <Link href="#" className="hover:text-primary transition-colors">{labels.terms || "Terms of service"}</Link>
+            <h4 className={headingClass}>{labels.legal || "Legal"}</h4>
+            <nav className="flex flex-col">
+              <Link href="#" className={linkClass}>{labels.privacy || "Privacy policy"}<span aria-hidden="true">+</span></Link>
+              <Link href="#" className={linkClass}>{labels.terms || "Terms of service"}<span aria-hidden="true">+</span></Link>
             </nav>
           </div>
         </div>
-        <div className="border-t border-surface-container-high mt-8 pt-8 text-center text-sm text-on-surface-variant">
-          <p>{copyright}</p>
+        <div className="flex flex-col gap-3 border-t border-outline-variant/10 pt-6 text-xs text-on-surface-variant sm:flex-row sm:items-center sm:justify-between">
+          <p className="font-label uppercase">{copyright}</p>
+          <p className="font-label uppercase text-primary">{brandName}</p>
         </div>
       </div>
     </footer>

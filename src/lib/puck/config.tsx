@@ -293,14 +293,14 @@ const iconPickerField = (label = "Icon", labelIcon: React.ReactElement = <Sparkl
 
 const sectionBg: Record<Background, string> = {
   surface: "bg-surface",
-  raised: "bg-surface-container-high",
+  raised: "bg-surface-container-high/95",
   muted: "bg-surface-container-lowest",
-  primary: "bg-primary-container/20",
+  primary: "bg-primary-container/15",
 };
 
 const paddingClass = {
-  compact: "py-10",
-  standard: "py-16",
+  compact: "py-12",
+  standard: "py-20",
   spacious: "py-24",
 };
 
@@ -517,11 +517,11 @@ function SplitBlock({
 }: PuckComponents["TextPhotoBlock"] & { imageFirst?: boolean }) {
   const text = (
     <div className={align === "center" ? "text-center lg:text-left" : ""}>
-      <p className="mb-3 font-label text-xs uppercase tracking-widest text-primary">{eyebrow}</p>
-      <h2 className="mb-5 font-headline text-4xl font-bold uppercase leading-tight text-on-surface md:text-5xl">{title}</h2>
-      <p className="mb-8 text-lg leading-relaxed text-tertiary-fixed-dim">{body}</p>
+      <p className="premium-kicker mb-3">{eyebrow}</p>
+      <h2 className="premium-heading mb-5 font-headline text-4xl font-bold uppercase leading-tight text-on-surface md:text-5xl">{title}</h2>
+      <p className="premium-copy mb-8 text-lg">{body}</p>
       {ctaLabel ? (
-        <a className="inline-flex rounded-sm border border-primary/50 px-6 py-3 font-label text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary hover:text-on-primary" href={ctaUrl || "#"}>
+        <a className="premium-link inline-flex rounded-sm border border-primary/50 bg-primary/5 px-6 py-3 font-label text-xs font-bold uppercase text-primary hover:bg-primary hover:text-on-primary" href={ctaUrl || "#"}>
           {ctaLabel}
         </a>
       ) : null}
@@ -529,18 +529,19 @@ function SplitBlock({
   );
 
   const image = (
-    <div className="relative min-h-[320px] overflow-hidden border border-outline-variant/20 bg-surface-container-high md:min-h-[460px]">
+    <div className="premium-panel relative min-h-[320px] overflow-hidden bg-surface-container-high md:min-h-[460px]">
       {imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img alt={imageAlt || title} src={imageUrl} className="absolute inset-0 h-full w-full object-cover" />
       ) : null}
-      <div className="absolute inset-0 border border-white/5" />
+      <div className="absolute inset-0 bg-gradient-to-tr from-surface/55 via-transparent to-primary/10" />
+      <div className="absolute inset-x-6 bottom-6 h-px bg-gradient-to-r from-primary/70 to-transparent" />
     </div>
   );
 
   return (
-    <section className={`${sectionBg[background || "surface"]} py-16`}>
-      <div className="mx-auto grid max-w-screen-2xl gap-10 px-6 py-16 lg:grid-cols-2 lg:items-center">
+    <section className={`premium-section ${sectionBg[background || "surface"]} py-16 sm:py-20`}>
+      <div className="mx-auto grid max-w-screen-2xl gap-8 px-4 sm:px-6 lg:grid-cols-2 lg:items-center">
         {imageFirst ? image : text}
         {imageFirst ? text : image}
       </div>
@@ -562,20 +563,20 @@ function DemoCardGrid({
   const visibleCards = cards.length > 0 ? cards : demoCards;
 
   return (
-    <section className={`${sectionBg[background || "surface"]} py-16`}>
-      <div className="mx-auto max-w-screen-2xl px-6">
+    <section className={`premium-section ${sectionBg[background || "surface"]} py-16 sm:py-20`}>
+      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
         <GridHeader eyebrow={eyebrow} title={title} body={body} />
         <div className={`grid gap-5 md:grid-cols-2 ${columns === 4 ? "xl:grid-cols-4" : columns === 2 ? "xl:grid-cols-2" : "xl:grid-cols-3"}`}>
           {visibleCards.map((card, index) => (
-            <a className="group overflow-hidden border border-outline-variant/20 bg-surface-container-high transition-colors hover:border-primary/50" href={card.url || "#"} key={`${card.title}-${index}`}>
+            <a className="premium-card group" href={card.url || "#"} key={`${card.title}-${index}`}>
               {showImages && (card.imageUrl || defaultImageUrl) ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img alt={card.imageAlt || defaultImageAlt || card.title} src={card.imageUrl || defaultImageUrl} className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                <img alt={card.imageAlt || defaultImageAlt || card.title} src={card.imageUrl || defaultImageUrl} className="premium-card-image h-52 w-full object-cover" />
               ) : null}
               <div className="p-6">
-                <p className="mb-2 font-label text-xs uppercase tracking-widest text-primary">{card.badge}</p>
-                <h3 className="mb-3 font-headline text-2xl font-bold uppercase text-on-surface group-hover:text-primary">{card.title}</h3>
-                <p className="text-sm leading-relaxed text-tertiary">{card.body}</p>
+                <p className="mb-2 premium-kicker">{card.badge}</p>
+                <h3 className="premium-heading mb-3 font-headline text-2xl font-bold uppercase text-on-surface group-hover:text-primary">{card.title}</h3>
+                <p className="premium-copy text-sm">{card.body}</p>
               </div>
             </a>
           ))}
@@ -802,42 +803,43 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
         const centered = props.align === "center";
 
         return (
-          <section className={`relative flex ${height} items-center overflow-hidden bg-surface`}>
+          <section className={`premium-section relative flex ${height} items-center overflow-hidden bg-surface`}>
             {props.imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 alt={props.imageAlt || props.title}
                 src={props.imageUrl}
-                className="absolute inset-0 h-full w-full object-cover opacity-65"
+                className="absolute inset-0 h-full w-full object-cover opacity-70"
               />
             ) : null}
             {props.overlay !== "none" ? (
-              <div className={`absolute inset-0 ${props.overlay === "soft" ? "bg-surface/55" : "bg-gradient-to-r from-surface via-surface/80 to-surface/20"}`} />
+              <div className={`absolute inset-0 ${props.overlay === "soft" ? "bg-surface/58" : "bg-gradient-to-r from-surface via-surface/82 to-surface/18"}`} />
             ) : null}
-            <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent" />
-            <div className={`relative z-10 mx-auto w-full max-w-screen-2xl px-6 py-20 ${centered ? "text-center" : ""}`}>
-              <div className={`mb-5 inline-flex h-11 w-11 items-center justify-center rounded-sm border border-primary/30 bg-primary/15 text-primary ${centered ? "mx-auto" : ""}`}>
+            <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-surface/15" />
+            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-surface to-transparent" />
+            <div className={`relative z-10 mx-auto w-full max-w-screen-2xl px-4 py-20 sm:px-6 ${centered ? "text-center" : ""}`}>
+              <div className={`reveal-up mb-5 inline-flex h-12 w-12 items-center justify-center rounded-sm border border-primary/35 bg-primary/15 text-primary shadow-[0_0_40px_rgba(255,182,147,0.16)] ${centered ? "mx-auto" : ""}`}>
                 <Icon name={props.icon} />
               </div>
               {props.eyebrow ? (
-                <p className="mb-4 font-label text-xs uppercase tracking-widest text-primary">
+                <p className={`premium-kicker reveal-up mb-4 ${centered ? "justify-center" : ""}`}>
                   {props.eyebrow}
                 </p>
               ) : null}
-              <h1 className={`mb-6 font-headline text-5xl font-bold uppercase leading-none text-on-surface md:text-7xl ${centered ? "mx-auto max-w-5xl" : "max-w-4xl"}`}>
+              <h1 className={`premium-heading reveal-up mb-6 font-headline text-5xl font-bold uppercase leading-none text-on-surface md:text-7xl ${centered ? "mx-auto max-w-5xl" : "max-w-4xl"}`}>
                 {props.title}
               </h1>
-              <p className={`mb-10 text-xl text-tertiary-fixed-dim ${centered ? "mx-auto max-w-3xl" : "max-w-2xl"}`}>
+              <p className={`premium-copy reveal-up-delay mb-10 text-lg sm:text-xl ${centered ? "mx-auto max-w-3xl" : "max-w-2xl"}`}>
                 {props.body}
               </p>
-              <div className={`flex flex-col gap-4 sm:flex-row ${centered ? "justify-center" : ""}`}>
+              <div className={`reveal-up-delay flex flex-col gap-4 sm:flex-row ${centered ? "justify-center" : ""}`}>
                 {props.primaryText ? (
-                  <a className="btn-primary-glow inline-flex items-center justify-center rounded-sm px-8 py-4 font-label font-bold uppercase tracking-wider text-on-primary" href={props.primaryUrl || "#"}>
+                  <a className="premium-link btn-primary-glow inline-flex items-center justify-center rounded-sm px-8 py-4 font-label font-bold uppercase text-on-primary" href={props.primaryUrl || "#"}>
                     {props.primaryText}
                   </a>
                 ) : null}
                 {props.secondaryText ? (
-                  <a className="inline-flex items-center justify-center rounded-sm border border-outline-variant bg-outline/20 px-8 py-4 font-label font-bold uppercase tracking-wider text-on-surface" href={props.secondaryUrl || "#"}>
+                  <a className="premium-link inline-flex items-center justify-center rounded-sm border border-outline-variant bg-outline/20 px-8 py-4 font-label font-bold uppercase text-on-surface hover:border-primary hover:text-primary" href={props.secondaryUrl || "#"}>
                     {props.secondaryText}
                   </a>
                 ) : null}
@@ -859,14 +861,14 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
       },
       defaultProps: { icon: "compass", eyebrow: "", title: "", body: "", align: "center", background: "surface", padding: "standard" },
       render: ({ icon, eyebrow, title, body, align, background, padding }) => (
-        <section className={`${sectionBg[background || "surface"]} ${paddingClass[padding || "standard"]}`}>
-          <div className={`mx-auto max-w-4xl px-6 ${align === "center" ? "text-center" : ""}`}>
-            <div className={`mb-4 inline-flex h-10 w-10 items-center justify-center rounded-sm border border-primary/30 bg-primary/15 text-primary ${align === "center" ? "mx-auto" : ""}`}>
+        <section className={`premium-section ${sectionBg[background || "surface"]} ${paddingClass[padding || "standard"]}`}>
+          <div className={`mx-auto max-w-4xl px-4 sm:px-6 ${align === "center" ? "text-center" : ""}`}>
+            <div className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-sm border border-primary/30 bg-primary/15 text-primary ${align === "center" ? "mx-auto" : ""}`}>
               <Icon name={icon} />
             </div>
-            {eyebrow ? <p className="mb-3 font-label text-xs uppercase tracking-widest text-primary">{eyebrow}</p> : null}
-            <h2 className="mb-4 font-headline text-4xl font-bold uppercase text-on-surface">{title}</h2>
-            <p className="text-lg text-tertiary-fixed-dim">{body}</p>
+            {eyebrow ? <p className={`premium-kicker mb-3 ${align === "center" ? "justify-center" : ""}`}>{eyebrow}</p> : null}
+            <h2 className="premium-heading mb-4 font-headline text-4xl font-bold uppercase text-on-surface">{title}</h2>
+            <p className="premium-copy text-lg">{body}</p>
           </div>
         </section>
       ),
@@ -893,18 +895,18 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
       },
       defaultProps: { eyebrow: "", title: "", body: "", background: "surface", columns: 3, items: [] },
       render: ({ eyebrow, title, body, background, columns, items }) => (
-        <section className={`${sectionBg[background || "surface"]} py-16`}>
-          <div className="mx-auto max-w-screen-2xl px-6">
+        <section className={`premium-section ${sectionBg[background || "surface"]} py-16 sm:py-20`}>
+          <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
             <GridHeader eyebrow={eyebrow} title={title} body={body} />
             <div className={`grid gap-5 ${columns === 4 ? "lg:grid-cols-4" : columns === 2 ? "lg:grid-cols-2" : "lg:grid-cols-3"}`}>
               {(items || []).map((item, index) => {
                 const inner = (
-                  <div className="h-full border border-outline-variant/20 bg-surface-container-high p-6">
+                  <div className="premium-card h-full p-6">
                     <div className="mb-5 inline-flex h-10 w-10 items-center justify-center rounded-sm bg-primary/15 text-primary">
                       <Icon name={item.icon} />
                     </div>
-                    <h3 className="mb-3 font-headline text-xl font-bold uppercase text-on-surface">{item.title}</h3>
-                    <p className="text-sm text-tertiary">{item.body}</p>
+                    <h3 className="premium-heading mb-3 font-headline text-xl font-bold uppercase text-on-surface">{item.title}</h3>
+                    <p className="premium-copy text-sm">{item.body}</p>
                   </div>
                 );
                 return item.url ? <a href={item.url} key={`${item.title}-${index}`}>{inner}</a> : <div key={`${item.title}-${index}`}>{inner}</div>;
@@ -963,22 +965,22 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
         const visibleCards = customCards.length > 0 ? customCards : catalogCards;
 
         return (
-          <section className={`${sectionBg[background || "surface"]} py-16`}>
-            <div className="mx-auto max-w-screen-2xl px-6">
+          <section className={`premium-section ${sectionBg[background || "surface"]} py-16 sm:py-20`}>
+            <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
               <GridHeader eyebrow={eyebrow} title={title} body={body} icon={icon} />
               <div className={layout === "compact" ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-4" : "grid gap-4 sm:grid-cols-2 lg:grid-cols-3"}>
                 {visibleCards.map((card, index) => (
-                  <a key={`${card.title}-${index}`} href={card.url || "#"} className="group overflow-hidden border border-outline-variant/20 bg-surface-container-high hover:border-primary/50">
+                  <a key={`${card.title}-${index}`} href={card.url || "#"} className="premium-card group">
                     {showImages && (card.imageUrl || defaultImageUrl) ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img alt={card.imageAlt || defaultImageAlt || card.title || ""} src={card.imageUrl || defaultImageUrl} className={layout === "compact" ? "h-28 w-full object-cover" : "h-48 w-full object-cover"} />
+                      <img alt={card.imageAlt || defaultImageAlt || card.title || ""} src={card.imageUrl || defaultImageUrl} className={`premium-card-image ${layout === "compact" ? "h-32 w-full object-cover" : "h-56 w-full object-cover"}`} />
                     ) : null}
                     <div className={layout === "compact" ? "p-4" : "p-5"}>
                       <div className="mb-3 flex items-start justify-between gap-4">
-                        <h3 className="font-headline text-xl font-bold uppercase text-on-surface group-hover:text-primary">{card.title}</h3>
-                        {card.badge ? <span className="rounded-sm bg-secondary-container px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-on-secondary-container">{card.badge}</span> : null}
+                        <h3 className="premium-heading font-headline text-xl font-bold uppercase text-on-surface group-hover:text-primary">{card.title}</h3>
+                        {card.badge ? <span className="rounded-sm bg-secondary-container px-2 py-1 text-[10px] font-bold uppercase text-on-secondary-container">{card.badge}</span> : null}
                       </div>
-                      <p className="text-sm text-tertiary-fixed-dim">{card.body}</p>
+                      <p className="premium-copy text-sm">{card.body}</p>
                     </div>
                   </a>
                 ))}
@@ -1031,20 +1033,20 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
         const visibleCards = customCards.length > 0 ? customCards : productCards;
 
         return (
-          <section className={`${sectionBg[background || "muted"]} py-16`}>
-            <div className="mx-auto max-w-screen-2xl px-6">
+          <section className={`premium-section ${sectionBg[background || "muted"]} py-16 sm:py-20`}>
+            <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
               <GridHeader eyebrow={eyebrow} title={title} body={body} cta={cta} />
               <div className={`grid gap-6 md:grid-cols-2 ${columns === 4 ? "xl:grid-cols-4" : columns === 2 ? "xl:grid-cols-2" : "xl:grid-cols-3"}`}>
                 {visibleCards.map((card, index) => (
-                  <a key={`${card.title}-${index}`} href={card.url || "#"} className="overflow-hidden border border-outline-variant/20 bg-surface-container-high">
+                  <a key={`${card.title}-${index}`} href={card.url || "#"} className="premium-card group">
                     {showImages && (card.imageUrl || defaultImageUrl) ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img alt={card.imageAlt || defaultImageAlt || card.title || "Product"} src={card.imageUrl || defaultImageUrl} className="h-56 w-full object-cover" />
+                      <img alt={card.imageAlt || defaultImageAlt || card.title || "Product"} src={card.imageUrl || defaultImageUrl} className="premium-card-image h-56 w-full object-cover" />
                     ) : null}
                     <div className="p-6">
-                      <p className="mb-2 font-label text-xs uppercase tracking-widest text-primary">{card.badge}</p>
-                      <h3 className="mb-3 font-headline text-xl font-bold text-on-surface">{card.title}</h3>
-                      <p className="mb-5 line-clamp-3 text-sm text-tertiary">{card.body}</p>
+                      <p className="premium-kicker mb-2">{card.badge}</p>
+                      <h3 className="premium-heading mb-3 font-headline text-xl font-bold uppercase text-on-surface">{card.title}</h3>
+                      <p className="premium-copy mb-5 line-clamp-3 text-sm">{card.body}</p>
                     </div>
                   </a>
                 ))}
@@ -1097,20 +1099,20 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
         const visibleCards = customCards.length > 0 ? customCards : articleCards;
 
         return (
-          <section className={`${sectionBg[background || "surface"]} py-16`}>
-            <div className="mx-auto max-w-screen-2xl px-6">
+          <section className={`premium-section ${sectionBg[background || "surface"]} py-16 sm:py-20`}>
+            <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
               <GridHeader eyebrow={eyebrow} title={title} body={body} cta={cta} />
               <div className={`grid gap-6 md:grid-cols-2 ${columns === 4 ? "xl:grid-cols-4" : columns === 2 ? "xl:grid-cols-2" : "xl:grid-cols-3"}`}>
                 {visibleCards.map((card, index) => (
-                  <a key={`${card.title}-${index}`} href={card.url || "#"} className="group overflow-hidden border border-outline-variant/20 bg-surface-container-high">
+                  <a key={`${card.title}-${index}`} href={card.url || "#"} className="premium-card group">
                     {showImages && (card.imageUrl || defaultImageUrl) ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img alt={card.imageAlt || defaultImageAlt || card.title || "Article"} src={card.imageUrl || defaultImageUrl} className="h-48 w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <img alt={card.imageAlt || defaultImageAlt || card.title || "Article"} src={card.imageUrl || defaultImageUrl} className="premium-card-image h-52 w-full object-cover" />
                     ) : null}
                     <div className="p-6">
-                      <p className="mb-2 font-label text-xs uppercase tracking-widest text-primary">{card.badge}</p>
-                      <h3 className="mb-3 font-headline text-xl font-bold text-on-surface group-hover:text-primary">{card.title}</h3>
-                      <p className="line-clamp-3 text-sm text-tertiary">{card.body}</p>
+                      <p className="premium-kicker mb-2">{card.badge}</p>
+                      <h3 className="premium-heading mb-3 font-headline text-xl font-bold uppercase text-on-surface group-hover:text-primary">{card.title}</h3>
+                      <p className="premium-copy line-clamp-3 text-sm">{card.body}</p>
                     </div>
                   </a>
                 ))}
@@ -1131,16 +1133,16 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
       },
       defaultProps: { icon: "compass", title: "", body: "", placeholder: "", buttonText: "", background: "surface" },
       render: ({ icon, title, body, placeholder, buttonText, background }) => (
-        <section className={`${sectionBg[background || "surface"]} py-20`}>
-          <div className="mx-auto max-w-3xl px-6 text-center">
-            <div className="mx-auto mb-5 inline-flex h-11 w-11 items-center justify-center rounded-sm border border-primary/30 bg-primary/15 text-primary">
+        <section className={`premium-section ${sectionBg[background || "surface"]} py-20`}>
+          <div className="premium-panel mx-auto max-w-3xl px-5 py-10 text-center sm:px-10">
+            <div className="mx-auto mb-5 inline-flex h-12 w-12 items-center justify-center rounded-sm border border-primary/30 bg-primary/15 text-primary">
               <Icon name={icon} />
             </div>
-            <h2 className="mb-4 font-headline text-4xl font-bold uppercase text-on-surface">{title}</h2>
-            <p className="mb-8 text-lg text-tertiary-fixed-dim">{body}</p>
+            <h2 className="premium-heading mb-4 font-headline text-4xl font-bold uppercase text-on-surface">{title}</h2>
+            <p className="premium-copy mb-8 text-lg">{body}</p>
             <form className="mx-auto flex max-w-lg flex-col gap-4 sm:flex-row">
-              <input className="flex-1 border-b-2 border-outline-variant bg-surface-container-highest px-5 py-4 text-on-surface outline-none placeholder:text-outline/60" placeholder={placeholder} type="email" />
-              <button className="btn-primary-glow rounded-sm px-8 py-4 font-label font-bold uppercase tracking-wider text-on-primary" type="button">
+              <input className="flex-1 border border-outline-variant/30 bg-surface-container-highest/80 px-5 py-4 text-on-surface outline-none placeholder:text-outline/60 focus:border-primary" placeholder={placeholder} type="email" />
+              <button className="premium-link btn-primary-glow rounded-sm px-8 py-4 font-label font-bold uppercase text-on-primary" type="button">
                 {buttonText}
               </button>
             </form>
@@ -1193,13 +1195,13 @@ function GridHeader({
               <Icon name={icon} />
             </span>
           ) : null}
-          {eyebrow ? <p className="font-label text-xs uppercase tracking-widest text-primary">{eyebrow}</p> : null}
+          {eyebrow ? <p className="premium-kicker">{eyebrow}</p> : null}
         </div>
-        <h2 className="font-headline text-3xl font-bold uppercase text-on-surface">{title}</h2>
-        {body ? <p className="mt-2 max-w-3xl text-tertiary">{body}</p> : null}
+        <h2 className="premium-heading font-headline text-3xl font-bold uppercase text-on-surface md:text-4xl">{title}</h2>
+        {body ? <p className="premium-copy mt-2 max-w-3xl">{body}</p> : null}
       </div>
       {cta?.label ? (
-        <a className="inline-flex shrink-0 items-center justify-center rounded-sm border border-outline-variant px-5 py-3 font-label text-xs font-bold uppercase tracking-wider text-on-surface hover:border-primary hover:text-primary" href={cta.url || "#"}>
+        <a className="premium-link inline-flex shrink-0 items-center justify-center rounded-sm border border-outline-variant bg-surface-container-high/60 px-5 py-3 font-label text-xs font-bold uppercase text-on-surface hover:border-primary hover:text-primary" href={cta.url || "#"}>
           {cta.label}
         </a>
       ) : null}

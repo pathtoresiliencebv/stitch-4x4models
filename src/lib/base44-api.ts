@@ -13,6 +13,10 @@ function getApiKey() {
   return apiKey;
 }
 
+function hasApiKey() {
+  return Boolean(process.env.BASE44_API_KEY);
+}
+
 export function normalizeListResponse<T>(payload: unknown): ApiListResponse<T> {
   if (Array.isArray(payload)) {
     return { records: payload as T[], total: payload.length };
@@ -80,6 +84,10 @@ export async function base44List<T>(
   entity: string,
   params: Parameters<typeof buildEntityQuery>[1] = {}
 ): Promise<ApiListResponse<T>> {
+  if (!hasApiKey()) {
+    return { records: [], total: 0 };
+  }
+
   const payload = await base44Fetch<unknown>(buildEntityQuery(entity, params));
   return normalizeListResponse<T>(payload);
 }
