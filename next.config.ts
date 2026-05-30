@@ -15,6 +15,18 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.cloudfront.net",
       },
+      {
+        protocol: "https",
+        hostname: "stimulating-growth-suite-ai.base44.app",
+      },
+      {
+        protocol: "https",
+        hostname: "base44.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.base44.app",
+      },
     ],
   },
 };

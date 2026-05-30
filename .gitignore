@@ -41,3 +41,7 @@ dev-server*.log
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.env*.local
+base44/.app.jsonc
+.agents/
+skills-lock.json

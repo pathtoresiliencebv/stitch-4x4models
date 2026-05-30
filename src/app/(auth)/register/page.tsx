@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
-import base44 from '@/lib/base44';
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState('');

@@ -2,34 +2,77 @@ export interface ProductCategory {
   id: string;
   name: string;
   slug: string;
+  icon?: string;
   description?: string;
-  created_date: string;
+  content?: string;
+  meta_description?: string;
+  focus_keyword?: string;
+  featured_image_url?: string;
+  seo_score?: number;
+  webshop_id?: string;
+  status?: string;
+  sort_order?: number;
+  created_date?: string;
 }
 
 export interface Product {
   id: string;
-  title: string;
-  slug: string;
-  content: string;
+  webshop_id?: string;
+  title?: string;
+  slug?: string;
+  excerpt?: string;
+  content?: string;
   meta_description?: string;
   focus_keyword?: string;
-  featured_image_url?: string;
-  price: number;
+  secondary_keywords?: string[];
+  featured_image_url?: string | null;
+  featured_image_alt?: string | null;
+  author?: string;
+  category?: string;
+  product_type?: string;
+  is_product?: boolean;
+  price?: number;
   sale_price?: number;
+  rating?: number;
+  reviews_count?: number;
+  status?: string;
+  created_date?: string;
+  vendor?: string;
   sku?: string;
-  stock: number;
+  stock?: number;
   category_id?: string;
-  category?: ProductCategory;
   tags?: string[];
-  status: 'draft' | 'review' | 'published';
-  created_date: string;
-  updated_date: string;
-  created_by?: string;
+  track_inventory?: boolean;
+  video_url?: string;
+  product_images?: Array<{
+    url?: string;
+    alt?: string;
+  }>;
+  options?: Array<{
+    name?: string;
+    type?: "text" | "color" | "material" | string;
+    values?: Array<{
+      label?: string;
+      color?: string;
+      image_url?: string;
+    }>;
+  }>;
+  is_customizable?: boolean;
+  custom_fields?: Array<{
+    type?: "text" | "textarea" | "file" | "select" | "number" | string;
+    label?: string;
+    placeholder?: string;
+    help_text?: string;
+    required?: boolean;
+    options?: string[];
+    max_length?: number;
+    accept?: string;
+  }>;
 }
 
 export interface ProductListParams {
   category_id?: string;
-  status?: 'draft' | 'review' | 'published';
+  status?: 'draft' | 'review' | 'published' | 'active';
   limit?: number;
   skip?: number;
   sort_by?: string;

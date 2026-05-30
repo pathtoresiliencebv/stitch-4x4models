@@ -1,16 +1,15 @@
-'use client';
+"use client";
 
-import { createContext, useCallback, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, type ReactNode } from "react";
 
-const API_URL = 'https://stimulating-growth-suite-ai.base44.app/api';
-const APP_ID = '699871557dfcaafa02868052';
-const API_KEY = '4d740112ee914feea4c1d567d68ce926';
+const API_URL = "https://stimulating-growth-suite-ai.base44.app/api";
+const APP_ID = "699871557dfcaafa02868052";
 
 interface User {
   id: string;
   email: string;
   full_name: string;
-  role: 'admin' | 'user';
+  role: "admin" | "user";
 }
 
 interface AuthContextType {
@@ -24,70 +23,45 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function readCachedUser() {
+  if (typeof window === "undefined") return null;
+  const cachedUser = localStorage.getItem("4x4_user");
+  if (!cachedUser) return null;
+
+  try {
+    return JSON.parse(cachedUser) as User;
+  } catch {
+    localStorage.removeItem("4x4_user");
+    localStorage.removeItem("4x4_token");
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const checkAuth = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('4x4_token');
-      if (token) {
-        // Verify token with backend
-        const res = await fetch(`${API_URL}/auth/session`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'x-app-id': APP_ID,
-            'x-api-key': API_KEY,
-          },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-          localStorage.setItem('4x4_user', JSON.stringify(data.user));
-        } else {
-          localStorage.removeItem('4x4_token');
-          localStorage.removeItem('4x4_user');
-        }
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      void checkAuth();
-    }, 0);
-    return () => window.clearTimeout(timeout);
-  }, [checkAuth]);
+  const [user, setUser] = useState<User | null>(readCachedUser);
+  const [isLoading, setIsLoading] = useState(false);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'x-app-id': APP_ID,
-          'x-api-key': API_KEY,
+          "Content-Type": "application/json",
+          "x-app-id": APP_ID,
         },
         body: JSON.stringify({ email, password }),
       });
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || 'Login failed');
+        throw new Error(error.message || "Login failed");
       }
 
       const data = await res.json();
-      localStorage.setItem('4x4_token', data.token);
-      localStorage.setItem('4x4_user', JSON.stringify(data.user));
+      localStorage.setItem("4x4_token", data.token);
+      localStorage.setItem("4x4_user", JSON.stringify(data.user));
       setUser(data.user);
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -97,35 +71,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'x-app-id': APP_ID,
-          'x-api-key': API_KEY,
+          "Content-Type": "application/json",
+          "x-app-id": APP_ID,
         },
         body: JSON.stringify({ email, password, full_name: fullName }),
       });
 
       if (!res.ok) {
         const error = await res.json();
-        throw new Error(error.message || 'Registration failed');
+        throw new Error(error.message || "Registration failed");
       }
 
       const data = await res.json();
-      localStorage.setItem('4x4_token', data.token);
-      localStorage.setItem('4x4_user', JSON.stringify(data.user));
+      localStorage.setItem("4x4_token", data.token);
+      localStorage.setItem("4x4_user", JSON.stringify(data.user));
       setUser(data.user);
-    } catch (error) {
-      console.error('Registration failed:', error);
-      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('4x4_token');
-    localStorage.removeItem('4x4_user');
+    localStorage.removeItem("4x4_token");
+    localStorage.removeItem("4x4_user");
     setUser(null);
   };
 
@@ -148,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

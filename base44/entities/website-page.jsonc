@@ -1,0 +1,47 @@
+{
+  "name": "WebsitePage",
+  "type": "object",
+  "description": "WebsitePage entity",
+  "properties": {
+    "webshop_id": {
+      "type": "string",
+      "description": "Gekoppelde webshop ID"
+    },
+    "title": {
+      "type": "string",
+      "description": "Paginatitel"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL slug (bijv. /over-ons)"
+    },
+    "content": {
+      "type": "string",
+      "description": "Pagina-inhoud in HTML"
+    },
+    "meta_description": {
+      "type": "string",
+      "description": "SEO meta description"
+    },
+    "focus_keyword": {
+      "type": "string",
+      "description": "Focus zoekwoord"
+    },
+    "seo_score": {
+      "type": "number",
+      "description": "SEO score 0-100"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published"
+      ],
+      "default": "draft"
+    }
+  },
+  "required": [
+    "title",
+    "webshop_id"
+  ]
+}

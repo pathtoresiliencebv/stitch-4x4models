@@ -1,0 +1,134 @@
+{
+  "name": "Vehicle",
+  "type": "object",
+  "description": "Vehicle entity",
+  "properties": {
+    "webshop_id": {
+      "type": "string",
+      "description": "Gekoppelde webshop"
+    },
+    "name": {
+      "type": "string",
+      "description": "Naam (bijv. Land Cruiser)"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL slug"
+    },
+    "tagline": {
+      "type": "string",
+      "description": "Korte oneliner (bijv. 'The Benchmark')"
+    },
+    "badge": {
+      "type": "string",
+      "description": "Badge label (bijv. 'Expedition Ready')"
+    },
+    "hero_headline": {
+      "type": "string",
+      "description": "Hero headline op detailpagina"
+    },
+    "hero_body": {
+      "type": "string",
+      "description": "Hero bodytekst op detailpagina"
+    },
+    "hero_image_url": {
+      "type": "string",
+      "description": "Hero / hoofdafbeelding URL"
+    },
+    "hero_image_alt": {
+      "type": "string",
+      "description": "Alt-tekst hero"
+    },
+    "description": {
+      "type": "string",
+      "description": "Lange beschrijving (HTML mogelijk)"
+    },
+    "cta_primary_text": {
+      "type": "string",
+      "description": "Primaire CTA tekst"
+    },
+    "cta_primary_url": {
+      "type": "string",
+      "description": "Primaire CTA link"
+    },
+    "cta_secondary_text": {
+      "type": "string",
+      "description": "Secundaire CTA tekst"
+    },
+    "cta_secondary_url": {
+      "type": "string",
+      "description": "Secundaire CTA link"
+    },
+    "series": {
+      "type": "array",
+      "description": "Subseries / varianten (bijv. 300 Series, 70 Series)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "badge": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "image_url": {
+            "type": "string"
+          },
+          "cta_text": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "pros": {
+      "type": "array",
+      "description": "Pro-punten (review)",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cons": {
+      "type": "array",
+      "description": "Con-punten (review)",
+      "items": {
+        "type": "string"
+      }
+    },
+    "specs": {
+      "type": "array",
+      "description": "Technische specificaties (feature/value)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "feature": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published"
+      ],
+      "default": "draft"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

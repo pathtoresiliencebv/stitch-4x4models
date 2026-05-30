@@ -1,0 +1,51 @@
+{
+  "name": "OrderItem",
+  "type": "object",
+  "description": "OrderItem entity",
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "Gekoppelde Order"
+    },
+    "product_id": {
+      "type": "string",
+      "description": "BlogPost id (is_product=true)"
+    },
+    "variant_id": {
+      "type": "string",
+      "description": "ProductVariant id (optioneel)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Productnaam + variant (snapshot)"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "sku": {
+      "type": "string"
+    },
+    "price": {
+      "type": "number",
+      "description": "Prijs per stuk op moment van bestelling"
+    },
+    "quantity": {
+      "type": "number",
+      "default": 1
+    },
+    "line_total": {
+      "type": "number",
+      "description": "price * quantity"
+    },
+    "customization": {
+      "type": "object",
+      "description": "Klant-personalisatie (van custom_fields)"
+    }
+  },
+  "required": [
+    "order_id",
+    "title",
+    "price",
+    "quantity"
+  ]
+}

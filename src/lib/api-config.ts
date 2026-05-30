@@ -1,7 +1,7 @@
 export const API_CONFIG = {
-  baseUrl: 'https://stimulating-growth-suite-ai.base44.app/api',
-  appId: '6a09fd6a73c15fa19aeb41f8',
-  apiKey: 'f497a9fa558244729d43461df1f9b91b',
+  baseUrl: process.env.NEXT_PUBLIC_BASE44_API_URL || 'https://stimulating-growth-suite-ai.base44.app/api',
+  appId: process.env.NEXT_PUBLIC_BASE44_APP_ID || '6a09fd6a73c15fa19aeb41f8',
+  apiKey: process.env.BASE44_API_KEY || '',
 } as const;
 
 export async function fetchAPI<T>(
@@ -14,8 +14,7 @@ export async function fetchAPI<T>(
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      'x-app-id': API_CONFIG.appId,
-      'x-api-key': API_CONFIG.apiKey,
+      'api_key': API_CONFIG.apiKey,
       ...options.headers,
     },
   });

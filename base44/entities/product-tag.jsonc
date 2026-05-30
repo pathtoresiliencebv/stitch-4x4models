@@ -1,0 +1,55 @@
+{
+  "name": "ProductTag",
+  "type": "object",
+  "description": "ProductTag entity",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Tag naam"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL slug"
+    },
+    "description": {
+      "type": "string",
+      "description": "Korte beschrijving"
+    },
+    "content": {
+      "type": "string",
+      "description": "SEO pagina-inhoud (HTML)"
+    },
+    "meta_description": {
+      "type": "string",
+      "description": "SEO meta description"
+    },
+    "focus_keyword": {
+      "type": "string",
+      "description": "Focus zoekwoord"
+    },
+    "featured_image_url": {
+      "type": "string",
+      "description": "Hoofdafbeelding"
+    },
+    "seo_score": {
+      "type": "number",
+      "description": "SEO score 0-100"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "archived"
+      ],
+      "default": "draft"
+    },
+    "color": {
+      "type": "string",
+      "description": "Optionele weergave-kleur (hex)"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

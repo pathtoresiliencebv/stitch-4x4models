@@ -1,0 +1,38 @@
+{
+  "name": "Project",
+  "type": "object",
+  "description": "Project entity",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Project title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Project description"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "target_keywords": {
+      "type": "array",
+      "description": "Target keywords for SEO",
+      "items": {
+        "type": "string"
+      }
+    },
+    "website_url": {
+      "type": "string",
+      "description": "Website URL for the project"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

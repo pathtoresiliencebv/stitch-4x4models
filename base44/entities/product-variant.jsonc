@@ -1,0 +1,57 @@
+{
+  "name": "ProductVariant",
+  "type": "object",
+  "description": "ProductVariant entity",
+  "properties": {
+    "product_id": {
+      "type": "string",
+      "description": "Gekoppeld product (BlogPost id)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Variant titel (bijv. '8 / Blue')"
+    },
+    "option_values": {
+      "type": "object",
+      "description": "Map van optienaam naar waarde (bijv. {Size: '8', Color: 'Blue'})"
+    },
+    "price": {
+      "type": "number",
+      "description": "Prijs van deze variant"
+    },
+    "compare_at_price": {
+      "type": "number",
+      "description": "Was-prijs (doorgehaald)"
+    },
+    "stock": {
+      "type": "number",
+      "default": 0,
+      "description": "Aantal op voorraad"
+    },
+    "sku": {
+      "type": "string",
+      "description": "Artikelnummer"
+    },
+    "barcode": {
+      "type": "string",
+      "description": "Barcode (EAN/UPC)"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Variant-afbeelding"
+    },
+    "weight": {
+      "type": "number",
+      "description": "Gewicht (gram)"
+    },
+    "position": {
+      "type": "number",
+      "default": 0,
+      "description": "Volgorde"
+    }
+  },
+  "required": [
+    "product_id",
+    "title"
+  ]
+}

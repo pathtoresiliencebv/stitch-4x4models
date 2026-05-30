@@ -1,0 +1,56 @@
+{
+  "name": "SiteContent",
+  "type": "object",
+  "description": "SiteContent entity",
+  "properties": {
+    "webshop_id": {
+      "type": "string",
+      "description": "Gekoppelde webshop"
+    },
+    "page": {
+      "type": "string",
+      "description": "Pagina (bijv. home, journal, gear, checkout, vehicles, land-cruiser, footer, nav, seo)"
+    },
+    "section": {
+      "type": "string",
+      "description": "Sectie binnen de pagina (bijv. hero, newsletter, filters, cta)"
+    },
+    "key": {
+      "type": "string",
+      "description": "Specifieke sleutel (bijv. headline, body, cta_text, placeholder)"
+    },
+    "value": {
+      "type": "string",
+      "description": "Korte tekstwaarde"
+    },
+    "value_long": {
+      "type": "string",
+      "description": "Lange tekst / HTML inhoud"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Optionele afbeelding bij deze content"
+    },
+    "link_url": {
+      "type": "string",
+      "description": "Optionele link bij deze content"
+    },
+    "locale": {
+      "type": "string",
+      "default": "en",
+      "description": "Taal (en, nl)"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0
+    },
+    "notes": {
+      "type": "string",
+      "description": "Interne notitie voor de beheerder"
+    }
+  },
+  "required": [
+    "page",
+    "key"
+  ]
+}

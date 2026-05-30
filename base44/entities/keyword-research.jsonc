@@ -1,0 +1,50 @@
+{
+  "name": "KeywordResearch",
+  "type": "object",
+  "description": "KeywordResearch entity",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Associated project ID"
+    },
+    "keyword": {
+      "type": "string",
+      "description": "The keyword"
+    },
+    "search_volume": {
+      "type": "number",
+      "description": "Monthly search volume"
+    },
+    "difficulty": {
+      "type": "number",
+      "description": "Keyword difficulty 0-100"
+    },
+    "current_position": {
+      "type": "number",
+      "description": "Current ranking position"
+    },
+    "clicks": {
+      "type": "number",
+      "description": "Monthly clicks"
+    },
+    "impressions": {
+      "type": "number",
+      "description": "Monthly impressions"
+    },
+    "ctr": {
+      "type": "number",
+      "description": "Click-through rate"
+    },
+    "suggested_titles": {
+      "type": "array",
+      "description": "AI-suggested blog titles",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "keyword",
+    "project_id"
+  ]
+}

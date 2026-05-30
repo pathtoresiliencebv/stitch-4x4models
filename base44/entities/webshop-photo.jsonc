@@ -1,0 +1,27 @@
+{
+  "name": "WebshopPhoto",
+  "type": "object",
+  "description": "WebshopPhoto entity",
+  "properties": {
+    "webshop_id": {
+      "type": "string",
+      "description": "Gekoppelde webshop ID"
+    },
+    "title": {
+      "type": "string",
+      "description": "Foto titel of bestandsnaam"
+    },
+    "url": {
+      "type": "string",
+      "description": "Foto URL"
+    },
+    "alt": {
+      "type": "string",
+      "description": "SEO alt-tekst"
+    }
+  },
+  "required": [
+    "webshop_id",
+    "url"
+  ]
+}

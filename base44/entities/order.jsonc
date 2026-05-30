@@ -1,0 +1,123 @@
+{
+  "name": "Order",
+  "type": "object",
+  "description": "Order entity",
+  "properties": {
+    "webshop_id": {
+      "type": "string",
+      "description": "Gekoppelde webshop"
+    },
+    "order_number": {
+      "type": "string",
+      "description": "Leesbaar ordernummer (bijv. ORD-2026-0001)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "fulfilled",
+        "shipped",
+        "cancelled",
+        "refunded"
+      ],
+      "default": "pending",
+      "description": "Status van de bestelling"
+    },
+    "customer_email": {
+      "type": "string"
+    },
+    "customer_name": {
+      "type": "string"
+    },
+    "customer_phone": {
+      "type": "string"
+    },
+    "shipping_address": {
+      "type": "object",
+      "properties": {
+        "line1": {
+          "type": "string"
+        },
+        "line2": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "postal_code": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        }
+      }
+    },
+    "billing_address": {
+      "type": "object",
+      "properties": {
+        "line1": {
+          "type": "string"
+        },
+        "line2": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "postal_code": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        }
+      }
+    },
+    "subtotal": {
+      "type": "number",
+      "description": "Subtotaal (excl. verzending)"
+    },
+    "shipping_cost": {
+      "type": "number",
+      "default": 0
+    },
+    "tax": {
+      "type": "number",
+      "default": 0
+    },
+    "total": {
+      "type": "number",
+      "description": "Totaalbedrag"
+    },
+    "currency": {
+      "type": "string",
+      "default": "eur"
+    },
+    "stripe_session_id": {
+      "type": "string",
+      "description": "Stripe Checkout Session ID"
+    },
+    "stripe_payment_intent_id": {
+      "type": "string",
+      "description": "Stripe PaymentIntent ID"
+    },
+    "paid_at": {
+      "type": "string",
+      "format": "datetime"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Interne notitie"
+    },
+    "tracking_number": {
+      "type": "string"
+    },
+    "tracking_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "webshop_id",
+    "customer_email"
+  ]
+}

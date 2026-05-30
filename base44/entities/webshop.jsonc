@@ -1,0 +1,47 @@
+{
+  "name": "Webshop",
+  "type": "object",
+  "description": "Webshop entity",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Naam van de website"
+    },
+    "url": {
+      "type": "string",
+      "description": "Website URL"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "actief",
+        "inactief",
+        "onderhoud"
+      ],
+      "default": "actief"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beschrijving"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Logo URL"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Gekoppeld SEO project ID"
+    },
+    "repo_url": {
+      "type": "string",
+      "description": "GitHub/GitLab repository URL (Next.js project)"
+    },
+    "vercel_url": {
+      "type": "string",
+      "description": "Vercel deployment URL"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

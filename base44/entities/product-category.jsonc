@@ -1,0 +1,54 @@
+{
+  "name": "ProductCategory",
+  "type": "object",
+  "description": "ProductCategory entity",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Categorienaam"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL slug"
+    },
+    "description": {
+      "type": "string",
+      "description": "Korte beschrijving van de categorie"
+    },
+    "content": {
+      "type": "string",
+      "description": "Volledige SEO-pagina inhoud (HTML)"
+    },
+    "meta_description": {
+      "type": "string",
+      "description": "SEO meta description"
+    },
+    "focus_keyword": {
+      "type": "string",
+      "description": "Focus zoekwoord"
+    },
+    "featured_image_url": {
+      "type": "string",
+      "description": "Hoofdafbeelding"
+    },
+    "seo_score": {
+      "type": "number",
+      "description": "SEO score 0-100"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published"
+      ],
+      "default": "draft"
+    },
+    "webshop_id": {
+      "type": "string",
+      "description": "Gekoppelde webshop ID"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

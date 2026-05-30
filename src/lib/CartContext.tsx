@@ -9,7 +9,7 @@ export interface CartItem {
   variantId: string | null;
   title: string;
   image: string;
-  featured_image_url?: string;
+  featured_image_url?: string | null;
   price: number;
   quantity: number;
   sku?: string;
@@ -35,7 +35,7 @@ type LegacyCartInput = {
   product_id: string;
   title: string;
   price: number;
-  featured_image_url?: string;
+  featured_image_url?: string | null;
   sku?: string;
   quantity?: number;
 };
@@ -44,17 +44,21 @@ function sameCustomization(a?: Record<string, string>, b?: Record<string, string
   return JSON.stringify(a || {}) === JSON.stringify(b || {});
 }
 
+function readCachedCart() {
+  if (typeof window === "undefined") return [];
+  const savedCart = localStorage.getItem(CART_STORAGE_KEY);
+  if (!savedCart) return [];
+
+  try {
+    return JSON.parse(savedCart) as CartItem[];
+  } catch {
+    localStorage.removeItem(CART_STORAGE_KEY);
+    return [];
+  }
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const savedCart = localStorage.getItem(CART_STORAGE_KEY);
-      return savedCart ? JSON.parse(savedCart) : [];
-    } catch {
-      localStorage.removeItem(CART_STORAGE_KEY);
-      return [];
-    }
-  });
+  const [items, setItems] = useState<CartItem[]>(readCachedCart);
   const [isLoading] = useState(false);
 
   useEffect(() => {

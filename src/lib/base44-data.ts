@@ -34,7 +34,7 @@ export const getWebshop = unstable_cache(
         return webshop as Webshop | undefined;
       }
 
-      const [webshop] = await base44.entities.Webshop.filter({ status: "active" }, "-created_date", 1);
+      const [webshop] = await base44.entities.Webshop.filter({ status: "actief" }, "-created_date", 1);
       return webshop as Webshop | undefined;
     }, undefined);
   },
@@ -91,7 +91,7 @@ export const getCategories = unstable_cache(
     return safeBase44(
       async () =>
         (await base44.entities.ProductCategory.filter(
-          withWebshop({ status: "active" }),
+          withWebshop({ status: "published" }),
           "name",
           100
         )) as ProductCategory[],
@@ -106,7 +106,7 @@ export async function getCategoryBySlug(slug: string) {
   if (!hasBase44App) return undefined;
   return safeBase44(async () => {
     const [category] = (await base44.entities.ProductCategory.filter(
-      withWebshop({ slug, status: "active" }),
+      withWebshop({ slug, status: "published" }),
       "name",
       1
     )) as ProductCategory[];
@@ -185,7 +185,7 @@ export async function getWebsitePageBySlug(slug: string) {
   if (!hasBase44App) return undefined;
   return safeBase44(async () => {
     const [page] = (await base44.entities.WebsitePage.filter(
-      withWebshop({ slug, status: "active" }),
+      withWebshop({ slug, status: "published" }),
       "-created_date",
       1
     )) as WebsitePage[];

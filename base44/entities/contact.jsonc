@@ -1,0 +1,57 @@
+{
+  "name": "Contact",
+  "type": "object",
+  "description": "Contact entity",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Contact full name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "company": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "lead",
+        "prospect",
+        "customer",
+        "churned"
+      ],
+      "default": "lead"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes about the contact"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "website",
+        "referral",
+        "social",
+        "ads",
+        "organic",
+        "other"
+      ],
+      "default": "website"
+    },
+    "value": {
+      "type": "number",
+      "description": "Estimated deal value"
+    }
+  },
+  "required": [
+    "name",
+    "email"
+  ]
+}

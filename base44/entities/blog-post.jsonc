@@ -1,0 +1,363 @@
+{
+  "name": "BlogPost",
+  "type": "object",
+  "description": "BlogPost entity",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "description": "Associated project ID"
+    },
+    "webshop_id": {
+      "type": "string",
+      "description": "Gekoppelde webshop (voor producten)"
+    },
+    "title": {
+      "type": "string",
+      "description": "Blog post title"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL slug"
+    },
+    "excerpt": {
+      "type": "string",
+      "description": "Korte samenvatting / intro"
+    },
+    "content": {
+      "type": "string",
+      "description": "Full blog post content in HTML"
+    },
+    "meta_description": {
+      "type": "string",
+      "description": "SEO meta description"
+    },
+    "focus_keyword": {
+      "type": "string",
+      "description": "Primary focus keyword"
+    },
+    "secondary_keywords": {
+      "type": "array",
+      "description": "Secondary keywords",
+      "items": {
+        "type": "string"
+      }
+    },
+    "seo_score": {
+      "type": "number",
+      "description": "SEO score 0-100"
+    },
+    "readability_score": {
+      "type": "number",
+      "description": "Readability score 0-100"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "archived",
+        "review",
+        "published"
+      ],
+      "default": "draft",
+      "description": "Status (draft/active/archived voor producten; review/published voor blogs)"
+    },
+    "featured_image_url": {
+      "type": "string",
+      "description": "Featured image URL"
+    },
+    "featured_image_alt": {
+      "type": "string",
+      "description": "Alt-tekst voor hoofdafbeelding"
+    },
+    "word_count": {
+      "type": "number",
+      "description": "Word count"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "description": "Scheduled publication date (yyyy-MM-dd)"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "datetime",
+      "description": "Publicatiedatum"
+    },
+    "author": {
+      "type": "string",
+      "description": "Auteur naam"
+    },
+    "author_image_url": {
+      "type": "string",
+      "description": "Auteur profielfoto URL"
+    },
+    "author_role": {
+      "type": "string",
+      "description": "Rol van auteur (bijv. '4x4 Enthusiast')"
+    },
+    "read_time": {
+      "type": "string",
+      "description": "Leestijd (bijv. '8 Min Read')"
+    },
+    "journal_category": {
+      "type": "string",
+      "enum": [
+        "EXPEDITION",
+        "TECH",
+        "TRAILS",
+        "GEAR",
+        "MAINTENANCE"
+      ],
+      "description": "Categorie voor journal artikelen (alleen als is_product=false)"
+    },
+    "is_product": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this post a product?"
+    },
+    "price": {
+      "type": "number",
+      "description": "Productprijs"
+    },
+    "sale_price": {
+      "type": "number",
+      "description": "Aanbiedingsprijs"
+    },
+    "rating": {
+      "type": "number",
+      "description": "Productbeoordeling (0-5)"
+    },
+    "reviews_count": {
+      "type": "number",
+      "description": "Aantal reviews"
+    },
+    "sku": {
+      "type": "string",
+      "description": "Artikelnummer (SKU)"
+    },
+    "stock": {
+      "type": "number",
+      "description": "Voorraad"
+    },
+    "category_id": {
+      "type": "string",
+      "description": "Categorie ID (ProductCategory)"
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags",
+      "items": {
+        "type": "string"
+      }
+    },
+    "vendor": {
+      "type": "string",
+      "description": "Leverancier / merk"
+    },
+    "product_type": {
+      "type": "string",
+      "description": "Producttype (bijv. T-shirt, Hat)"
+    },
+    "track_inventory": {
+      "type": "boolean",
+      "default": false,
+      "description": "Voorraad bijhouden"
+    },
+    "video_url": {
+      "type": "string",
+      "description": "Product video URL"
+    },
+    "product_images": {
+      "type": "array",
+      "description": "Product images",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "Image URL"
+          },
+          "alt": {
+            "type": "string",
+            "description": "Alt text"
+          }
+        }
+      }
+    },
+    "options": {
+      "type": "array",
+      "description": "Variant-opties (bijv. Size, Color)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Optienaam (bijv. Color)"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text",
+              "color",
+              "material"
+            ],
+            "default": "text",
+            "description": "Hoe deze optie wordt weergegeven op de webshop"
+          },
+          "values": {
+            "type": "array",
+            "description": "Mogelijke waardes; voor color/material kunnen swatches mee",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "description": "Waarde-label (bijv. Red, Kunststof)"
+                },
+                "color": {
+                  "type": "string",
+                  "description": "Hex kleur (voor color/material swatch)"
+                },
+                "image_url": {
+                  "type": "string",
+                  "description": "Optionele textuur/afbeelding voor material"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "is_customizable": {
+      "type": "boolean",
+      "default": false,
+      "description": "Klant kan eigen invoer / uploads meegeven"
+    },
+    "custom_fields": {
+      "type": "array",
+      "description": "Custom form-velden voor klantpersonalisatie",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "text",
+              "textarea",
+              "file",
+              "select",
+              "number"
+            ],
+            "default": "text"
+          },
+          "label": {
+            "type": "string",
+            "description": "Veldlabel (bijv. 'Voer je naam in')"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "help_text": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean",
+            "default": false
+          },
+          "options": {
+            "type": "array",
+            "description": "Voor select-veld",
+            "items": {
+              "type": "string"
+            }
+          },
+          "max_length": {
+            "type": "number"
+          },
+          "accept": {
+            "type": "string",
+            "description": "Voor file: toegestane bestandstypes (bijv. image/*)"
+          }
+        }
+      }
+    },
+    "variants": {
+      "type": "array",
+      "description": "DEPRECATED — gebruik ProductVariant entity",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "subscriptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "duration": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "bundles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "bundle_price": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "offers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "discount_percent": {
+            "type": "number"
+          },
+          "start_date": {
+            "type": "string"
+          },
+          "end_date": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "title"
+  ]
+}
