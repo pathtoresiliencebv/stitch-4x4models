@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { RichContent } from "@/components/shop/RichContent";
 import { isLocale, localizedPath } from "@/lib/locale";
+import { blogService } from "@/lib/services/blog";
 import { categoryService, productService } from "@/lib/services/product";
 import { breadcrumbsJsonLd, collectionPageJsonLd, faqJsonLd, itemListJsonLd, jsonLd, pageMetadata } from "@/lib/seo";
 import type { Locale } from "@/types/common";
@@ -36,7 +37,12 @@ export default async function GearCategoryPage({
   const category = await categoryService.getBySlug(slug);
   if (!category || category.status === "draft") notFound();
 
-  const products = (await productService.listPublished({ category_id: category.id, limit: 100 })).records;
+  const [products, articles] = await Promise.all([
+    productService.listPublished({ category_id: category.id, limit: 100 }),
+    blogService.getLatest(100, locale),
+  ]);
+  const productRecords = products.records;
+  const relatedArticles = articles.filter((item) => category.related_article_slugs?.includes(item.slug || "")).slice(0, 3);
   const faqItems = ((category as { faq_items?: FaqItem[] }).faq_items || []).filter((item) => item.question && item.answer);
   const pagePath = `/${locale}/gear/${category.slug}`;
 
@@ -52,7 +58,7 @@ export default async function GearCategoryPage({
               { name: "Gear", path: `/${locale}/gear` },
               { name: category.name, path: pagePath },
             ]),
-            itemListJsonLd(products.map((product) => ({
+            itemListJsonLd(productRecords.map((product) => ({
               name: product.title || product.slug || "4x4 gear",
               path: `/${locale}/shop/${product.slug}`,
               image: product.featured_image_url,
@@ -85,12 +91,12 @@ export default async function GearCategoryPage({
           <h2 className="font-headline text-2xl font-bold uppercase text-on-surface">
             {locale === "nl" ? "Producten" : "Products"}
           </h2>
-          <span className="font-label text-xs uppercase tracking-widest text-primary">{products.length}</span>
+          <span className="font-label text-xs uppercase tracking-widest text-primary">{productRecords.length}</span>
         </div>
 
-        {products.length ? (
+        {productRecords.length ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {products.map((product) => (
+            {productRecords.map((product) => (
               <Link key={product.id} href={localizedPath(locale, `/shop/${product.slug}`)} className="premium-panel group overflow-hidden">
                 <span className="relative block aspect-[4/3] bg-surface-container-low">
                   {product.featured_image_url ? (
@@ -119,6 +125,39 @@ export default async function GearCategoryPage({
           <div className="premium-panel p-6 sm:p-8">
             <RichContent html={category.content} />
           </div>
+        </section>
+      ) : null}
+
+      {(faqItems.length || relatedArticles.length) ? (
+        <section className="mx-auto grid max-w-screen-2xl gap-4 px-4 pb-16 sm:px-6 lg:grid-cols-2">
+          {faqItems.length ? (
+            <div className="premium-panel p-5 sm:p-6">
+              <h2 className="mb-5 font-headline text-2xl font-bold uppercase text-on-surface">FAQ</h2>
+              <div className="grid gap-3">
+                {faqItems.map((item) => (
+                  <article key={item.question} className="border border-outline-variant/10 bg-surface-container-low p-4">
+                    <h3 className="font-headline text-sm font-bold uppercase text-on-surface">{item.question}</h3>
+                    <p className="mt-2 text-sm text-tertiary">{item.answer}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {relatedArticles.length ? (
+            <div className="premium-panel p-5 sm:p-6">
+              <h2 className="mb-5 font-headline text-2xl font-bold uppercase text-on-surface">
+                {locale === "nl" ? "Koopgidsen" : "Buying guides"}
+              </h2>
+              <div className="grid gap-3">
+                {relatedArticles.map((article) => (
+                  <Link key={article.id} href={localizedPath(locale, `/journal/${article.slug}`)} className="border border-outline-variant/10 bg-surface-container-low p-4 hover:border-primary/40">
+                    <span className="premium-kicker mb-2 block">{article.journal_category || "Journal"}</span>
+                    <span className="font-headline font-bold uppercase text-on-surface">{article.title}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </section>
       ) : null}
     </main>

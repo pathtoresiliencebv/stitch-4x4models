@@ -18,7 +18,17 @@ const categories = [
   { name: "Camping", slug: "camping", icon: "tent", description: "Shelter, storage and camp comfort.", featured_image_url: images.camp, status: "published", sort_order: 3 },
   { name: "Tires", slug: "tires", icon: "circle", description: "All-terrain tires and wheel accessories.", featured_image_url: images.tire, status: "published", sort_order: 4 },
   { name: "Electrical", slug: "electrical", icon: "battery", description: "Power systems, charging and camp electrics.", featured_image_url: images.battery, status: "published", sort_order: 5 },
-];
+].map((category) => ({
+  ...category,
+  seo_title: `${category.name} gear for 4x4 builds`,
+  meta_description: category.description,
+  content: `<p>${category.description}</p><p>Use this collection as a compact buying guide: start with the vehicle use case, check fitment and payload, then choose durable gear that solves one job well.</p>`,
+  faq_items: [
+    { question: `When should I buy ${category.name.toLowerCase()} gear?`, answer: "Buy after you know the terrain, vehicle payload and trip length you are building for." },
+    { question: "How is this collection maintained?", answer: "Products and guide copy are managed from the admin catalog." },
+  ],
+  related_article_slugs: ["recovery-gear-pack-first", "first-5-upgrades", "compact-catalog-guide"],
+}));
 
 const vehicleSeeds = [
   ["Toyota", "Land Cruiser", "land-cruiser", "SUV", "Expedition ready", "The benchmark expedition platform.", 1, 59195, images.hero],
@@ -79,6 +89,14 @@ const vehicles = vehicleSeeds.map(([brand, name, slug, segment, badge, tagline, 
     { feature: "Segment", value: segment },
     { feature: "Best use", value: segment === "Coming soon" ? "Watchlist" : "Trail and travel builds" },
   ],
+  seo_title: `${brand} ${name} 4x4 guide`,
+  meta_description: `${brand} ${name} specs, strengths, watch points and build direction for 4x4 buyers.`,
+  faq_items: [
+    { question: `Is the ${brand} ${name} good for overlanding?`, answer: "Use case, payload and market specification matter most; start with the specs and build only what the trip requires." },
+    { question: "Can I link gear and articles to this model?", answer: "Yes, related product and journal slugs can be managed in the admin." },
+  ],
+  related_product_slugs: ["tactical-recovery-tracks", "complete-dual-battery-kit", "premium-rooftop-tent"],
+  related_article_slugs: ["first-5-upgrades", "compact-catalog-guide", "used-4x4-buying-checklist"],
   sort_order: rank,
   status: "published",
 }));
@@ -117,6 +135,8 @@ const articles = articleTopics.flatMap(([slug, title, excerpt, category, image],
     author_role: "Field editor",
     read_time: "6 min read",
     published_at: new Date(Date.UTC(2026, 4, index + 1, 8)).toISOString(),
+    related_vehicle_slugs: ["land-cruiser", "bronco", "wrangler"],
+    related_product_slugs: ["tactical-recovery-tracks", "complete-dual-battery-kit"],
   },
   {
     locale: "nl",
@@ -132,6 +152,8 @@ const articles = articleTopics.flatMap(([slug, title, excerpt, category, image],
     author_role: "Field editor",
     read_time: "6 min read",
     published_at: new Date(Date.UTC(2026, 4, index + 1, 8)).toISOString(),
+    related_vehicle_slugs: ["land-cruiser", "bronco", "wrangler"],
+    related_product_slugs: ["tactical-recovery-tracks", "complete-dual-battery-kit"],
   },
 ]);
 
@@ -217,7 +239,20 @@ const products = [
     vendor: "4x4models",
     track_inventory: true,
   },
-];
+].map((product) => ({
+  ...product,
+  seo_title: `${product.title} for 4x4 builds`,
+  meta_description: product.excerpt,
+  faq_items: [
+    { question: "How do I choose the right setup?", answer: "Start with vehicle fitment, payload, trip length and terrain before adding accessories." },
+    { question: "Where is this product managed?", answer: "Product copy, images, stock and related links are managed from the admin catalog." },
+  ],
+  options: product.slug === "tactical-recovery-tracks" ? [
+    { name: "Color", type: "color", values: [{ label: "Black" }, { label: "Sand" }] },
+  ] : undefined,
+  related_vehicle_slugs: ["land-cruiser", "tacoma", "bronco"],
+  related_article_slugs: ["recovery-gear-pack-first", "first-5-upgrades", "compact-catalog-guide"],
+}));
 
 const globalContent = {
   en: [
@@ -287,6 +322,8 @@ function textRecords(locale) {
     { page: "order-confirmed", locale, section: "hero", key: "title", value: l ? "Bestelling bevestigd" : "Order confirmed" },
     { page: "order-confirmed", locale, section: "hero", key: "body", value: l ? "Je order is opgeslagen en klaar voor opvolging." : "Your order is saved and ready for follow-up." },
     { page: "order-confirmed", locale, section: "hero", key: "cta", value: l ? "Verder winkelen" : "Continue shopping" },
+    { page: "product-detail", locale, section: "trust", key: "checkout", value: l ? "Veilig afrekenen" : "Secure checkout" },
+    { page: "product-detail", locale, section: "trust", key: "curated", value: l ? "Geselecteerde gear" : "Curated gear" },
     { page: "vehicle-detail", locale, section: "series", key: "headline", value: l ? "Series en varianten" : "Series and variants" },
     { page: "vehicle-detail", locale, section: "specs", key: "headline", value: l ? "Specificaties" : "Technical specs" },
     { page: "vehicle-detail", locale, section: "pros_cons", key: "pros_title", value: l ? "Sterk" : "Strengths" },

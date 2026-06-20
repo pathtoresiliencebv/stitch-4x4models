@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Star, ShoppingCart, Check } from "lucide-react";
+import { Star, ShoppingCart } from "lucide-react";
 
 const galleryImages = [
   {

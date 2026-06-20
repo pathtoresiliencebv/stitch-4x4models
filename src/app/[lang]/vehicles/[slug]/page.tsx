@@ -6,9 +6,10 @@ import { notFound } from "next/navigation";
 import { contentText } from "@/lib/content";
 import { isLocale, localizedPath } from "@/lib/locale";
 import { blogService } from "@/lib/services/blog";
+import { productService } from "@/lib/services/product";
 import { siteContentService } from "@/lib/services/site-content";
 import { vehicleService } from "@/lib/services/vehicle";
-import { breadcrumbsJsonLd, jsonLd, pageMetadata, vehicleArticleJsonLd, webPageJsonLd } from "@/lib/seo";
+import { breadcrumbsJsonLd, faqJsonLd, jsonLd, pageMetadata, vehicleArticleJsonLd, webPageJsonLd } from "@/lib/seo";
 import type { Locale } from "@/types/common";
 
 const fallbackHero =
@@ -38,13 +39,19 @@ export default async function VehicleDetailPage({
   if (!isLocale(lang)) notFound();
 
   const locale = lang as Locale;
-  const [vehicle, latestArticles, content] = await Promise.all([
+  const [vehicle, latestArticles, products, vehicles, content] = await Promise.all([
     vehicleService.getBySlug(slug),
     blogService.getLatest(3, locale),
+    productService.listPublished({ limit: 100 }),
+    vehicleService.list(100),
     siteContentService.getPage("vehicle-detail", locale),
   ]);
 
   if (!vehicle) notFound();
+  const faqItems = (vehicle.faq_items || []).filter((item) => item.question && item.answer);
+  const relatedGear = products.records.filter((item) => vehicle.related_product_slugs?.includes(item.slug || "")).slice(0, 4);
+  const relatedArticles = latestArticles.filter((item) => vehicle.related_article_slugs?.includes(item.slug || "")).slice(0, 3);
+  const comparisonVehicles = vehicles.filter((item) => item.slug !== vehicle.slug).slice(0, 3);
   const galleryImages = (vehicle.gallery_images || []).filter((image) => image.url);
   const quickFacts = [
     [locale === "nl" ? "Merk" : "Brand", vehicle.brand],
@@ -71,7 +78,8 @@ export default async function VehicleDetailPage({
               { name: locale === "nl" ? "Voertuigen" : "Vehicles", path: `/${locale}/vehicles` },
               { name: vehicle.name || "4x4 model", path: schemaPath },
             ]),
-          ]),
+            faqJsonLd(faqItems),
+          ].filter(Boolean)),
         }}
       />
       <section className="relative flex min-h-[560px] items-center overflow-hidden bg-surface-container-lowest lg:min-h-[640px]">
@@ -211,6 +219,56 @@ export default async function VehicleDetailPage({
         </div>
       </section>
 
+      {(faqItems.length || relatedGear.length || comparisonVehicles.length) ? (
+        <section className="bg-surface py-16">
+          <div className="mx-auto grid max-w-screen-2xl gap-4 px-4 sm:px-6 lg:grid-cols-3">
+            {relatedGear.length ? (
+              <div className="premium-panel p-5 sm:p-6">
+                <h2 className="mb-5 font-headline text-2xl font-bold uppercase text-on-surface">
+                  {locale === "nl" ? "Passende gear" : "Related gear"}
+                </h2>
+                <div className="grid gap-3">
+                  {relatedGear.map((product) => (
+                    <Link key={product.id} href={localizedPath(locale, `/shop/${product.slug}`)} className="border border-outline-variant/10 bg-surface-container-low p-4 hover:border-primary/40">
+                      <span className="premium-kicker mb-2 block">{product.product_type || "Gear"}</span>
+                      <span className="font-headline font-bold uppercase text-on-surface">{product.title}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {comparisonVehicles.length ? (
+              <div className="premium-panel p-5 sm:p-6">
+                <h2 className="mb-5 font-headline text-2xl font-bold uppercase text-on-surface">
+                  {locale === "nl" ? "Vergelijk ook" : "Compare also"}
+                </h2>
+                <div className="grid gap-3">
+                  {comparisonVehicles.map((item) => (
+                    <Link key={item.id} href={localizedPath(locale, `/vehicles/${item.slug}`)} className="flex items-center justify-between border border-outline-variant/10 bg-surface-container-low p-4 hover:border-primary/40">
+                      <span className="font-headline font-bold uppercase text-on-surface">{item.name}</span>
+                      <span className="premium-kicker">{item.brand}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {faqItems.length ? (
+              <div className="premium-panel p-5 sm:p-6">
+                <h2 className="mb-5 font-headline text-2xl font-bold uppercase text-on-surface">FAQ</h2>
+                <div className="grid gap-3">
+                  {faqItems.map((item) => (
+                    <article key={item.question} className="border border-outline-variant/10 bg-surface-container-low p-4">
+                      <h3 className="font-headline text-sm font-bold uppercase text-on-surface">{item.question}</h3>
+                      <p className="mt-2 text-sm text-tertiary">{item.answer}</p>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
       <section className="bg-surface py-20">
         <div className="mx-auto max-w-screen-2xl px-6">
           <div className="mb-10 flex items-end justify-between gap-6 border-b border-outline-variant/20 pb-6">
@@ -222,7 +280,7 @@ export default async function VehicleDetailPage({
             </Link>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
-            {latestArticles.map((article) => (
+            {(relatedArticles.length ? relatedArticles : latestArticles).map((article) => (
               <Link key={article.id} href={localizedPath(locale, `/journal/${article.slug}`)} className="border border-outline-variant/20 bg-surface-container-high p-6 hover:border-primary/40">
                 <span className="mb-3 inline-block font-label text-xs uppercase tracking-widest text-primary">{article.journal_category || "Journal"}</span>
                 <h3 className="mb-3 font-headline text-xl font-bold text-on-surface">{article.title}</h3>

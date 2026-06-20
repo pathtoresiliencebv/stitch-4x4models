@@ -5,14 +5,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   Clock,
-  Bell,
-  User,
-  Home,
-  Construction,
-  Group,
-  Calendar,
-  Settings,
-  HelpCircle,
 } from "lucide-react";
 
 const heroArticle = {

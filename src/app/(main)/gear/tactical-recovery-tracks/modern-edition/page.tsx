@@ -1,8 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { ShoppingCart, Weight, Thermometer, Layers, Shovel, CheckCircle, Search, User, Menu } from "lucide-react";
+import { ShoppingCart, Weight, Layers, Shovel, CheckCircle, Search } from "lucide-react";
 
 const heroImage =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuD0YKoIeWfP6F-4M5pJ5sCbtWPAfU4lgV0m_EDYee2bmcYPRsJVXDHHcnfmqyCA6EozUGp6EiAskOPBOfEAkQEzl4VU6RZA8DZbTp7laZSCIEys5RFaVNxZi_ESSLeal0yCdJbKx_WO8kD-AHxahwt9BM1-uh-UD_kj0trJ8hc8XbDlb155iJAD0yvwPgSYFHhLZi1DJAyUJEdutmY4YW_kjJTYLS7t-9LKKeMhfvN1K9NpRZtLYBPxiavqFkKYAibj9900z07tYLoK";

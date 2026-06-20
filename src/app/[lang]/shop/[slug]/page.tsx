@@ -4,8 +4,12 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import AddToCartButton from "@/components/commerce/AddToCartButton";
 import { RichContent } from "@/components/shop/RichContent";
+import { contentText } from "@/lib/content";
 import { isLocale, localizedPath } from "@/lib/locale";
+import { blogService } from "@/lib/services/blog";
 import { productService } from "@/lib/services/product";
+import { siteContentService } from "@/lib/services/site-content";
+import { vehicleService } from "@/lib/services/vehicle";
 import { breadcrumbsJsonLd, faqJsonLd, jsonLd, pageMetadata, productJsonLd } from "@/lib/seo";
 import type { Locale } from "@/types/common";
 
@@ -37,7 +41,17 @@ export default async function LocalizedProductPage({
   const product = await productService.getBySlug(slug);
   if (!product) notFound();
 
-  const relatedProducts = (await productService.listPublished({ limit: 5 })).records.filter((item) => item.slug !== product.slug);
+  const [content, products, vehicles, articles] = await Promise.all([
+    siteContentService.getPage("product-detail", locale),
+    productService.listPublished({ limit: 100 }),
+    vehicleService.list(100),
+    blogService.getLatest(100, locale),
+  ]);
+  const relatedProducts = products.records
+    .filter((item) => item.slug !== product.slug)
+    .sort((a, b) => Number(product.related_product_slugs?.includes(b.slug || "")) - Number(product.related_product_slugs?.includes(a.slug || "")));
+  const relatedVehicles = vehicles.filter((item) => product.related_vehicle_slugs?.includes(item.slug || "")).slice(0, 3);
+  const relatedArticles = articles.filter((item) => product.related_article_slugs?.includes(item.slug || "")).slice(0, 3);
   const images = (
     product.product_images?.length
       ? product.product_images
@@ -105,9 +119,9 @@ export default async function LocalizedProductPage({
 
           <div className="mt-7 grid grid-cols-3 gap-2 border-y border-outline-variant/10 py-4 text-center">
             {[
-              locale === "nl" ? "Veilig afrekenen" : "Secure checkout",
+              contentText(content, "trust", "checkout", locale === "nl" ? "Veilig afrekenen" : "Secure checkout"),
               product.stock && product.stock > 0 ? (locale === "nl" ? "Op voorraad" : "In stock") : locale === "nl" ? "Voorraadstatus" : "Stock status",
-              locale === "nl" ? "CMS beheerd" : "CMS managed",
+              contentText(content, "trust", "curated", locale === "nl" ? "Geselecteerde gear" : "Curated gear"),
             ].map((label) => (
               <span key={label} className="rounded-sm bg-surface-container-low px-2 py-3 font-label text-[10px] uppercase tracking-wider text-on-surface-variant">
                 {label}
@@ -140,6 +154,30 @@ export default async function LocalizedProductPage({
           ) : null}
         </aside>
       </section>
+
+      {product.options?.length ? (
+        <section className="mx-auto max-w-screen-2xl px-4 pb-10 sm:px-6">
+          <div className="premium-panel px-5 py-8 sm:px-8">
+            <h2 className="mb-6 font-headline text-2xl font-bold uppercase text-on-surface">
+              {locale === "nl" ? "Opties" : "Options"}
+            </h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              {product.options.map((option) => (
+                <div key={option.name} className="border border-outline-variant/10 bg-surface-container-low p-4">
+                  <h3 className="font-headline text-base font-bold uppercase text-on-surface">{option.name}</h3>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {option.values?.map((value) => (
+                      <span key={value.label} className="border border-outline-variant/15 px-3 py-2 text-sm text-tertiary">
+                        {value.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {product.content ? (
         <section className="mx-auto max-w-screen-2xl px-4 pb-10 sm:px-6">
@@ -190,6 +228,41 @@ export default async function LocalizedProductPage({
               </Link>
             ))}
           </div>
+        </section>
+      ) : null}
+
+      {(relatedVehicles.length || relatedArticles.length) ? (
+        <section className="mx-auto grid max-w-screen-2xl gap-4 px-4 pb-16 sm:px-6 lg:grid-cols-2">
+          {relatedVehicles.length ? (
+            <div className="premium-panel p-5 sm:p-6">
+              <h2 className="mb-5 font-headline text-2xl font-bold uppercase text-on-surface">
+                {locale === "nl" ? "Past bij modellen" : "Fits these models"}
+              </h2>
+              <div className="grid gap-3">
+                {relatedVehicles.map((vehicle) => (
+                  <Link key={vehicle.id} href={localizedPath(locale, `/vehicles/${vehicle.slug}`)} className="flex items-center justify-between border border-outline-variant/10 bg-surface-container-low p-4 hover:border-primary/40">
+                    <span className="font-headline font-bold uppercase text-on-surface">{vehicle.name}</span>
+                    <span className="premium-kicker">{vehicle.brand || vehicle.segment}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {relatedArticles.length ? (
+            <div className="premium-panel p-5 sm:p-6">
+              <h2 className="mb-5 font-headline text-2xl font-bold uppercase text-on-surface">
+                {locale === "nl" ? "Lees erbij" : "Read next"}
+              </h2>
+              <div className="grid gap-3">
+                {relatedArticles.map((article) => (
+                  <Link key={article.id} href={localizedPath(locale, `/journal/${article.slug}`)} className="border border-outline-variant/10 bg-surface-container-low p-4 hover:border-primary/40">
+                    <span className="premium-kicker mb-2 block">{article.journal_category || "Journal"}</span>
+                    <span className="font-headline font-bold uppercase text-on-surface">{article.title}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </section>
       ) : null}
     </div>

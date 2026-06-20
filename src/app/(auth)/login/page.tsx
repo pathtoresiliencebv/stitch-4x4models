@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
-import Link from 'next/link';
 import { Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
@@ -21,7 +20,7 @@ export default function LoginPage() {
     try {
       await login(email, password);
       window.location.href = '/';
-    } catch (err) {
+    } catch {
       setError('Invalid email or password');
     } finally {
       setIsLoading(false);

@@ -5,7 +5,9 @@ import { notFound } from "next/navigation";
 import { contentText } from "@/lib/content";
 import { isLocale, localizedPath } from "@/lib/locale";
 import { blogService } from "@/lib/services/blog";
+import { productService } from "@/lib/services/product";
 import { siteContentService } from "@/lib/services/site-content";
+import { vehicleService } from "@/lib/services/vehicle";
 import { articleJsonLd, breadcrumbsJsonLd, jsonLd, pageMetadata } from "@/lib/seo";
 import type { Locale } from "@/types/common";
 
@@ -33,13 +35,17 @@ export default async function JournalDetailPage({
   if (!isLocale(lang)) notFound();
 
   const locale = lang as Locale;
-  const [article, content, relatedArticles] = await Promise.all([
+  const [article, content, relatedArticles, products, vehicles] = await Promise.all([
     blogService.getBySlug(slug, locale),
     siteContentService.getPage("journal-detail", locale),
     blogService.getLatest(4, locale),
+    productService.listPublished({ limit: 100 }),
+    vehicleService.list(100),
   ]);
   if (!article) notFound();
   const related = relatedArticles.filter((item) => item.slug !== article.slug).slice(0, 3);
+  const relatedProducts = products.records.filter((item) => article.related_product_slugs?.includes(item.slug || "")).slice(0, 3);
+  const relatedVehicles = vehicles.filter((item) => article.related_vehicle_slugs?.includes(item.slug || "")).slice(0, 3);
   const schemaPath = `/${locale}/journal/${article.slug}`;
 
   return (
@@ -73,6 +79,11 @@ export default async function JournalDetailPage({
             {article.journal_category || contentText(content, "hero", "fallback_badge", "Journal")}
           </span>
           <h1 className="mb-5 font-headline text-5xl font-bold uppercase leading-tight text-on-surface">{article.title}</h1>
+          <div className="mb-5 flex flex-wrap gap-3 font-label text-xs uppercase tracking-widest text-on-surface-variant">
+            {article.author ? <span>{article.author}</span> : null}
+            {article.read_time ? <span>{article.read_time}</span> : null}
+            {article.published_at || article.created_date ? <span>{new Date(article.published_at || article.created_date || "").toLocaleDateString(locale)}</span> : null}
+          </div>
           <p className="text-xl text-tertiary">{article.excerpt}</p>
         </div>
       </section>
@@ -82,6 +93,42 @@ export default async function JournalDetailPage({
           dangerouslySetInnerHTML={{ __html: article.content || `<p>${article.excerpt || ""}</p>` }}
         />
       </section>
+      {(relatedVehicles.length || relatedProducts.length) ? (
+        <section className="bg-surface py-14">
+          <div className="mx-auto grid max-w-screen-xl gap-4 px-6 md:grid-cols-2">
+            {relatedVehicles.length ? (
+              <div className="premium-panel p-5">
+                <h2 className="mb-5 font-headline text-2xl font-bold uppercase text-on-surface">
+                  {locale === "nl" ? "Modellen in dit artikel" : "Models in this article"}
+                </h2>
+                <div className="grid gap-3">
+                  {relatedVehicles.map((vehicle) => (
+                    <Link key={vehicle.id} href={localizedPath(locale, `/vehicles/${vehicle.slug}`)} className="flex items-center justify-between border border-outline-variant/10 bg-surface-container-low p-4 hover:border-primary/40">
+                      <span className="font-headline font-bold uppercase text-on-surface">{vehicle.name}</span>
+                      <span className="premium-kicker">{vehicle.brand}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {relatedProducts.length ? (
+              <div className="premium-panel p-5">
+                <h2 className="mb-5 font-headline text-2xl font-bold uppercase text-on-surface">
+                  {locale === "nl" ? "Gear in dit artikel" : "Gear in this article"}
+                </h2>
+                <div className="grid gap-3">
+                  {relatedProducts.map((product) => (
+                    <Link key={product.id} href={localizedPath(locale, `/shop/${product.slug}`)} className="border border-outline-variant/10 bg-surface-container-low p-4 hover:border-primary/40">
+                      <span className="premium-kicker mb-2 block">{product.product_type || "Gear"}</span>
+                      <span className="font-headline font-bold uppercase text-on-surface">{product.title}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
       {related.length ? (
         <section className="bg-surface-container-low py-14">
           <div className="mx-auto max-w-screen-xl px-6">
