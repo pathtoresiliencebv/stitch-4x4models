@@ -57,6 +57,10 @@ type EditableCard = {
   url: string;
   imageUrl: string;
   imageAlt: string;
+  brand?: string;
+  segment?: string;
+  trendingRank?: number;
+  priceFrom?: number;
 };
 
 type ActionLink = {
@@ -809,12 +813,13 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
               <img
                 alt={props.imageAlt || props.title}
                 src={props.imageUrl}
-                className="absolute inset-0 h-full w-full object-cover opacity-70"
+                className="absolute inset-0 h-full w-full object-cover opacity-72 saturate-[0.92] contrast-[1.08]"
               />
             ) : null}
             {props.overlay !== "none" ? (
-              <div className={`absolute inset-0 ${props.overlay === "soft" ? "bg-surface/58" : "bg-gradient-to-r from-surface via-surface/82 to-surface/18"}`} />
+              <div className={`absolute inset-0 ${props.overlay === "soft" ? "bg-surface/62" : "bg-gradient-to-r from-surface via-surface/84 to-surface/16"}`} />
             ) : null}
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.035)_1px,transparent_1px)] bg-[length:6rem_100%] opacity-35" />
             <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-surface/15" />
             <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-surface to-transparent" />
             <div className={`relative z-10 mx-auto w-full max-w-screen-2xl px-4 py-20 sm:px-6 ${centered ? "text-center" : ""}`}>
@@ -953,37 +958,121 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
       render: ({ icon, eyebrow, title, body, cards, layout, showImages, defaultImageUrl, defaultImageAlt, background, puck }) => {
         const metadata = puck.metadata as PuckMetadata | undefined;
         const lang = metadata?.lang || "en";
+        const isNl = lang === "nl";
         const catalogCards: EditableCard[] = (metadata?.vehicles || []).map((vehicle) => ({
           title: vehicle.name || "",
-          badge: vehicle.badge || "4x4",
+          badge: vehicle.badge || vehicle.segment || "4x4",
           body: vehicle.tagline || vehicle.hero_body || "",
           url: `/${lang}/vehicles/${vehicle.slug}`,
           imageUrl: vehicle.featured_image_url || vehicle.hero_image_url || "",
           imageAlt: vehicle.hero_image_alt || vehicle.name || "",
+          brand: vehicle.brand || "Other",
+          segment: vehicle.segment || "",
+          trendingRank: vehicle.trending_rank || vehicle.sort_order || 999,
+          priceFrom: vehicle.price_from || undefined,
         }));
         const customCards = cards || [];
-        const visibleCards = customCards.length > 0 ? customCards : catalogCards;
+        const visibleCards = (customCards.length > 0 ? customCards : catalogCards)
+          .filter((card) => card.title)
+          .sort((a, b) => (a.trendingRank || 999) - (b.trendingRank || 999) || a.title.localeCompare(b.title));
+        const featuredCards = visibleCards.slice(0, 6);
+        const articleCards = (metadata?.articles || []).slice(0, 5).map((article) => ({
+          title: article.title || "",
+          badge: article.journal_category || article.read_time || "Journal",
+          url: `/${lang}/journal/${article.slug}`,
+        })).filter((item) => item.title && item.url);
+        const productCards = (metadata?.products || []).slice(0, 4).map((product) => ({
+          title: product.title || "",
+          badge: product.product_type || product.vendor || "Gear",
+          url: `/${lang}/shop/${product.slug}`,
+        })).filter((item) => item.title && item.url);
+        const groupedCards = visibleCards.reduce<Record<string, EditableCard[]>>((groups, card) => {
+          const key = card.brand || "Other";
+          groups[key] = [...(groups[key] || []), card];
+          return groups;
+        }, {});
+        const brands = Object.keys(groupedCards).sort();
+        const price = (value?: number) =>
+          value ? new Intl.NumberFormat(isNl ? "nl-NL" : "en-US", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(value) : "";
 
         return (
           <section className={`premium-section ${sectionBg[background || "surface"]} py-16 sm:py-20`}>
             <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
-              <GridHeader eyebrow={eyebrow} title={title} body={body} icon={icon} />
-              <div className={layout === "compact" ? "grid gap-3 sm:grid-cols-2 xl:grid-cols-4" : "grid gap-4 sm:grid-cols-2 lg:grid-cols-3"}>
-                {visibleCards.map((card, index) => (
-                  <a key={`${card.title}-${index}`} href={card.url || "#"} className="premium-card group">
-                    {showImages && (card.imageUrl || defaultImageUrl) ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img alt={card.imageAlt || defaultImageAlt || card.title || ""} src={card.imageUrl || defaultImageUrl} className={`premium-card-image ${layout === "compact" ? "h-32 w-full object-cover" : "h-56 w-full object-cover"}`} />
-                    ) : null}
-                    <div className={layout === "compact" ? "p-4" : "p-5"}>
-                      <div className="mb-3 flex items-start justify-between gap-4">
-                        <h3 className="premium-heading font-headline text-xl font-bold uppercase text-on-surface group-hover:text-primary">{card.title}</h3>
-                        {card.badge ? <span className="rounded-sm bg-secondary-container px-2 py-1 text-[10px] font-bold uppercase text-on-secondary-container">{card.badge}</span> : null}
+              <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_21rem]">
+                <div>
+                  <GridHeader eyebrow={eyebrow} title={title} body={body} icon={icon} />
+
+                  <div className="premium-panel sticky top-16 z-10 mb-6 grid gap-4 p-3 sm:grid-cols-[1fr_auto] sm:items-center lg:top-24">
+                    <nav aria-label={isNl ? "Merken" : "Brands"} className="flex gap-2 overflow-x-auto pb-1">
+                      {brands.map((brand) => (
+                        <a key={brand} href={`#brand-${brand.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`} className="premium-index-link whitespace-nowrap border border-outline-variant/15 bg-surface-container-low px-3 py-2 font-label text-[11px] font-bold uppercase text-on-surface hover:border-primary hover:bg-primary/10 hover:text-primary">
+                          {brand}
+                        </a>
+                      ))}
+                    </nav>
+                    <a className="premium-link inline-flex justify-center border border-primary/40 px-5 py-3 font-label text-xs font-bold uppercase text-primary hover:bg-primary hover:text-on-primary" href={`/${lang}/journal`}>
+                      {isNl ? "Laatste verhalen" : "Latest stories"}
+                    </a>
+                  </div>
+
+                  {featuredCards.length ? (
+                    <div className="mb-10">
+                      <p className="premium-kicker mb-4">{isNl ? "Trending modellen" : "Trending models"}</p>
+                      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                        {featuredCards.map((card, index) => (
+                          <a key={`featured-${card.title}-${index}`} href={card.url || "#"} className="premium-card group overflow-hidden">
+                            {showImages && (card.imageUrl || defaultImageUrl) ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img alt={card.imageAlt || defaultImageAlt || card.title || ""} src={card.imageUrl || defaultImageUrl} className="premium-card-image h-36 w-full object-cover" />
+                            ) : null}
+                            <div className="p-4">
+                              {card.badge ? <p className="premium-kicker mb-2">{card.badge}</p> : null}
+                              <h3 className="premium-heading font-headline text-lg font-bold uppercase text-on-surface group-hover:text-primary">{card.brand ? `${card.brand} ` : ""}{card.title}</h3>
+                            </div>
+                          </a>
+                        ))}
                       </div>
-                      <p className="premium-copy text-sm">{card.body}</p>
                     </div>
-                  </a>
-                ))}
+                  ) : null}
+
+                  <div className="premium-panel p-4 sm:p-6">
+                    <h3 className="mb-5 font-headline text-2xl font-bold uppercase text-on-surface">{isNl ? "Alle 4x4 modellen" : "All 4x4 models"}</h3>
+                    <div className="space-y-6">
+                      {brands.map((brand) => (
+                        <div key={brand} id={`brand-${brand.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`} className="scroll-mt-32 border-t border-outline-variant/10 pt-5">
+                          <div className="mb-3 flex items-center gap-4">
+                            <span className="font-headline text-2xl font-bold uppercase text-primary">{brand}</span>
+                            <span className="h-px flex-1 bg-outline-variant/10" />
+                            <span className="text-xs text-on-surface-variant">{groupedCards[brand].length}</span>
+                          </div>
+                          <div className={layout === "compact" ? "grid gap-2 sm:grid-cols-2 xl:grid-cols-3" : "grid gap-3 sm:grid-cols-2 xl:grid-cols-3"}>
+                            {groupedCards[brand].map((card, index) => (
+                              <a key={`${brand}-${card.title}-${index}`} href={card.url || "#"} className="group border border-outline-variant/10 bg-surface-container-low/70 p-3 transition-colors hover:border-primary/50 hover:bg-surface-container-high">
+                                <div className="flex items-start justify-between gap-4">
+                                  <span>
+                                    <span className="block font-headline text-base font-bold uppercase text-on-surface group-hover:text-primary">{card.title}</span>
+                                    {card.body ? <span className="mt-1 block text-xs leading-relaxed text-on-surface-variant">{card.body}</span> : null}
+                                    <span className="mt-2 flex flex-wrap gap-2 text-[10px] uppercase tracking-widest text-outline">
+                                      {card.segment ? <span>{card.segment}</span> : null}
+                                      {card.priceFrom ? <span>{price(card.priceFrom)}</span> : null}
+                                    </span>
+                                  </span>
+                                  {card.badge ? <span className="shrink-0 bg-secondary-container px-2 py-1 text-[10px] font-bold uppercase text-on-secondary-container">{card.badge}</span> : null}
+                                </div>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                      {!brands.length ? <p className="text-sm text-on-surface-variant">{isNl ? "Nog geen modellen gevonden." : "No models found yet."}</p> : null}
+                    </div>
+                  </div>
+                </div>
+
+                <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+                  <SidebarList title={isNl ? "Meest gelezen" : "Most read"} items={articleCards} emptyText={isNl ? "Nog geen artikelen." : "No articles yet."} />
+                  <SidebarList title={isNl ? "Gear picks" : "Gear picks"} items={productCards} emptyText={isNl ? "Nog geen producten." : "No products yet."} />
+                </aside>
               </div>
             </div>
           </section>
@@ -1205,6 +1294,31 @@ function GridHeader({
           {cta.label}
         </a>
       ) : null}
+    </div>
+  );
+}
+
+function SidebarList({ title, items, emptyText }: { title: string; items: Array<{ title: string; badge?: string; url: string }>; emptyText: string }) {
+  return (
+    <div className="premium-panel p-5">
+      <h3 className="mb-4 font-headline text-xl font-bold uppercase text-on-surface">{title}</h3>
+      {items.length ? (
+        <ol className="space-y-3">
+          {items.map((item, index) => (
+            <li key={`${title}-${item.url}-${index}`}>
+              <a href={item.url} className="group grid grid-cols-[2rem_1fr] gap-3 border-t border-outline-variant/10 pt-3">
+                <span className="font-headline text-2xl font-bold text-primary">{index + 1}</span>
+                <span>
+                  {item.badge ? <span className="premium-kicker mb-1">{item.badge}</span> : null}
+                  <span className="block font-headline text-sm font-bold uppercase leading-snug text-on-surface group-hover:text-primary">{item.title}</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="text-sm text-on-surface-variant">{emptyText}</p>
+      )}
     </div>
   );
 }

@@ -1,11 +1,26 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { CheckCircle } from "lucide-react";
 import { contentText } from "@/lib/content";
 import { isLocale } from "@/lib/locale";
 import { siteContentService } from "@/lib/services/site-content";
+import { pageMetadata } from "@/lib/seo";
 import type { Locale } from "@/types/common";
 
 const label = (locale: Locale, en: string, nl: string) => (locale === "nl" ? nl : en);
+
+export async function generateMetadata({ params }: PageProps<"/[lang]/shop/order-confirmed">): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? (lang as Locale) : "en";
+  const content = await siteContentService.getPage("order-confirmed", locale);
+
+  return pageMetadata({
+    locale,
+    path: "/shop/order-confirmed",
+    title: contentText(content, "seo", "title", label(locale, "Order confirmed", "Bestelling bevestigd")),
+    description: contentText(content, "seo", "description", label(locale, "Your order confirmation.", "Je orderbevestiging.")),
+  });
+}
 
 export default async function OrderConfirmedPage({
   params,

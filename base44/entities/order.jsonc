@@ -24,6 +24,21 @@
       "default": "pending",
       "description": "Status van de bestelling"
     },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid",
+        "failed",
+        "refunded"
+      ],
+      "default": "pending",
+      "description": "Betaalstatus"
+    },
+    "checkout_locale": {
+      "type": "string",
+      "description": "Locale van checkout"
+    },
     "customer_email": {
       "type": "string"
     },

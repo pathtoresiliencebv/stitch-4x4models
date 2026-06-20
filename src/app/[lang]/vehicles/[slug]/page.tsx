@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { ArrowRight, Compass } from "lucide-react";
 import { notFound } from "next/navigation";
 import { contentText } from "@/lib/content";
@@ -7,10 +8,28 @@ import { isLocale, localizedPath } from "@/lib/locale";
 import { blogService } from "@/lib/services/blog";
 import { siteContentService } from "@/lib/services/site-content";
 import { vehicleService } from "@/lib/services/vehicle";
+import { breadcrumbsJsonLd, jsonLd, pageMetadata, vehicleArticleJsonLd, webPageJsonLd } from "@/lib/seo";
 import type { Locale } from "@/types/common";
 
 const fallbackHero =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuB9hg-db0Bxon54ms-R7qJWBEH1DTruyUzCn0d3F9a0w0igjf38d44ZPtSqXG_kOl98vG8gwchwsrrmkqbO_1mIBr3dOQdncM0rDU9uGlOqIpxfrk1J36mZjbXOD0vgRFrTGIpkRJGOSPMZSazVcxKv204_f1aoT9_FxRFAdL8eTtMtQ00GHeluVRQ05NY4-ElnpjitmsCQZFREIPxxUQOzwn61yywpvCaPpLXc7OMA8sdjwbXUDJfc9KPFYwJoj7ICUaXmgESTHz8p";
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/[lang]/vehicles/[slug]">): Promise<Metadata> {
+  const { lang, slug } = await params;
+  const locale = isLocale(lang) ? (lang as Locale) : "en";
+  const vehicle = await vehicleService.getBySlug(slug);
+
+  return pageMetadata({
+    locale,
+    path: `/vehicles/${slug}`,
+    title: vehicle?.seo_title || vehicle?.hero_headline || vehicle?.name || (locale === "nl" ? "4x4 model" : "4x4 model"),
+    description: vehicle?.meta_description || vehicle?.description || vehicle?.hero_body || vehicle?.tagline,
+    image: vehicle?.hero_image_url || vehicle?.featured_image_url,
+    type: "article",
+  });
+}
 
 export default async function VehicleDetailPage({
   params,
@@ -21,15 +40,41 @@ export default async function VehicleDetailPage({
   const locale = lang as Locale;
   const [vehicle, latestArticles, content] = await Promise.all([
     vehicleService.getBySlug(slug),
-    blogService.getLatest(3),
+    blogService.getLatest(3, locale),
     siteContentService.getPage("vehicle-detail", locale),
   ]);
 
   if (!vehicle) notFound();
+  const galleryImages = (vehicle.gallery_images || []).filter((image) => image.url);
+  const quickFacts = [
+    [locale === "nl" ? "Merk" : "Brand", vehicle.brand],
+    [locale === "nl" ? "Segment" : "Segment", vehicle.segment],
+    [locale === "nl" ? "Regio" : "Region", vehicle.market_region],
+    [locale === "nl" ? "Vanaf" : "From", typeof vehicle.price_from === "number" ? `EUR ${vehicle.price_from.toLocaleString("en-US")}` : undefined],
+  ].filter((item): item is [string, string] => Boolean(item[1]));
+  const schemaPath = `/${locale}/vehicles/${vehicle.slug}`;
 
   return (
     <div className="bg-noise">
-      <section className="relative flex min-h-[720px] items-center overflow-hidden bg-surface-container-lowest">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd([
+            vehicleArticleJsonLd(vehicle, schemaPath),
+            webPageJsonLd({
+              name: vehicle.hero_headline || vehicle.name || "4x4 model",
+              description: vehicle.description || vehicle.hero_body || vehicle.tagline,
+              path: schemaPath,
+            }),
+            breadcrumbsJsonLd([
+              { name: "4x4models", path: `/${locale}` },
+              { name: locale === "nl" ? "Voertuigen" : "Vehicles", path: `/${locale}/vehicles` },
+              { name: vehicle.name || "4x4 model", path: schemaPath },
+            ]),
+          ]),
+        }}
+      />
+      <section className="relative flex min-h-[560px] items-center overflow-hidden bg-surface-container-lowest lg:min-h-[640px]">
         <div className="absolute inset-0 md:left-[30%]">
           <Image
             alt={vehicle.hero_image_alt || vehicle.name || "4x4 model"}
@@ -41,7 +86,7 @@ export default async function VehicleDetailPage({
           <div className="absolute inset-0 bg-gradient-to-r from-surface-container-lowest via-surface-container-lowest/80 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent" />
         </div>
-        <div className="relative z-10 mx-auto w-full max-w-screen-2xl px-6 py-20">
+        <div className="relative z-10 mx-auto w-full max-w-screen-2xl px-4 py-16 sm:px-6 lg:py-20">
           <div className="mb-6 inline-flex items-center rounded-sm bg-secondary-container px-3 py-1 font-label text-xs uppercase tracking-widest text-on-secondary-container">
             <Compass className="mr-2 h-4 w-4" />
             {vehicle.badge || vehicle.tagline || "4x4"}
@@ -52,6 +97,16 @@ export default async function VehicleDetailPage({
           <p className="mb-10 max-w-xl text-xl text-tertiary">
             {vehicle.hero_body || vehicle.description || vehicle.tagline}
           </p>
+          {quickFacts.length ? (
+            <dl className="mb-8 grid max-w-3xl grid-cols-2 gap-2 sm:grid-cols-4">
+              {quickFacts.map(([label, value]) => (
+                <div key={label} className="border border-outline-variant/15 bg-surface/70 p-3 backdrop-blur">
+                  <dt className="font-label text-[10px] uppercase tracking-widest text-primary">{label}</dt>
+                  <dd className="mt-1 text-sm font-semibold text-on-surface">{value}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
           <div className="flex flex-col gap-4 sm:flex-row">
             <Link
               className="inline-flex items-center justify-center rounded-sm bg-gradient-to-br from-primary to-primary-container px-8 py-4 font-headline text-sm font-bold uppercase tracking-widest text-on-primary"
@@ -69,6 +124,20 @@ export default async function VehicleDetailPage({
           </div>
         </div>
       </section>
+
+      {galleryImages.length ? (
+        <section className="bg-surface py-12">
+          <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
+            <div className="grid gap-3 md:grid-cols-[1.2fr_0.8fr]">
+              {galleryImages.slice(0, 3).map((image, index) => (
+                <div key={`${image.url}-${index}`} className={index === 0 ? "premium-panel relative aspect-[16/9] overflow-hidden md:row-span-2 md:aspect-auto" : "premium-panel relative aspect-[16/9] overflow-hidden"}>
+                  <Image src={image.url || ""} alt={image.alt || vehicle.name || "4x4 model"} fill unoptimized className="object-cover" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <section id="series" className="bg-surface py-20">
         <div className="mx-auto max-w-screen-2xl px-6">

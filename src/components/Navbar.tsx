@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import {
   ArrowUpRight,
   ChevronDown,
@@ -76,6 +77,7 @@ export default function Navbar({
 }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<MenuKey | null>(null);
+  const reduced = useReducedMotion();
   const { user, isAuthenticated, logout } = useAuth();
   const { itemCount } = useCart();
   const href = (path: string) => `/${lang}${path}`;
@@ -208,7 +210,12 @@ export default function Navbar({
       </div>
 
       {activeMenu ? (
-        <div className="hidden border-t border-outline-variant/10 bg-surface/94 backdrop-blur-2xl lg:block">
+        <motion.div
+          animate={{ opacity: 1, y: 0 }}
+          className="hidden border-t border-outline-variant/10 bg-surface/94 backdrop-blur-2xl lg:block"
+          initial={reduced ? false : { opacity: 0, y: -8 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+        >
           <div className="mx-auto grid max-w-screen-2xl grid-cols-[0.85fr_2fr] gap-8 px-6 py-6">
             <div className="premium-panel p-6">
               <p className="premium-kicker mb-4">{primaryNav.find((item) => item.key === activeMenu)?.label}</p>
@@ -247,7 +254,7 @@ export default function Navbar({
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
       ) : null}
 
       {isOpen ? (
@@ -295,7 +302,8 @@ export default function Navbar({
 
 function MenuPreviewCard({ item, onClick }: { item: MenuItem; onClick: () => void }) {
   return (
-    <Link href={item.href} onClick={onClick} className="premium-card group overflow-hidden">
+    <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.99 }} transition={{ duration: 0.16 }}>
+    <Link href={item.href} onClick={onClick} className="premium-card group block overflow-hidden">
       {item.imageUrl ? (
         <span className="relative block h-28 overflow-hidden">
           <Image src={item.imageUrl} alt={item.title} fill unoptimized className="premium-card-image object-cover" />
@@ -311,6 +319,7 @@ function MenuPreviewCard({ item, onClick }: { item: MenuItem; onClick: () => voi
         </span>
       </span>
     </Link>
+    </motion.div>
   );
 }
 

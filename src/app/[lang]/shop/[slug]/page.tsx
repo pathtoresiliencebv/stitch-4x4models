@@ -1,10 +1,31 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
+import type { Metadata } from "next";
 import AddToCartButton from "@/components/commerce/AddToCartButton";
 import { RichContent } from "@/components/shop/RichContent";
-import { isLocale } from "@/lib/locale";
+import { isLocale, localizedPath } from "@/lib/locale";
 import { productService } from "@/lib/services/product";
+import { breadcrumbsJsonLd, faqJsonLd, jsonLd, pageMetadata, productJsonLd } from "@/lib/seo";
 import type { Locale } from "@/types/common";
+
+type FaqItem = { question?: string; answer?: string };
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/[lang]/shop/[slug]">): Promise<Metadata> {
+  const { lang, slug } = await params;
+  const locale = isLocale(lang) ? (lang as Locale) : "en";
+  const product = await productService.getBySlug(slug);
+
+  return pageMetadata({
+    locale,
+    path: `/shop/${slug}`,
+    title: product?.seo_title || product?.title || (locale === "nl" ? "Product" : "Product"),
+    description: product?.meta_description || product?.excerpt,
+    image: product?.featured_image_url,
+  });
+}
 
 export default async function LocalizedProductPage({
   params,
@@ -16,6 +37,7 @@ export default async function LocalizedProductPage({
   const product = await productService.getBySlug(slug);
   if (!product) notFound();
 
+  const relatedProducts = (await productService.listPublished({ limit: 5 })).records.filter((item) => item.slug !== product.slug);
   const images = (
     product.product_images?.length
       ? product.product_images
@@ -24,10 +46,21 @@ export default async function LocalizedProductPage({
   const leadImage = images[0];
   const price = product.sale_price ?? product.price;
   const comparePrice = product.sale_price ? product.price : undefined;
+  const faqItems = ((product as { faq_items?: FaqItem[] }).faq_items || []).filter((item) => item.question && item.answer);
+  const jsonLdItems = [
+    productJsonLd(product, `/${locale}/shop/${product.slug}`, price, product.stock),
+    breadcrumbsJsonLd([
+      { name: "4x4models", path: `/${locale}` },
+      { name: locale === "nl" ? "Gear" : "Gear", path: `/${locale}/gear` },
+      { name: product.title || "Product", path: `/${locale}/shop/${product.slug}` },
+    ]),
+    faqJsonLd(faqItems),
+  ].filter(Boolean);
 
   return (
     <div className="premium-section bg-surface">
-      <section className="mx-auto grid max-w-screen-2xl gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1.08fr_0.92fr]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(jsonLdItems) }} />
+      <section className="mx-auto grid max-w-screen-2xl gap-6 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[minmax(0,1.08fr)_minmax(380px,0.92fr)]">
         <div className="premium-panel overflow-hidden">
           {leadImage?.url ? (
             <div className="relative aspect-[4/3]">
@@ -50,7 +83,7 @@ export default async function LocalizedProductPage({
           ) : null}
         </div>
 
-        <aside className="premium-panel self-start px-5 py-7 sm:px-8">
+        <aside className="premium-panel self-start px-5 py-6 sm:px-7 lg:sticky lg:top-24">
           <p className="premium-kicker mb-4">{product.product_type || product.vendor || (locale === "nl" ? "Gear" : "Gear")}</p>
           <h1 className="premium-heading mb-5 font-headline text-4xl font-bold uppercase leading-tight text-on-surface sm:text-5xl">
             {product.title}
@@ -61,14 +94,40 @@ export default async function LocalizedProductPage({
 
           {typeof price === "number" ? (
             <div className="mb-7 flex items-end gap-3 border-y border-outline-variant/10 py-5">
-              <span className="font-headline text-4xl font-bold text-on-surface">€{price.toFixed(2)}</span>
+              <span className="font-headline text-4xl font-bold text-on-surface">EUR {price.toFixed(2)}</span>
               {typeof comparePrice === "number" ? (
-                <span className="pb-1 text-sm text-on-surface-variant line-through">€{comparePrice.toFixed(2)}</span>
+                <span className="pb-1 text-sm text-on-surface-variant line-through">EUR {comparePrice.toFixed(2)}</span>
               ) : null}
             </div>
           ) : null}
 
           <AddToCartButton product={product} />
+
+          <div className="mt-7 grid grid-cols-3 gap-2 border-y border-outline-variant/10 py-4 text-center">
+            {[
+              locale === "nl" ? "Veilig afrekenen" : "Secure checkout",
+              product.stock && product.stock > 0 ? (locale === "nl" ? "Op voorraad" : "In stock") : locale === "nl" ? "Voorraadstatus" : "Stock status",
+              locale === "nl" ? "CMS beheerd" : "CMS managed",
+            ].map((label) => (
+              <span key={label} className="rounded-sm bg-surface-container-low px-2 py-3 font-label text-[10px] uppercase tracking-wider text-on-surface-variant">
+                {label}
+              </span>
+            ))}
+          </div>
+
+          <dl className="mt-6 grid grid-cols-2 gap-3 text-sm">
+            {[
+              ["SKU", product.sku],
+              [locale === "nl" ? "Merk" : "Vendor", product.vendor],
+              [locale === "nl" ? "Type" : "Type", product.product_type],
+              [locale === "nl" ? "Voorraad" : "Stock", typeof product.stock === "number" ? String(product.stock) : undefined],
+            ].filter((item): item is [string, string] => Boolean(item[1])).map(([label, value]) => (
+              <div key={label} className="border border-outline-variant/10 bg-surface-container-low p-3">
+                <dt className="font-label text-[10px] uppercase tracking-widest text-primary">{label}</dt>
+                <dd className="mt-1 text-on-surface">{value}</dd>
+              </div>
+            ))}
+          </dl>
 
           {product.tags?.length ? (
             <div className="mt-8 flex flex-wrap gap-2">
@@ -83,9 +142,53 @@ export default async function LocalizedProductPage({
       </section>
 
       {product.content ? (
-        <section className="mx-auto max-w-screen-2xl px-4 pb-16 sm:px-6 sm:pb-20">
-          <div className="premium-panel px-5 py-8 sm:px-8">
+        <section className="mx-auto max-w-screen-2xl px-4 pb-10 sm:px-6">
+          <div className="premium-panel px-5 py-8 sm:px-8 lg:px-10">
             <RichContent html={product.content} />
+          </div>
+        </section>
+      ) : null}
+
+      {faqItems.length ? (
+        <section className="mx-auto max-w-screen-2xl px-4 pb-10 sm:px-6">
+          <div className="premium-panel px-5 py-8 sm:px-8">
+            <h2 className="mb-6 font-headline text-2xl font-bold uppercase text-on-surface">FAQ</h2>
+            <div className="grid gap-3 md:grid-cols-2">
+              {faqItems.map((item) => (
+                <article key={item.question} className="border border-outline-variant/10 bg-surface-container-low p-4">
+                  <h3 className="font-headline text-base font-bold uppercase text-on-surface">{item.question}</h3>
+                  <p className="mt-2 text-sm text-tertiary">{item.answer}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {relatedProducts.length ? (
+        <section className="mx-auto max-w-screen-2xl px-4 pb-16 sm:px-6 sm:pb-20">
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <h2 className="font-headline text-2xl font-bold uppercase text-on-surface">
+              {locale === "nl" ? "Gerelateerde gear" : "Related gear"}
+            </h2>
+            <Link href={localizedPath(locale, "/gear")} className="font-label text-xs uppercase tracking-widest text-secondary hover:text-primary">
+              {locale === "nl" ? "Alles bekijken" : "View all"}
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {relatedProducts.slice(0, 4).map((item) => (
+              <Link key={item.id} href={localizedPath(locale, `/shop/${item.slug}`)} className="premium-panel group overflow-hidden">
+                <span className="relative block aspect-[4/3] bg-surface-container-low">
+                  {item.featured_image_url ? (
+                    <Image src={item.featured_image_url} alt={item.featured_image_alt || item.title || ""} fill unoptimized className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+                  ) : null}
+                </span>
+                <span className="block p-4">
+                  <span className="premium-kicker mb-2 block">{item.product_type || "Gear"}</span>
+                  <span className="font-headline text-lg font-bold uppercase text-on-surface">{item.title}</span>
+                </span>
+              </Link>
+            ))}
           </div>
         </section>
       ) : null}

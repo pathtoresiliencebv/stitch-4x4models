@@ -1,23 +1,71 @@
 import type { MetadataRoute } from "next";
-import { getCategories, getLatestBlogPosts, getProducts, getTags } from "@/lib/base44-data";
+import { blogService } from "@/lib/services/blog";
+import { categoryService, productService } from "@/lib/services/product";
+import { vehicleService } from "@/lib/services/vehicle";
 import { absoluteUrl } from "@/lib/seo";
+import type { Locale } from "@/types/common";
+
+const locales: Locale[] = ["en", "nl"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [products, categories, tags, posts] = await Promise.all([
-    getProducts(500),
-    getCategories(),
-    getTags(),
-    getLatestBlogPosts(500),
+  const [vehicles, enArticles, nlArticles, products, categories] = await Promise.all([
+    vehicleService.list(500),
+    blogService.getLatest(500, "en"),
+    blogService.getLatest(500, "nl"),
+    productService.listPublished({ limit: 500 }),
+    categoryService.list(),
   ]);
 
+  const staticPaths = locales.flatMap((locale) => [
+    `/${locale}`,
+    `/${locale}/vehicles`,
+    `/${locale}/journal`,
+    `/${locale}/gear`,
+    `/${locale}/shop`,
+    `/${locale}/shop/cart`,
+    `/${locale}/shop/checkout`,
+  ]);
+
+  const vehiclePaths = locales.flatMap((locale) =>
+    vehicles
+      .filter((vehicle) => vehicle.slug)
+      .map((vehicle) => ({
+        url: absoluteUrl(`/${locale}/vehicles/${vehicle.slug}`),
+        lastModified: vehicle.updated_date,
+      }))
+  );
+
+  const articlePaths = [
+    ...enArticles.map((article) => ({ locale: "en" as const, article })),
+    ...nlArticles.map((article) => ({ locale: "nl" as const, article })),
+  ]
+    .filter(({ article }) => article.slug)
+    .map(({ locale, article }) => ({
+      url: absoluteUrl(`/${locale}/journal/${article.slug}`),
+      lastModified: article.updated_date || article.published_at || article.created_date,
+    }));
+
+  const productPaths = locales.flatMap((locale) =>
+    products.records
+      .filter((product) => product.slug)
+      .map((product) => ({
+        url: absoluteUrl(`/${locale}/shop/${product.slug}`),
+        lastModified: product.created_date,
+      }))
+  );
+  const categoryPaths = locales.flatMap((locale) =>
+    categories
+      .filter((category) => category.slug)
+      .map((category) => ({
+        url: absoluteUrl(`/${locale}/gear/${category.slug}`),
+      }))
+  );
+
   return [
-    { url: absoluteUrl("/") },
-    { url: absoluteUrl("/producten") },
-    { url: absoluteUrl("/collecties") },
-    { url: absoluteUrl("/blog") },
-    ...products.map((product) => ({ url: absoluteUrl(`/producten/${product.slug}`), lastModified: product.updated_date })),
-    ...categories.map((category) => ({ url: absoluteUrl(`/collecties/${category.slug}`) })),
-    ...tags.map((tag) => ({ url: absoluteUrl(`/tags/${tag.slug}`) })),
-    ...posts.map((post) => ({ url: absoluteUrl(`/blog/${post.slug}`), lastModified: post.updated_date })),
+    ...staticPaths.map((path) => ({ url: absoluteUrl(path) })),
+    ...categoryPaths,
+    ...vehiclePaths,
+    ...articlePaths,
+    ...productPaths,
   ];
 }

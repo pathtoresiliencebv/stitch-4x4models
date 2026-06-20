@@ -23,6 +23,14 @@
       "type": "string",
       "description": "SEO meta description"
     },
+    "seo_title": {
+      "type": "string",
+      "description": "Optionele SEO titel / title tag"
+    },
+    "canonical_url": {
+      "type": "string",
+      "description": "Optionele canonical URL override"
+    },
     "focus_keyword": {
       "type": "string",
       "description": "Focus zoekwoord"
@@ -30,6 +38,28 @@
     "featured_image_url": {
       "type": "string",
       "description": "Hoofdafbeelding"
+    },
+    "faq_items": {
+      "type": "array",
+      "description": "FAQ items voor categoriepagina",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "related_article_slugs": {
+      "type": "array",
+      "description": "Gerelateerde journal slugs",
+      "items": {
+        "type": "string"
+      }
     },
     "seo_score": {
       "type": "number",

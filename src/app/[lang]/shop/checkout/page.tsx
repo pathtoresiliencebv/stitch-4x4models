@@ -1,10 +1,25 @@
+import type { Metadata } from "next";
 import CheckoutClient, { type CheckoutLabels } from "@/components/commerce/CheckoutClient";
 import { contentText } from "@/lib/content";
 import { isLocale } from "@/lib/locale";
 import { siteContentService } from "@/lib/services/site-content";
+import { pageMetadata } from "@/lib/seo";
 import type { Locale } from "@/types/common";
 
 const label = (locale: Locale, en: string, nl: string) => (locale === "nl" ? nl : en);
+
+export async function generateMetadata({ params }: PageProps<"/[lang]/shop/checkout">): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? (lang as Locale) : "en";
+  const content = await siteContentService.getPage("checkout", locale);
+
+  return pageMetadata({
+    locale,
+    path: "/shop/checkout",
+    title: contentText(content, "seo", "title", label(locale, "Secure checkout", "Veilig afrekenen")),
+    description: contentText(content, "seo", "description", label(locale, "Complete your 4x4 gear order.", "Rond je 4x4 gear bestelling af.")),
+  });
+}
 
 export default async function CheckoutPage({ params }: PageProps<"/[lang]/shop/checkout">) {
   const { lang } = await params;
@@ -18,7 +33,7 @@ export default async function CheckoutPage({ params }: PageProps<"/[lang]/shop/c
       content,
       "hero",
       "intro",
-      label(locale, "Review your order and complete the demo checkout.", "Controleer je order en rond de demo checkout af.")
+      label(locale, "Review your order and pay securely online.", "Controleer je order en betaal veilig online.")
     ),
     contactTitle: contentText(content, "form", "title", label(locale, "Contact and delivery", "Contact en levering")),
     orderSummary: contentText(content, "summary", "title", label(locale, "Order summary", "Orderoverzicht")),

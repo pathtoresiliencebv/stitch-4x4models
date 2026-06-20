@@ -6,8 +6,15 @@ export interface ProductCategory {
   description?: string;
   content?: string;
   meta_description?: string;
+  seo_title?: string;
+  canonical_url?: string;
   focus_keyword?: string;
   featured_image_url?: string;
+  faq_items?: Array<{
+    question?: string;
+    answer?: string;
+  }>;
+  related_article_slugs?: string[];
   seo_score?: number;
   webshop_id?: string;
   status?: string;
@@ -23,6 +30,8 @@ export interface Product {
   excerpt?: string;
   content?: string;
   meta_description?: string;
+  seo_title?: string;
+  canonical_url?: string;
   focus_keyword?: string;
   secondary_keywords?: string[];
   featured_image_url?: string | null;
@@ -42,6 +51,13 @@ export interface Product {
   stock?: number;
   category_id?: string;
   tags?: string[];
+  faq_items?: Array<{
+    question?: string;
+    answer?: string;
+  }>;
+  related_vehicle_slugs?: string[];
+  related_product_slugs?: string[];
+  related_article_slugs?: string[];
   track_inventory?: boolean;
   video_url?: string;
   product_images?: Array<{

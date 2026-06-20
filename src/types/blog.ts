@@ -3,10 +3,13 @@ export interface BlogPost {
   project_id?: string;
   webshop_id?: string;
   title?: string;
+  locale?: "en" | "nl" | string;
   slug?: string;
   excerpt?: string;
   content?: string;
   meta_description?: string;
+  seo_title?: string;
+  canonical_url?: string;
   focus_keyword?: string;
   secondary_keywords?: string[];
   seo_score?: number;
@@ -31,6 +34,13 @@ export interface BlogPost {
   stock?: number;
   category_id?: string;
   tags?: string[];
+  faq_items?: Array<{
+    question?: string;
+    answer?: string;
+  }>;
+  related_vehicle_slugs?: string[];
+  related_product_slugs?: string[];
+  related_article_slugs?: string[];
   vendor?: string;
   product_type?: string;
   track_inventory?: boolean;
@@ -85,6 +95,7 @@ export interface BlogPost {
 
 export interface BlogListParams {
   status?: string;
+  locale?: "en" | "nl" | string;
   project_id?: string;
   limit?: number;
   skip?: number;

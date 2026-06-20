@@ -20,160 +20,120 @@ const categories = [
   { name: "Electrical", slug: "electrical", icon: "battery", description: "Power systems, charging and camp electrics.", featured_image_url: images.battery, status: "published", sort_order: 5 },
 ];
 
-const vehicles = [
-  {
-    name: "Land Cruiser",
-    slug: "land-cruiser",
-    tagline: "The benchmark expedition platform.",
-    badge: "Expedition ready",
-    hero_headline: "Toyota Land Cruiser",
-    hero_body: "A proven 4x4 platform with the durability, comfort and aftermarket depth needed for long-distance adventure.",
-    description: "The Land Cruiser is the reference point for serious travel builds: strong drivetrains, deep parts support and a calm feel over rough ground.",
-    hero_image_url: images.hero,
-    featured_image_url: images.hero,
-    hero_image_alt: "Toyota Land Cruiser on a remote trail",
-    cta_primary_text: "Explore series",
-    cta_primary_url: "#series",
-    cta_secondary_text: "View specs",
-    cta_secondary_url: "#specs",
-    series: [
-      { id: "lc-300", name: "300 Series", slug: "300-series", badge: "Modern flagship", description: "Refined, powerful and well suited to premium touring builds.", image_url: images.hero, cta_text: "Review setup" },
-      { id: "lc-70", name: "70 Series", slug: "70-series", badge: "Heritage workhorse", description: "Mechanical, durable and loved for remote work.", image_url: images.forest, cta_text: "Review setup" },
-    ],
-    pros: ["Excellent long-range reliability", "Strong aftermarket ecosystem", "Comfortable at highway and trail pace"],
-    cons: ["Premium purchase price", "Weight needs careful payload planning"],
-    specs: [
-      { feature: "Drivetrain", value: "Full-time or part-time 4WD" },
-      { feature: "Best use", value: "Expedition touring" },
-      { feature: "Build focus", value: "Suspension, protection, storage" },
-    ],
-    sort_order: 1,
-    status: "published",
-  },
-  {
-    name: "Tacoma",
-    slug: "tacoma",
-    tagline: "Compact pickup, huge build potential.",
-    badge: "Field tested",
-    hero_headline: "Toyota Tacoma",
-    hero_body: "A practical midsize pickup platform for weekend trails, camping systems and modular overland builds.",
-    description: "Tacoma builds shine when they stay light, organized and focused on flexible travel.",
-    hero_image_url: images.camp,
-    featured_image_url: images.camp,
-    hero_image_alt: "Toyota Tacoma with rooftop tent",
-    cta_primary_text: "Explore setup",
-    cta_primary_url: "#series",
-    cta_secondary_text: "View specs",
-    cta_secondary_url: "#specs",
-    series: [{ id: "tacoma-trd", name: "TRD Off-Road", slug: "trd-off-road", badge: "Trail base", description: "A smart starting point for practical, capable builds.", image_url: images.camp, cta_text: "Review setup" }],
-    pros: ["Huge aftermarket support", "Easy to park and live with", "Great for modular storage systems"],
-    cons: ["Payload disappears quickly", "Cabin space is tighter than full-size trucks"],
-    specs: [
-      { feature: "Body", value: "Midsize pickup" },
-      { feature: "Best use", value: "Weekend overland" },
-      { feature: "Build focus", value: "Weight control, storage, tires" },
-    ],
-    sort_order: 2,
-    status: "published",
-  },
-  {
-    name: "Hilux",
-    slug: "hilux",
-    tagline: "Durable, global and ready to work.",
-    badge: "Heritage",
-    hero_headline: "Toyota Hilux",
-    hero_body: "A globally respected pickup platform with dependable engineering and practical load-carrying ability.",
-    description: "Hilux builds are at their best when they combine practical protection, sensible suspension and reliable camp power.",
-    hero_image_url: images.dunes,
-    featured_image_url: images.dunes,
-    hero_image_alt: "Toyota Hilux in desert terrain",
-    cta_primary_text: "Explore setup",
-    cta_primary_url: "#series",
-    cta_secondary_text: "View specs",
-    cta_secondary_url: "#specs",
-    series: [{ id: "hilux-double-cab", name: "Double Cab", slug: "double-cab", badge: "Travel ready", description: "A balanced platform for people, tools and travel systems.", image_url: images.dunes, cta_text: "Review setup" }],
-    pros: ["Global parts availability", "Strong commercial-duty reputation", "Excellent diesel touring base"],
-    cons: ["Ride quality depends heavily on suspension setup", "Rear storage needs planning"],
-    specs: [
-      { feature: "Body", value: "Midsize pickup" },
-      { feature: "Best use", value: "Remote touring" },
-      { feature: "Build focus", value: "Suspension, canopy, electrical" },
-    ],
-    sort_order: 3,
-    status: "published",
-  },
-  {
-    name: "Defender",
-    slug: "defender",
-    tagline: "Modern comfort with serious terrain systems.",
-    badge: "Premium",
-    hero_headline: "Land Rover Defender",
-    hero_body: "A modern adventure platform with strong comfort, technology and all-weather confidence.",
-    description: "The Defender suits premium travel builds that prioritize comfort, traction systems and clean integration.",
-    hero_image_url: images.forest,
-    featured_image_url: images.forest,
-    hero_image_alt: "Modern Defender on forest trail",
-    cta_primary_text: "Explore setup",
-    cta_primary_url: "#series",
-    cta_secondary_text: "View specs",
-    cta_secondary_url: "#specs",
-    series: [{ id: "defender-110", name: "Defender 110", slug: "110", badge: "Touring sweet spot", description: "Long enough for travel systems while staying manageable on tight trails.", image_url: images.forest, cta_text: "Review setup" }],
-    pros: ["Comfortable and composed", "Strong traction technology", "Great daily usability"],
-    cons: ["Complex electronics", "Accessory choices should be deliberate"],
-    specs: [
-      { feature: "Body", value: "SUV" },
-      { feature: "Best use", value: "Premium touring" },
-      { feature: "Build focus", value: "Protection, storage, electronics" },
-    ],
-    sort_order: 4,
-    status: "published",
-  },
+const vehicleSeeds = [
+  ["Toyota", "Land Cruiser", "land-cruiser", "SUV", "Expedition ready", "The benchmark expedition platform.", 1, 59195, images.hero],
+  ["Toyota", "4Runner", "4runner", "SUV", "Trailhunter", "New-generation trail SUV with real touring range.", 2, 45065, images.forest],
+  ["Toyota", "Tacoma", "tacoma", "Pickup", "Field tested", "Compact pickup, huge build potential.", 3, 39995, images.camp],
+  ["Toyota", "Hilux", "hilux", "Pickup", "Global icon", "Durable, global and ready to work.", 4, 36000, images.dunes],
+  ["Lexus", "GX", "lexus-gx", "SUV", "Luxury crawler", "Premium comfort on a Prado-derived 4x4 platform.", 5, 67835, images.forest],
+  ["Jeep", "Wrangler", "wrangler", "SUV", "Rock crawl", "The classic removable-roof trail reference.", 6, 38030, images.dunes],
+  ["Jeep", "Gladiator", "gladiator", "Pickup", "Rubicon", "Open-air pickup character with Wrangler hardware.", 7, 54515, images.tracks],
+  ["Jeep", "Grand Cherokee", "grand-cherokee", "SUV", "Overland", "Family comfort with available true 4WD systems.", 8, 42585, images.forest],
+  ["Ford", "Bronco", "bronco", "SUV", "All-rounder", "A modern Wrangler rival with daily usability.", 9, 42790, images.dunes],
+  ["Ford", "Ranger Raptor", "ranger-raptor", "Pickup", "Desert speed", "High-speed off-road pickup with serious suspension.", 10, 58965, images.dunes],
+  ["Chevrolet", "Colorado ZR2", "colorado-zr2", "Pickup", "Technical trails", "Midsize truck tuned for rocks, ruts and rough trails.", 11, 52795, images.tracks],
+  ["GMC", "Canyon AT4X", "canyon-at4x", "Pickup", "Premium pickup", "Luxury-leaning off-road truck with ZR2 bones.", 12, 59395, images.workshop],
+  ["Land Rover", "Defender", "defender", "SUV", "Premium", "Modern comfort with serious terrain systems.", 13, 65350, images.forest],
+  ["Ineos", "Grenadier", "grenadier", "SUV", "Mechanical", "Purpose-built premium 4x4 with honest hardware.", 14, 85995, images.hero],
+  ["Mercedes-Benz", "G-Class", "g-class", "SUV", "Icon", "Luxury status with real ladder-frame capability.", 15, 148250, images.workshop],
+  ["Suzuki", "Jimny", "jimny", "SUV", "Lightweight", "Small, simple and loved where trails get tight.", 16, 28000, images.forest],
+  ["Nissan", "Patrol", "patrol", "SUV", "Desert proven", "Big-capacity touring SUV with deep regional loyalty.", 17, 58000, images.dunes],
+  ["Nissan", "Frontier Pro-4X", "frontier-pro-4x", "Pickup", "Value pick", "Simple midsize truck with factory off-road hardware.", 18, 39990, images.tracks],
+  ["Mitsubishi", "Triton", "triton", "Pickup", "Global pickup", "Work-ready global truck for practical touring.", 19, 36000, images.camp],
+  ["Mitsubishi", "Pajero Sport", "pajero-sport", "SUV", "Family tourer", "Body-on-frame SUV based on proven pickup roots.", 20, 42000, images.forest],
+  ["Isuzu", "D-Max", "d-max", "Pickup", "Diesel utility", "Efficient diesel pickup favored for remote work.", 21, 35000, images.workshop],
+  ["Rivian", "R1T", "rivian-r1t", "Electric", "EV truck", "Electric adventure pickup with clever storage and torque.", 22, 69900, images.battery],
+  ["Rivian", "R1S", "rivian-r1s", "Electric", "EV SUV", "Three-row electric SUV with real trail modes.", 23, 75900, images.battery],
+  ["Scout", "Traveler", "scout-traveler", "Coming soon", "Watchlist", "Upcoming electric 4x4 to watch for future builds.", 24, 60000, images.hero],
+  ["Jeep", "Recon", "recon", "Coming soon", "Watchlist", "Electric Wrangler-adjacent concept for future trail buyers.", 25, 60000, images.battery],
 ];
 
-const articles = [
+const vehicles = vehicleSeeds.map(([brand, name, slug, segment, badge, tagline, rank, price, image]) => ({
+  brand,
+  name,
+  slug,
+  segment,
+  badge,
+  tagline,
+  market_region: segment === "Coming soon" ? "Future" : "Global",
+  trending_rank: rank,
+  price_from: price,
+  use_cases: segment === "Pickup" ? ["overland", "gear hauling", "trail weekends"] : ["overland", "trail touring", "daily adventure"],
+  hero_headline: `${brand} ${name}`,
+  hero_body: `${tagline} Managed as a compact, research-friendly 4x4 model page with specs, pros, watch points and build direction.`,
+  description: `${brand} ${name} is included because it is a relevant current 4x4 platform for buyers comparing capability, aftermarket support and real-world touring use.`,
+  hero_image_url: image,
+  featured_image_url: image,
+  hero_image_alt: `${brand} ${name} 4x4 model`,
+  featured_image_alt: `${brand} ${name} 4x4 model`,
+  cta_primary_text: "Explore setup",
+  cta_primary_url: "#series",
+  cta_secondary_text: "View specs",
+  cta_secondary_url: "#specs",
+  gallery_images: [{ url: image, alt: `${brand} ${name}` }],
+  series: [{ id: slug, name, slug, badge, description: `${segment} platform for compact comparison and build planning.`, image_url: image, cta_text: "Review setup" }],
+  pros: ["Relevant current 4x4 platform", "Strong enthusiast interest", "Clear upgrade path"],
+  cons: ["Final build depends on payload and market availability", "Pricing and trims vary by region"],
+  specs: [
+    { feature: "Brand", value: brand },
+    { feature: "Segment", value: segment },
+    { feature: "Best use", value: segment === "Coming soon" ? "Watchlist" : "Trail and travel builds" },
+  ],
+  sort_order: rank,
+  status: "published",
+}));
+
+const articleTopics = [
+  ["bronco-vs-wrangler", "Ford Bronco vs Jeep Wrangler", "Ford Bronco vs Jeep Wrangler: which trail icon fits your build?", "TRAILS", images.dunes],
+  ["land-cruiser-vs-defender", "Land Cruiser vs Defender", "Toyota Land Cruiser vs Land Rover Defender for premium touring.", "EXPEDITION", images.hero],
+  ["best-midsize-off-road-trucks", "Best midsize off-road trucks", "Colorado ZR2, Canyon AT4X, Ranger Raptor, Gladiator and Tacoma compared.", "TECH", images.tracks],
+  ["recovery-gear-pack-first", "Recovery gear to pack first", "The recovery basics every 4x4 should carry before the first trail day.", "GEAR", images.tracks],
+  ["tire-size-without-ruining-the-build", "Tire size without ruining the build", "How to choose useful tire upgrades without killing range or gearing.", "TECH", images.tire],
+  ["rooftop-tent-vs-ground-tent", "Rooftop tent vs ground tent", "A practical camping comparison for weekend and long-distance 4x4 trips.", "GEAR", images.camp],
+  ["payload-mistakes", "Payload mistakes that break builds", "Why weight planning matters more than the next accessory.", "MAINTENANCE", images.workshop],
+  ["electric-off-roaders", "Electric off-roaders to watch", "Rivian, Scout and Jeep Recon show where electric 4x4s are heading.", "TECH", images.battery],
+  ["used-4x4-buying-checklist", "Used 4x4 buying checklist", "What to inspect before buying a used trail or overland platform.", "MAINTENANCE", images.forest],
+  ["ranger-raptor-build-plan", "Ranger Raptor build plan", "A compact, fast-trail setup for Ford's desert-focused midsize truck.", "EXPEDITION", images.dunes],
+  ["jimny-lightweight-build", "Jimny lightweight build", "How to keep a small 4x4 useful without overloading it.", "TRAILS", images.forest],
+  ["family-overland-platforms", "Family overland platforms", "The SUVs that make long weekends easier with passengers and gear.", "EXPEDITION", images.camp],
+  ["dual-battery-basics", "Dual battery basics", "A simple way to size power for fridge, lighting and charging.", "TECH", images.battery],
+  ["compact-catalog-guide", "How to compare 4x4 platforms", "A faster way to shortlist models by use case, size and upgrade path.", "GEAR", images.hero],
+  ["trail-lighting-guide", "Trail lighting guide", "Where auxiliary lighting helps and where it only adds clutter.", "GEAR", images.light],
+  ["first-5-upgrades", "The first 5 upgrades", "Tires, recovery, protection, storage and power before cosmetic parts.", "GEAR", images.workshop],
+];
+
+const articles = articleTopics.flatMap(([slug, title, excerpt, category, image], index) => [
   {
-    title: "Building a Lean Overland Setup",
-    slug: "lean-overland-setup",
-    excerpt: "A practical guide to choosing only the upgrades that improve capability, comfort and reliability.",
-    content: "<p>A great 4x4 build starts with restraint. Start with tires, recovery, protection and storage before chasing every accessory.</p><p>Keep weight low, test one change at a time and let real trips guide the next upgrade.</p>",
-    journal_category: "GEAR",
+    locale: "en",
+    title,
+    slug,
+    excerpt,
+    content: `<p>${excerpt}</p><p>Start with the use case, then compare size, payload, drivetrain, aftermarket support and maintenance. A good 4x4 build stays focused before it gets expensive.</p>`,
+    journal_category: category,
     status: "published",
-    featured_image_url: images.camp,
-    featured_image_alt: "Overland camp setup beside a 4x4",
+    featured_image_url: image,
+    featured_image_alt: title,
     author: "4x4models Editorial",
     author_role: "Field editor",
     read_time: "6 min read",
-    published_at: "2026-05-01T08:00:00.000Z",
+    published_at: new Date(Date.UTC(2026, 4, index + 1, 8)).toISOString(),
   },
   {
-    title: "Recovery Gear You Should Pack First",
-    slug: "recovery-gear-pack-first",
-    excerpt: "The recovery items that belong in every vehicle before winches, bumpers and big-ticket upgrades.",
-    content: "<p>Reliable recovery starts with the basics: rated points, soft shackles, traction boards, gloves and a simple plan.</p><p>Train with the gear before you need it, and keep everything accessible.</p>",
-    journal_category: "TRAILS",
+    locale: "nl",
+    title,
+    slug,
+    excerpt: `${excerpt} Nederlandse editie.`,
+    content: `<p>${excerpt} Nederlandse editie.</p><p>Begin bij het gebruiksdoel en vergelijk daarna formaat, laadvermogen, aandrijving, aftermarket en onderhoud. Een goede 4x4 build blijft eerst gefocust.</p>`,
+    journal_category: category,
     status: "published",
-    featured_image_url: images.tracks,
-    featured_image_alt: "Recovery tracks in sand",
+    featured_image_url: image,
+    featured_image_alt: title,
     author: "4x4models Editorial",
-    author_role: "Trail editor",
-    read_time: "5 min read",
-    published_at: "2026-05-03T08:00:00.000Z",
+    author_role: "Field editor",
+    read_time: "6 min read",
+    published_at: new Date(Date.UTC(2026, 4, index + 1, 8)).toISOString(),
   },
-  {
-    title: "How to Plan Electrical Loads",
-    slug: "plan-electrical-loads",
-    excerpt: "A clear way to size batteries, chargers and wiring for fridges, lights and camp electronics.",
-    content: "<p>List every device, estimate hours of use and build a daily watt-hour budget.</p><p>From there you can choose battery capacity and charging that matches how you actually travel.</p>",
-    journal_category: "TECH",
-    status: "published",
-    featured_image_url: images.battery,
-    featured_image_alt: "Vehicle electrical system close-up",
-    author: "4x4models Editorial",
-    author_role: "Workshop editor",
-    read_time: "7 min read",
-    published_at: "2026-05-05T08:00:00.000Z",
-  },
-];
+]);
 
 const products = [
   {
@@ -316,7 +276,7 @@ function textRecords(locale) {
     { page: "cart", locale, section: "summary", key: "total", value: "Total" },
     { page: "cart", locale, section: "summary", key: "checkout", value: l ? "Naar afrekenen" : "Proceed to checkout" },
     { page: "checkout", locale, section: "hero", key: "title", value: l ? "Veilig afrekenen" : "Secure checkout" },
-    { page: "checkout", locale, section: "hero", key: "intro", value: l ? "Controleer je order en rond de demo checkout af." : "Review your order and complete the demo checkout." },
+    { page: "checkout", locale, section: "hero", key: "intro", value: l ? "Controleer je order en betaal veilig online." : "Review your order and pay securely online." },
     { page: "checkout", locale, section: "form", key: "title", value: l ? "Contact en levering" : "Contact and delivery" },
     { page: "checkout", locale, section: "summary", key: "title", value: l ? "Orderoverzicht" : "Order summary" },
     { page: "checkout", locale, section: "summary", key: "subtotal", value: l ? "Subtotaal" : "Subtotal" },
@@ -344,7 +304,7 @@ function puckData(page, locale) {
       root: { props: { title: "Home" } },
       content: [
         { type: "Hero", props: { id: "home-hero", icon: "compass", eyebrow: l ? "Gemaakt voor de trail" : "Built for the trail", title: l ? "4x4 modellen, gear en verhalen op een plek" : "4x4 models, gear and stories in one place", body: l ? "Ontdek sterke platforms, praktische upgrades en geteste adviezen in een premium 4x4 hub." : "Explore capable platforms, practical upgrades and field-tested advice in one premium 4x4 hub.", imageUrl: images.hero, imageAlt: "4x4models", overlay: "dark", align: "left", height: "standard", primaryText: l ? "Ontdek modellen" : "Explore models", primaryUrl: path("/vehicles"), secondaryText: l ? "Shop gear" : "Shop gear", secondaryUrl: path("/gear") } },
-        { type: "VehicleIndex", props: { id: "home-vehicles", icon: "shield", eyebrow: "4x4", title: l ? "Uitgelichte platforms" : "Featured platforms", body: l ? "Open de modellen die de catalogus dragen." : "Open the models that define the catalog.", layout: "cards", showImages: true, defaultImageUrl: images.hero, defaultImageAlt: "4x4 platform", background: "surface", cards: [] } },
+        { type: "VehicleIndex", props: { id: "home-vehicles", icon: "shield", eyebrow: "4x4", title: l ? "Uitgelichte platforms" : "Featured platforms", body: l ? "Open de modellen die de catalogus dragen." : "Open the models that define the catalog.", layout: "compact", showImages: true, defaultImageUrl: images.hero, defaultImageAlt: "4x4 platform", background: "surface", cards: [] } },
         { type: "PhotoTextBlock", props: { id: "home-story", eyebrow: l ? "Klaar voor de volgende build" : "Ready for the next build", title: l ? "Van inspiratie naar onderdelenlijst" : "From inspiration to parts list", body: l ? "Combineer modelresearch, productontdekking en journal-inzicht in dezelfde beheerbare ervaring." : "Combine model research, product discovery and journal insight without leaving the same managed experience.", imageUrl: images.camp, imageAlt: "Trail-ready 4x4", ctaLabel: l ? "Lees de journal" : "Read the journal", ctaUrl: path("/journal"), background: "raised", align: "left" } },
         { type: "ProductGrid", props: { id: "home-products", eyebrow: "Shop", title: l ? "Uitgelichte gear" : "Featured gear", body: l ? "Geselecteerde producten voor sterke, georganiseerde builds." : "Selected products for capable, organized builds.", cards: [], limit: 4, columns: 4, showImages: true, defaultImageUrl: images.workshop, defaultImageAlt: "4x4 gear", background: "muted", cta: { label: l ? "Shop alles" : "Shop all", url: path("/gear") } } },
         { type: "ArticleGrid", props: { id: "home-articles", eyebrow: "Journal", title: l ? "Uit de journal" : "From the journal", body: l ? "Nieuwe veldnotities en praktische buildtips." : "Fresh field notes and practical build advice.", cards: [], limit: 3, columns: 3, showImages: true, defaultImageUrl: images.camp, defaultImageAlt: "Journal", background: "surface", cta: { label: l ? "Bekijk journal" : "View journal", url: path("/journal") } } },
@@ -354,8 +314,8 @@ function puckData(page, locale) {
     vehicles: {
       root: { props: { title: "Vehicles" } },
       content: [
-        { type: "Hero", props: { id: "vehicles-hero", icon: "compass", eyebrow: l ? "Modelcatalogus" : "Model directory", title: l ? "Vind het juiste 4x4 platform" : "Find the right 4x4 platform", body: l ? "Blader door trail-ready platforms, vergelijk sterke punten en open elke buildpagina vanuit een snelle catalogus." : "Browse trail-ready platforms, compare strengths, and open every build page from one fast catalog.", imageUrl: images.hero, imageAlt: "4x4 model catalog", overlay: "dark", align: "left", height: "standard", primaryText: l ? "Bekijk modellen" : "Browse models", primaryUrl: "#vehicles-index", secondaryText: l ? "Lees journal" : "Read journal", secondaryUrl: path("/journal") } },
-        { type: "VehicleIndex", props: { id: "vehicles-index", icon: "grid", eyebrow: l ? "Alle modellen" : "All models", title: l ? "4x4 modelindex" : "4x4 model index", body: l ? "Een helder en snel overzicht van elk beheerd model in de catalogus." : "A clear, fast index of every managed model in the catalog.", layout: "cards", showImages: true, defaultImageUrl: images.workshop, defaultImageAlt: "4x4 model", background: "surface", cards: [] } },
+        { type: "Hero", props: { id: "vehicles-hero", icon: "compass", eyebrow: l ? "Modelcatalogus" : "Model directory", title: l ? "Vind het juiste 4x4 platform" : "Find the right 4x4 platform", body: l ? "Compacte index met actuele 4x4 modellen, merken, trending keuzes en journal-links." : "A compact index of current 4x4 models, brands, trending picks and journal links.", imageUrl: images.hero, imageAlt: "4x4 model catalog", overlay: "dark", align: "left", height: "compact", primaryText: l ? "Bekijk modellen" : "Browse models", primaryUrl: "#vehicles-index", secondaryText: l ? "Lees journal" : "Read journal", secondaryUrl: path("/journal") } },
+        { type: "VehicleIndex", props: { id: "vehicles-index", icon: "grid", eyebrow: l ? "Alle modellen" : "All models", title: l ? "4x4 modelindex" : "4x4 model index", body: l ? "Een snel overzicht per merk, gesorteerd op trending en eenvoudig scanbaar op mobiel." : "A fast brand-led index sorted by trending rank and easy to scan on mobile.", layout: "compact", showImages: true, defaultImageUrl: images.workshop, defaultImageAlt: "4x4 model", background: "surface", cards: [] } },
         { type: "TextPhotoBlock", props: { id: "vehicles-guidance", eyebrow: l ? "Kies met zekerheid" : "Choose with confidence", title: l ? "Gemaakt om echte capaciteit te vergelijken" : "Built for comparing real capability", body: l ? "Elke modelpagina kan series, specs, pluspunten, aandachtspunten, beeld en acties bevatten." : "Every model page can hold series, specs, pros, cons, imagery and calls to action.", imageUrl: images.camp, imageAlt: "Overland camp", ctaLabel: l ? "Open de journal" : "Open the journal", ctaUrl: path("/journal"), background: "raised", align: "left" } },
         { type: "ArticleGrid", props: { id: "vehicles-journal", eyebrow: "Journal", title: l ? "Meest gelezen" : "Most read", body: l ? "Populaire gidsen en veldnotities voor kiezen en verbeteren." : "Popular guides and field notes for choosing and improving your rig.", cards: [], limit: 3, columns: 3, showImages: true, defaultImageUrl: images.hero, defaultImageAlt: "Journal", background: "surface", cta: { label: l ? "Alles bekijken" : "View all", url: path("/journal") } } },
       ],
@@ -378,14 +338,28 @@ function puckData(page, locale) {
   return common[page];
 }
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function withRetry(operation) {
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      const status = error?.status || error?.originalError?.response?.status;
+      if (status !== 429 || attempt === 3) throw error;
+      await sleep((attempt + 1) * 30000);
+    }
+  }
+}
+
 async function upsert(entityName, query, data) {
   const entity = base44.entities[entityName];
-  const records = await entity.filter(query, "-updated_date", 1, 0);
+  const records = await withRetry(() => entity.filter(query, "-updated_date", 1, 0));
   if (records?.[0]?.id) {
-    await entity.update(records[0].id, data);
+    await withRetry(() => entity.update(records[0].id, data));
     return { action: "updated", id: records[0].id };
   }
-  const created = await entity.create(data);
+  const created = await withRetry(() => entity.create(data));
   return { action: "created", id: created?.id };
 }
 
@@ -401,7 +375,7 @@ async function seed() {
   }
 
   for (const article of articles) {
-    await upsert("BlogPost", { slug: article.slug, is_product: false }, { ...article, is_product: false });
+    await upsert("BlogPost", { slug: article.slug, locale: article.locale, is_product: false }, { ...article, is_product: false });
   }
 
   for (const product of products) {

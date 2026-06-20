@@ -1,10 +1,25 @@
+import type { Metadata } from "next";
 import CartClient, { type CartLabels } from "@/components/commerce/CartClient";
 import { contentText } from "@/lib/content";
 import { isLocale } from "@/lib/locale";
 import { siteContentService } from "@/lib/services/site-content";
+import { pageMetadata } from "@/lib/seo";
 import type { Locale } from "@/types/common";
 
 const label = (locale: Locale, en: string, nl: string) => (locale === "nl" ? nl : en);
+
+export async function generateMetadata({ params }: PageProps<"/[lang]/shop/cart">): Promise<Metadata> {
+  const { lang } = await params;
+  const locale = isLocale(lang) ? (lang as Locale) : "en";
+  const content = await siteContentService.getPage("cart", locale);
+
+  return pageMetadata({
+    locale,
+    path: "/shop/cart",
+    title: contentText(content, "seo", "title", label(locale, "Cart", "Winkelwagen")),
+    description: contentText(content, "seo", "description", label(locale, "Review your selected 4x4 gear.", "Controleer je geselecteerde 4x4 gear.")),
+  });
+}
 
 export default async function CartPage({ params }: PageProps<"/[lang]/shop/cart">) {
   const { lang } = await params;

@@ -45,15 +45,15 @@ export function buildDefaultPuckData({
               "body",
               label(
                 locale,
-                "Browse trail-ready platforms, compare strengths, and open every build page from one fast catalog.",
-                "Blader door trail-ready platforms, vergelijk sterke punten en open elke buildpagina vanuit een snelle catalogus."
+                "A compact index of current 4x4 models, brands, trending picks and journal links.",
+                "Compacte index met actuele 4x4 modellen, merken, trending keuzes en journal-links."
               )
             ),
             imageUrl: contentImage(content, "hero", "background_image_url", fallbackHero),
             imageAlt: contentText(content, "hero", "image_alt", label(locale, "4x4 catalog hero", "4x4 catalogus hero")),
             overlay: "dark",
             align: "left",
-            height: "standard",
+            height: "compact",
             primaryText: contentText(content, "hero", "cta_primary_text", label(locale, "Browse models", "Bekijk modellen")),
             primaryUrl: contentLink(content, "hero", "cta_primary_text", "#vehicles-index"),
             secondaryText: contentText(content, "hero", "cta_secondary_text", label(locale, "Read journal", "Lees journal")),
@@ -71,9 +71,9 @@ export function buildDefaultPuckData({
               content,
               "catalog",
               "body",
-              label(locale, "A clear, fast index of every managed model in the catalog.", "Een helder en snel overzicht van elk beheerd model in de catalogus.")
+              label(locale, "A fast brand-led index sorted by trending rank and easy to scan on mobile.", "Een snel overzicht per merk, gesorteerd op trending en eenvoudig scanbaar op mobiel.")
             ),
-            layout: "cards",
+            layout: "compact",
             showImages: true,
             defaultImageUrl: contentImage(content, "catalog", "default_image_url", fallbackWorkshop),
             defaultImageAlt: contentText(content, "catalog", "default_image_alt", label(locale, "4x4 model", "4x4 model")),
@@ -244,7 +244,7 @@ export function buildDefaultPuckData({
           eyebrow: contentText(content, "featured_vehicles", "eyebrow", "4x4"),
           title: contentText(content, "featured_vehicles", "headline", label(locale, "Featured platforms", "Uitgelichte platforms")),
           body: contentText(content, "featured_vehicles", "body", label(locale, "Open the models that define the catalog.", "Open de modellen die de catalogus dragen.")),
-          layout: "cards",
+          layout: "compact",
           showImages: true,
           defaultImageUrl: contentImage(content, "featured_vehicles", "default_image_url", fallbackHero),
           defaultImageAlt: contentText(content, "featured_vehicles", "default_image_alt", label(locale, "4x4 platform", "4x4 platform")),

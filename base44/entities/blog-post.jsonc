@@ -15,6 +15,15 @@
       "type": "string",
       "description": "Blog post title"
     },
+    "locale": {
+      "type": "string",
+      "enum": [
+        "en",
+        "nl"
+      ],
+      "default": "en",
+      "description": "Publicatietaal"
+    },
     "slug": {
       "type": "string",
       "description": "URL slug"
@@ -30,6 +39,14 @@
     "meta_description": {
       "type": "string",
       "description": "SEO meta description"
+    },
+    "seo_title": {
+      "type": "string",
+      "description": "Optionele SEO titel / title tag"
+    },
+    "canonical_url": {
+      "type": "string",
+      "description": "Optionele canonical URL override"
     },
     "focus_keyword": {
       "type": "string",
@@ -146,6 +163,42 @@
     "tags": {
       "type": "array",
       "description": "Tags",
+      "items": {
+        "type": "string"
+      }
+    },
+    "faq_items": {
+      "type": "array",
+      "description": "FAQ items voor SEO en product/article detailpagina",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "related_vehicle_slugs": {
+      "type": "array",
+      "description": "Gerelateerde vehicle slugs voor interne links",
+      "items": {
+        "type": "string"
+      }
+    },
+    "related_product_slugs": {
+      "type": "array",
+      "description": "Gerelateerde product slugs voor interne links",
+      "items": {
+        "type": "string"
+      }
+    },
+    "related_article_slugs": {
+      "type": "array",
+      "description": "Gerelateerde journal slugs voor interne links",
       "items": {
         "type": "string"
       }

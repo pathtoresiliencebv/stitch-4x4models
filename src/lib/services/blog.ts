@@ -12,6 +12,7 @@ export const blogService = {
 
     const filter: Record<string, unknown> = { is_product: false };
     if (params.status) filter.status = params.status;
+    if (params.locale) filter.locale = params.locale;
     if (params.project_id) filter.project_id = params.project_id;
 
     searchParams.set('q', JSON.stringify(filter));
@@ -27,17 +28,17 @@ export const blogService = {
     return base44Fetch<BlogPost>(`/entities/BlogPost/${id}`);
   },
 
-  async getBySlug(slug: string): Promise<BlogPost | null> {
+  async getBySlug(slug: string, locale?: string): Promise<BlogPost | null> {
     const { records } = await base44List<BlogPost>("BlogPost", {
-      q: { slug, is_product: false, status: "published" },
+      q: { slug, is_product: false, status: "published", ...(locale ? { locale } : {}) },
       limit: 1,
     });
     return records[0] || null;
   },
 
-  async getLatest(limit = 10): Promise<BlogPost[]> {
+  async getLatest(limit = 10, locale?: string): Promise<BlogPost[]> {
     const { records } = await base44List<BlogPost>("BlogPost", {
-      q: { status: "published", is_product: false },
+      q: { status: "published", is_product: false, ...(locale ? { locale } : {}) },
       limit,
       sort_by: "-created_date",
     });

@@ -42,13 +42,23 @@ export interface CustomField {
   accept?: string;
 }
 
+export interface FaqItem {
+  question?: string;
+  answer?: string;
+}
+
 export interface BlogPost {
   id: string;
   title: string;
+  locale?: "en" | "nl" | string;
   slug: string;
   content?: string;
   featured_image_url?: string;
+  featured_image_alt?: string;
+  excerpt?: string;
   meta_description?: string;
+  seo_title?: string;
+  canonical_url?: string;
   focus_keyword?: string;
   secondary_keywords?: string[];
   seo_score?: number;
@@ -61,6 +71,10 @@ export interface BlogPost {
   track_inventory?: boolean;
   category_id?: string;
   tags?: string[];
+  faq_items?: FaqItem[];
+  related_vehicle_slugs?: string[];
+  related_product_slugs?: string[];
+  related_article_slugs?: string[];
   vendor?: string;
   product_type?: string;
   product_images?: ProductImage[];
@@ -101,8 +115,12 @@ export interface ProductCategory {
   description?: string;
   content?: string;
   meta_description?: string;
+  seo_title?: string;
+  canonical_url?: string;
   focus_keyword?: string;
   featured_image_url?: string;
+  faq_items?: FaqItem[];
+  related_article_slugs?: string[];
   seo_score?: number;
   status?: string;
   webshop_id?: string;

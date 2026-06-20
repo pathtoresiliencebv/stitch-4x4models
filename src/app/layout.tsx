@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Manrope } from "next/font/google";
 import { AuthProvider } from "@/lib/AuthContext";
 import { CartProvider } from "@/lib/CartContext";
+import { absoluteUrl, defaultSiteDescription, defaultSiteTitle, jsonLd, websiteJsonLd } from "@/lib/seo";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -17,8 +18,20 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "4x4models | Premium Off-Road Adventures",
-  description: "Your hub for 4x4 off-road content, vehicle guides, gear reviews, and adventure stories.",
+  metadataBase: new URL(absoluteUrl("/")),
+  title: {
+    default: `${defaultSiteTitle} | Premium Off-Road Adventures`,
+    template: `%s | ${defaultSiteTitle}`,
+  },
+  description: defaultSiteDescription,
+  applicationName: defaultSiteTitle,
+  openGraph: {
+    siteName: defaultSiteTitle,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({
@@ -29,6 +42,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${spaceGrotesk.variable} ${manrope.variable} font-body antialiased min-h-screen flex flex-col bg-surface text-on-surface`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLd(websiteJsonLd()) }}
+        />
         <AuthProvider>
           <CartProvider>
             {children}

@@ -11,6 +11,48 @@
       "type": "string",
       "description": "Naam (bijv. Land Cruiser)"
     },
+    "brand": {
+      "type": "string",
+      "description": "Merknaam (bijv. Toyota)"
+    },
+    "segment": {
+      "type": "string",
+      "description": "Segment (SUV, Pickup, Electric, Coming soon)"
+    },
+    "market_region": {
+      "type": "string",
+      "description": "Belangrijkste markt/regio"
+    },
+    "trending_rank": {
+      "type": "number",
+      "description": "Sortering voor trending modellen"
+    },
+    "price_from": {
+      "type": "number",
+      "description": "Indicatieve vanafprijs"
+    },
+    "use_cases": {
+      "type": "array",
+      "description": "Gebruiksscenario's zoals overland, rock crawl, family touring",
+      "items": {
+        "type": "string"
+      }
+    },
+    "gallery_images": {
+      "type": "array",
+      "description": "Extra afbeeldingen",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "alt": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "slug": {
       "type": "string",
       "description": "URL slug"
@@ -42,6 +84,18 @@
     "description": {
       "type": "string",
       "description": "Lange beschrijving (HTML mogelijk)"
+    },
+    "seo_title": {
+      "type": "string",
+      "description": "Optionele SEO titel / title tag"
+    },
+    "meta_description": {
+      "type": "string",
+      "description": "SEO meta description"
+    },
+    "canonical_url": {
+      "type": "string",
+      "description": "Optionele canonical URL override"
     },
     "cta_primary_text": {
       "type": "string",
@@ -113,6 +167,35 @@
             "type": "string"
           }
         }
+      }
+    },
+    "faq_items": {
+      "type": "array",
+      "description": "FAQ items voor vehicle detailpagina",
+      "items": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "related_product_slugs": {
+      "type": "array",
+      "description": "Gerelateerde product slugs",
+      "items": {
+        "type": "string"
+      }
+    },
+    "related_article_slugs": {
+      "type": "array",
+      "description": "Gerelateerde journal slugs",
+      "items": {
+        "type": "string"
       }
     },
     "sort_order": {
