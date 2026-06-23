@@ -1,6 +1,6 @@
 export const API_CONFIG = {
   baseUrl: process.env.NEXT_PUBLIC_BASE44_API_URL || 'https://stimulating-growth-suite-ai.base44.app/api',
-  appId: process.env.NEXT_PUBLIC_BASE44_APP_ID || '6a09fd6a73c15fa19aeb41f8',
+  appId: process.env.NEXT_PUBLIC_BASE44_APP_ID || '699871557dfcaafa02868052',
   apiKey: process.env.BASE44_API_KEY || '',
 } as const;
 

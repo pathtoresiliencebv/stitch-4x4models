@@ -3,7 +3,7 @@ import { createClient } from "@base44/sdk";
 
 export const runtime = "nodejs";
 
-const APP_ID = process.env.NEXT_PUBLIC_BASE44_APP_ID || "6a09fd6a73c15fa19aeb41f8";
+const APP_ID = process.env.NEXT_PUBLIC_BASE44_APP_ID || "699871557dfcaafa02868052";
 
 async function withTimeout<T>(promise: Promise<T>, ms: number) {
   let timer: ReturnType<typeof setTimeout> | undefined;
