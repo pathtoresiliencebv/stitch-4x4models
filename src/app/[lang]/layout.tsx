@@ -47,6 +47,7 @@ export default async function LocaleLayout({
     search: contentText(globalContent, "nav", "search", "Search"),
     cart: contentText(globalContent, "nav", "cart", lang === "nl" ? "Winkelwagen" : "Cart"),
     account: contentText(globalContent, "nav", "account", "Account"),
+    language: contentText(globalContent, "nav", "language", lang === "nl" ? "Taal" : "Language"),
     emptyMenu: contentText(globalContent, "nav", "empty_menu", lang === "nl" ? "Content wordt gevuld." : "Content is being curated."),
   };
 

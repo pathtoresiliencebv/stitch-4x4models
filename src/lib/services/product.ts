@@ -1,5 +1,5 @@
 import { base44Fetch, base44List } from "@/lib/base44-api";
-import type { Product, ProductCategory, ProductListParams } from '@/types/product';
+import type { Product, ProductCategory, ProductListParams, ProductTag } from '@/types/product';
 
 interface ProductsResponse {
   records: Product[];
@@ -92,5 +92,24 @@ export const categoryService = {
       method: 'PUT',
       body: JSON.stringify(data),
     });
+  },
+};
+
+export const tagService = {
+  async list(): Promise<ProductTag[]> {
+    const { records } = await base44List<ProductTag>("ProductTag", {
+      q: { status: "active" },
+      sort_by: "name",
+      limit: 100,
+    });
+    return records;
+  },
+
+  async getBySlug(slug: string): Promise<ProductTag | null> {
+    const { records } = await base44List<ProductTag>("ProductTag", {
+      q: { slug, status: "active" },
+      limit: 1,
+    });
+    return records[0] || null;
   },
 };

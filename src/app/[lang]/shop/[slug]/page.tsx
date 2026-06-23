@@ -7,7 +7,7 @@ import { RichContent } from "@/components/shop/RichContent";
 import { contentText } from "@/lib/content";
 import { isLocale, localizedPath } from "@/lib/locale";
 import { blogService } from "@/lib/services/blog";
-import { productService } from "@/lib/services/product";
+import { productService, tagService } from "@/lib/services/product";
 import { siteContentService } from "@/lib/services/site-content";
 import { vehicleService } from "@/lib/services/vehicle";
 import { breadcrumbsJsonLd, faqJsonLd, jsonLd, pageMetadata, productJsonLd } from "@/lib/seo";
@@ -41,12 +41,14 @@ export default async function LocalizedProductPage({
   const product = await productService.getBySlug(slug);
   if (!product) notFound();
 
-  const [content, products, vehicles, articles] = await Promise.all([
+  const [content, products, vehicles, articles, tags] = await Promise.all([
     siteContentService.getPage("product-detail", locale),
     productService.listPublished({ limit: 100 }),
     vehicleService.list(100),
     blogService.getLatest(100, locale),
+    tagService.list(),
   ]);
+  const tagSlugByName = new Map(tags.map((tag) => [tag.name.toLowerCase(), tag.slug]));
   const relatedProducts = products.records
     .filter((item) => item.slug !== product.slug)
     .sort((a, b) => Number(product.related_product_slugs?.includes(b.slug || "")) - Number(product.related_product_slugs?.includes(a.slug || "")));
@@ -146,9 +148,9 @@ export default async function LocalizedProductPage({
           {product.tags?.length ? (
             <div className="mt-8 flex flex-wrap gap-2">
               {product.tags.slice(0, 6).map((tag) => (
-                <span key={tag} className="border border-outline-variant/15 bg-surface-container-low px-3 py-2 font-label text-xs uppercase text-on-surface-variant">
+                <Link key={tag} href={localizedPath(locale, `/tags/${tagSlugByName.get(tag.toLowerCase()) || tag.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`)} className="border border-outline-variant/15 bg-surface-container-low px-3 py-2 font-label text-xs uppercase text-on-surface-variant transition-colors hover:border-primary/40 hover:text-primary">
                   {tag}
-                </span>
+                </Link>
               ))}
             </div>
           ) : null}

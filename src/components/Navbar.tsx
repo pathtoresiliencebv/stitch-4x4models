@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   ArrowUpRight,
   ChevronDown,
   Compass,
+  Globe2,
   LogOut,
   Menu,
   Newspaper,
@@ -48,6 +50,7 @@ type NavbarProps = {
       | "search"
       | "cart"
       | "account"
+      | "language"
       | "emptyMenu",
       string
     >
@@ -71,18 +74,19 @@ const menuIcons = {
 export default function Navbar({
   lang = "en",
   brandName = "4x4models",
-  logoUrl = "/images/logo.png",
+  logoUrl = "https://media.base44.com/images/public/699871557dfcaafa02868052/8ae82d41d_4x4models.png",
   labels = {},
   menu = {},
 }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<MenuKey | null>(null);
+  const pathname = usePathname();
   const reduced = useReducedMotion();
   const { user, isAuthenticated, logout } = useAuth();
   const { itemCount } = useCart();
   const href = (path: string) => `/${lang}${path}`;
   const iconButton =
-    "inline-flex h-10 w-10 items-center justify-center border border-outline-variant/20 bg-surface-container-low/85 text-on-surface transition-colors hover:border-primary/50 hover:bg-primary/10 hover:text-primary";
+    "inline-flex h-11 w-11 items-center justify-center border border-outline-variant/20 bg-surface-container-low/85 text-on-surface transition-colors hover:border-primary/50 hover:bg-primary/10 hover:text-primary";
   const text = {
     vehicles: labels.vehicles || "Vehicles",
     gear: labels.gear || "Gear & Mods",
@@ -99,6 +103,7 @@ export default function Navbar({
     search: labels.search || "Search",
     cart: labels.cart || "Cart",
     account: labels.account || "Account",
+    language: labels.language || (lang === "nl" ? "Taal" : "Language"),
     emptyMenu: labels.emptyMenu || "Content is being curated.",
   };
 
@@ -124,6 +129,16 @@ export default function Navbar({
   const closeMenu = () => {
     setIsOpen(false);
     setActiveMenu(null);
+  };
+
+  const languageHref = (nextLang: "en" | "nl") => {
+    const path = pathname || `/${lang}`;
+    const segments = path.split("/");
+    if (segments[1] === "en" || segments[1] === "nl") {
+      segments[1] = nextLang;
+      return segments.join("/") || `/${nextLang}`;
+    }
+    return `/${nextLang}${path.startsWith("/") ? path : `/${path}`}`;
   };
 
   return (
@@ -200,7 +215,7 @@ export default function Navbar({
           )}
 
           <button
-            className="inline-flex h-10 items-center gap-2 border border-outline-variant/20 bg-surface-container-low/85 px-3 text-on-surface transition-colors hover:border-primary/50 hover:bg-primary/10 hover:text-primary lg:hidden"
+            className="inline-flex h-11 items-center gap-2 border border-outline-variant/20 bg-surface-container-low/85 px-3 text-on-surface transition-colors hover:border-primary/50 hover:bg-primary/10 hover:text-primary lg:hidden"
             onClick={() => setIsOpen(!isOpen)}
             aria-label={text.menu}
             type="button"
@@ -208,6 +223,14 @@ export default function Navbar({
             {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             <span className="hidden font-headline text-xs font-bold uppercase sm:inline">{text.menu}</span>
           </button>
+
+          <LanguageSwitcher
+            currentLang={lang}
+            getHref={languageHref}
+            label={text.language}
+            onClick={closeMenu}
+            variant="desktop"
+          />
         </div>
       </div>
 
@@ -248,7 +271,7 @@ export default function Navbar({
               {menuItems(activeMenu).length > 0 ? (
                 <div className="grid grid-cols-3 gap-4">
                   {menuItems(activeMenu).slice(0, 6).map((item) => (
-                    <MenuPreviewCard key={`${activeMenu}-${item.href}-${item.title}`} item={item} onClick={closeMenu} />
+                    <MenuPreviewCard key={`${activeMenu}-${item.href}-${item.title}`} item={item} onClick={closeMenu} reduced={reduced} />
                   ))}
                 </div>
               ) : (
@@ -267,16 +290,30 @@ export default function Navbar({
           transition={{ duration: 0.16, ease: "easeOut" }}
         >
           <div className="space-y-3 p-4">
-            {primaryNav.map((section) => (
-              <MobileMenuSection
+            <LanguageSwitcher
+              currentLang={lang}
+              getHref={languageHref}
+              label={text.language}
+              onClick={closeMenu}
+              variant="mobile"
+            />
+
+            {primaryNav.map((section, index) => (
+              <motion.div
+                animate={{ opacity: 1, y: 0 }}
+                initial={reduced ? false : { opacity: 0, y: 8 }}
                 key={section.key}
-                title={section.label}
-                href={section.href}
-                items={menuItems(section.key).slice(0, 4)}
-                viewAll={text.viewAll}
-                emptyText={text.emptyMenu}
-                onClick={closeMenu}
-              />
+                transition={{ delay: reduced ? 0 : index * 0.035, duration: 0.18, ease: "easeOut" }}
+              >
+                <MobileMenuSection
+                  title={section.label}
+                  href={section.href}
+                  items={menuItems(section.key).slice(0, 4)}
+                  viewAll={text.viewAll}
+                  emptyText={text.emptyMenu}
+                  onClick={closeMenu}
+                />
+              </motion.div>
             ))}
 
             <div className="grid grid-cols-2 gap-2 pt-2">
@@ -307,9 +344,62 @@ export default function Navbar({
   );
 }
 
-function MenuPreviewCard({ item, onClick }: { item: MenuItem; onClick: () => void }) {
+function LanguageSwitcher({
+  currentLang,
+  getHref,
+  label,
+  onClick,
+  variant,
+}: {
+  currentLang: "en" | "nl";
+  getHref: (lang: "en" | "nl") => string;
+  label: string;
+  onClick: () => void;
+  variant: "desktop" | "mobile";
+}) {
+  const langs = ["en", "nl"] as const;
+  const isMobile = variant === "mobile";
+
   return (
-    <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.99 }} transition={{ duration: 0.16 }}>
+    <nav
+      aria-label={label}
+      className={
+        isMobile
+          ? "flex items-center justify-between border border-outline-variant/15 bg-surface-container-low/85 p-1"
+          : "hidden items-center gap-1 border border-outline-variant/20 bg-surface-container-low/85 p-1 md:flex"
+      }
+    >
+      <span className={isMobile ? "flex items-center gap-2 px-3 font-label text-xs font-bold uppercase text-tertiary" : "sr-only"}>
+        <Globe2 className="h-4 w-4 text-primary" aria-hidden="true" />
+        {label}
+      </span>
+      <span className={isMobile ? "flex gap-1" : "flex gap-1"}>
+        {langs.map((item) => {
+          const active = currentLang === item;
+          return (
+            <Link
+              aria-current={active ? "page" : undefined}
+              className={`relative inline-flex h-9 min-w-10 items-center justify-center px-3 font-headline text-xs font-bold uppercase transition-colors ${
+                active
+                  ? "bg-primary text-on-primary"
+                  : "text-on-surface-variant hover:bg-primary/10 hover:text-primary"
+              }`}
+              href={getHref(item)}
+              key={item}
+              onClick={onClick}
+            >
+              {item}
+            </Link>
+          );
+        })}
+      </span>
+    </nav>
+  );
+}
+
+function MenuPreviewCard({ item, onClick, reduced }: { item: MenuItem; onClick: () => void; reduced: boolean | null }) {
+  return (
+    <motion.div whileHover={reduced ? undefined : { y: -3 }} whileTap={reduced ? undefined : { scale: 0.99 }} transition={{ duration: 0.16 }}>
       <Link href={item.href} onClick={onClick} className="premium-card group block overflow-hidden border-outline-variant/15 transition-colors hover:border-primary/40">
         {item.imageUrl ? (
           <span className="relative block h-32 overflow-hidden">

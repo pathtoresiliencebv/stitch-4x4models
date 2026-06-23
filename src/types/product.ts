@@ -22,6 +22,19 @@ export interface ProductCategory {
   created_date?: string;
 }
 
+export interface ProductTag {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  content?: string;
+  meta_description?: string;
+  featured_image_url?: string | null;
+  color?: string;
+  status?: string;
+  webshop_id?: string;
+}
+
 export interface Product {
   id: string;
   webshop_id?: string;

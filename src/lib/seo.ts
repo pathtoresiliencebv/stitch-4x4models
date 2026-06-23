@@ -26,9 +26,29 @@ type SeoPost = {
 
 export const defaultSiteTitle = "4x4models";
 export const defaultSiteDescription =
-  "Premium 4x4 model guides, off-road gear, overlanding journal stories, and compact buying advice.";
+  "4x4models is the home for off-road enthusiasts: in-depth Toyota Land Cruiser, Hilux, Tacoma and 4Runner guides, vetted overlanding gear, recovery, suspension and lighting reviews, and field-tested trail stories — all curated for serious 4x4 builds.";
+export const defaultSiteKeywords = [
+  "4x4",
+  "off-road",
+  "overlanding",
+  "Toyota Land Cruiser",
+  "Toyota Hilux",
+  "Toyota Tacoma",
+  "Toyota 4Runner",
+  "Jeep Wrangler",
+  "Ford Bronco",
+  "recovery gear",
+  "suspension kits",
+  "all-terrain tires",
+  "auxiliary lighting",
+  "rooftop tent",
+  "trail stories",
+];
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_VERCEL_URL || "https://4x4models.com";
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.NEXT_PUBLIC_VERCEL_URL ||
+  "https://4x4models.com";
 
 export function absoluteUrl(path: string) {
   const base = siteUrl.startsWith("http") ? siteUrl : `https://${siteUrl}`;
