@@ -81,6 +81,8 @@ export default function Navbar({
   const { user, isAuthenticated, logout } = useAuth();
   const { itemCount } = useCart();
   const href = (path: string) => `/${lang}${path}`;
+  const iconButton =
+    "inline-flex h-10 w-10 items-center justify-center border border-outline-variant/20 bg-surface-container-low/85 text-on-surface transition-colors hover:border-primary/50 hover:bg-primary/10 hover:text-primary";
   const text = {
     vehicles: labels.vehicles || "Vehicles",
     gear: labels.gear || "Gear & Mods",
@@ -126,27 +128,27 @@ export default function Navbar({
 
   return (
     <header
-      className="fixed top-0 z-50 w-full border-b border-outline-variant/15 bg-surface/76 backdrop-blur-2xl transition-all duration-300"
+      className="fixed top-0 z-50 w-full border-b border-outline-variant/15 bg-surface/82 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-2xl transition-all duration-300"
       onMouseLeave={() => setActiveMenu(null)}
     >
-      <div className="mx-auto flex max-w-screen-2xl items-center justify-between px-4 py-3 sm:px-6">
+      <div className="mx-auto flex max-w-screen-2xl items-center justify-between px-4 py-2.5 sm:px-6">
         <Link href={`/${lang}`} className="group flex items-center gap-3" onClick={closeMenu}>
-          <span className="relative inline-flex h-11 w-11 items-center justify-center overflow-hidden border border-primary/25 bg-primary/10">
+          <span className="relative inline-flex h-12 w-12 items-center justify-center overflow-hidden border border-primary/35 bg-gradient-to-br from-primary/20 via-surface-container-high to-surface-container-low shadow-[0_0_30px_rgba(216,122,63,0.16)]">
             <Image src={logoUrl} alt={brandName} width={38} height={38} className="object-contain transition-transform duration-300 group-hover:scale-105" />
           </span>
-          <span className="hidden font-headline text-sm font-bold uppercase text-on-surface sm:block">
+          <span className="hidden font-headline text-sm font-bold uppercase text-on-surface transition-colors group-hover:text-primary sm:block">
             {brandName}
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 rounded-sm border border-outline-variant/15 bg-surface-container-low/70 p-1 font-headline text-sm font-bold uppercase lg:flex">
+        <nav className="hidden items-center gap-1 rounded-sm border border-outline-variant/15 bg-surface-container-low/80 p-1 font-headline text-sm font-bold uppercase shadow-inner lg:flex">
           {primaryNav.map((item) => {
             const Icon = menuIcons[item.key];
             const isActive = activeMenu === item.key;
             return (
               <div key={item.key} className="relative">
                 <button
-                  className={`inline-flex items-center gap-2 rounded-sm px-4 py-2 text-on-surface transition-colors duration-300 hover:bg-primary/10 hover:text-primary ${isActive ? "bg-primary/10 text-primary" : ""}`}
+                  className={`inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-on-surface transition-colors duration-300 hover:border-primary/25 hover:bg-primary/10 hover:text-primary ${isActive ? "border-primary/30 bg-primary/10 text-primary" : "border-transparent"}`}
                   onClick={() => setActiveMenu(isActive ? null : item.key)}
                   onFocus={() => setActiveMenu(item.key)}
                   onMouseEnter={() => setActiveMenu(item.key)}
@@ -164,16 +166,16 @@ export default function Navbar({
         <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href={href("/journal")}
-            className="hidden h-10 w-10 items-center justify-center border border-outline-variant/20 bg-surface-container-low text-on-surface transition-colors hover:border-primary/50 hover:text-primary sm:inline-flex"
+            className={`hidden sm:inline-flex ${iconButton}`}
             aria-label={text.search}
           >
             <Search className="h-5 w-5" />
           </Link>
 
-          <Link href={href("/shop/cart")} className="relative inline-flex h-10 w-10 items-center justify-center border border-outline-variant/20 bg-surface-container-low text-on-surface transition-colors hover:border-primary/50 hover:text-primary" aria-label={text.cart}>
+          <Link href={href("/shop/cart")} className={`relative ${iconButton}`} aria-label={text.cart}>
             <ShoppingCart className="h-5 w-5" />
             {itemCount > 0 && (
-              <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-bold text-on-primary">
+              <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-bold text-on-primary">
                 {itemCount > 9 ? "9+" : itemCount}
               </span>
             )}
@@ -184,7 +186,7 @@ export default function Navbar({
               <span className="max-w-32 truncate text-sm text-on-surface-variant">{user?.full_name}</span>
               <button
                 onClick={logout}
-                className="inline-flex h-10 w-10 items-center justify-center border border-outline-variant/20 bg-surface-container-low text-on-surface transition-colors hover:border-primary/50 hover:text-primary"
+                className={iconButton}
                 title={text.signOut}
                 type="button"
               >
@@ -192,13 +194,13 @@ export default function Navbar({
               </button>
             </div>
           ) : (
-            <Link href="/login" className="hidden h-10 w-10 items-center justify-center border border-outline-variant/20 bg-surface-container-low text-on-surface transition-colors hover:border-primary/50 hover:text-primary md:inline-flex" aria-label={text.account}>
+            <Link href="/login" className={`hidden md:inline-flex ${iconButton}`} aria-label={text.account}>
               <User className="h-5 w-5" />
             </Link>
           )}
 
           <button
-            className="inline-flex h-10 items-center gap-2 border border-outline-variant/20 bg-surface-container-low px-3 text-on-surface transition-colors hover:border-primary/50 hover:text-primary lg:hidden"
+            className="inline-flex h-10 items-center gap-2 border border-outline-variant/20 bg-surface-container-low/85 px-3 text-on-surface transition-colors hover:border-primary/50 hover:bg-primary/10 hover:text-primary lg:hidden"
             onClick={() => setIsOpen(!isOpen)}
             aria-label={text.menu}
             type="button"
@@ -212,12 +214,12 @@ export default function Navbar({
       {activeMenu ? (
         <motion.div
           animate={{ opacity: 1, y: 0 }}
-          className="hidden border-t border-outline-variant/10 bg-surface/94 backdrop-blur-2xl lg:block"
+          className="hidden border-t border-outline-variant/10 bg-surface/96 shadow-[0_28px_80px_rgba(0,0,0,0.35)] backdrop-blur-2xl lg:block"
           initial={reduced ? false : { opacity: 0, y: -8 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
         >
-          <div className="mx-auto grid max-w-screen-2xl grid-cols-[0.85fr_2fr] gap-8 px-6 py-6">
-            <div className="premium-panel p-6">
+          <div className="mx-auto grid max-w-screen-2xl grid-cols-[0.72fr_2fr] gap-6 px-6 py-5">
+            <div className="premium-panel bg-gradient-to-br from-surface-container-high to-surface-container-low p-6">
               <p className="premium-kicker mb-4">{primaryNav.find((item) => item.key === activeMenu)?.label}</p>
               <Link
                 href={primaryNav.find((item) => item.key === activeMenu)?.href || `/${lang}`}
@@ -244,7 +246,7 @@ export default function Navbar({
                 </Link>
               </div>
               {menuItems(activeMenu).length > 0 ? (
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 gap-4">
                   {menuItems(activeMenu).slice(0, 6).map((item) => (
                     <MenuPreviewCard key={`${activeMenu}-${item.href}-${item.title}`} item={item} onClick={closeMenu} />
                   ))}
@@ -258,7 +260,12 @@ export default function Navbar({
       ) : null}
 
       {isOpen ? (
-        <div className="max-h-[calc(100dvh-4.25rem)] overflow-y-auto border-t border-outline-variant/15 bg-surface/98 lg:hidden">
+        <motion.div
+          animate={{ opacity: 1, y: 0 }}
+          className="max-h-[calc(100dvh-4.25rem)] overflow-y-auto border-t border-outline-variant/15 bg-surface/98 lg:hidden"
+          initial={reduced ? false : { opacity: 0, y: -8 }}
+          transition={{ duration: 0.16, ease: "easeOut" }}
+        >
           <div className="space-y-3 p-4">
             {primaryNav.map((section) => (
               <MobileMenuSection
@@ -294,7 +301,7 @@ export default function Navbar({
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
       ) : null}
     </header>
   );
@@ -303,22 +310,22 @@ export default function Navbar({
 function MenuPreviewCard({ item, onClick }: { item: MenuItem; onClick: () => void }) {
   return (
     <motion.div whileHover={{ y: -3 }} whileTap={{ scale: 0.99 }} transition={{ duration: 0.16 }}>
-    <Link href={item.href} onClick={onClick} className="premium-card group block overflow-hidden">
-      {item.imageUrl ? (
-        <span className="relative block h-28 overflow-hidden">
-          <Image src={item.imageUrl} alt={item.title} fill unoptimized className="premium-card-image object-cover" />
-        </span>
-      ) : null}
-      <span className="block p-4">
-        {item.label ? <span className="premium-kicker mb-2">{item.label}</span> : null}
-        <span className="flex items-start justify-between gap-3">
-          <span className="font-headline text-lg font-bold uppercase leading-tight text-on-surface group-hover:text-primary">
-            {item.title}
+      <Link href={item.href} onClick={onClick} className="premium-card group block overflow-hidden border-outline-variant/15 transition-colors hover:border-primary/40">
+        {item.imageUrl ? (
+          <span className="relative block h-32 overflow-hidden">
+            <Image src={item.imageUrl} alt={item.title} fill unoptimized className="premium-card-image object-cover" />
           </span>
-          <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        ) : null}
+        <span className="block p-4">
+          {item.label ? <span className="premium-kicker mb-2">{item.label}</span> : null}
+          <span className="flex items-start justify-between gap-3">
+            <span className="font-headline text-lg font-bold uppercase leading-tight text-on-surface group-hover:text-primary">
+              {item.title}
+            </span>
+            <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </span>
         </span>
-      </span>
-    </Link>
+      </Link>
     </motion.div>
   );
 }
@@ -339,15 +346,15 @@ function MobileMenuSection({
   onClick: () => void;
 }) {
   return (
-    <section className="premium-panel p-4">
-      <Link href={href} onClick={onClick} className="flex items-center justify-between border-b border-outline-variant/10 pb-3">
+    <section className="premium-panel p-3">
+      <Link href={href} onClick={onClick} className="flex min-h-12 items-center justify-between border-b border-outline-variant/10 px-1 pb-3">
         <span className="font-headline text-xl font-bold uppercase text-on-surface">{title}</span>
         <span className="font-label text-xs font-bold uppercase text-primary">{viewAll}</span>
       </Link>
       {items.length > 0 ? (
         <div className="mt-3 grid gap-2">
           {items.map((item) => (
-            <Link key={`${href}-${item.href}-${item.title}`} href={item.href} onClick={onClick} className="flex items-center justify-between gap-3 bg-surface-container-low/70 px-3 py-3 text-on-surface">
+            <Link key={`${href}-${item.href}-${item.title}`} href={item.href} onClick={onClick} className="flex min-h-12 items-center justify-between gap-3 bg-surface-container-low/70 px-3 py-3.5 text-on-surface transition-colors hover:border-primary/30 hover:bg-primary/10">
               <span>
                 {item.label ? <span className="block font-label text-[10px] font-bold uppercase text-primary">{item.label}</span> : null}
                 <span className="block font-headline text-sm font-bold uppercase">{item.title}</span>
