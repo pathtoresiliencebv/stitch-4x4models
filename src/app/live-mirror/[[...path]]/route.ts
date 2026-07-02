@@ -128,12 +128,43 @@ function hasRenderableHtml(html: string) {
   return /<(?:main|section|article|div|header|footer|h1|p)(?:\s|>)/i.test(html);
 }
 
-function replaceMainContent(shellHtml: string, content: string) {
-  if (/<main(?:\s|>)/i.test(content) && /<\/main>/i.test(content)) {
-    return shellHtml.replace(/<main\b[^>]*>[\s\S]*?<\/main>/i, content);
+export function selectBase44MirrorRecord(
+  records: Base44WebsitePage[],
+  expectedSlug: string
+) {
+  return records.find((record) => (
+    record.slug === expectedSlug &&
+    (!record.status || record.status === "published")
+  ));
+}
+
+export function sanitizeBase44MirrorFragment(content: string) {
+  let fragment = content.trim();
+  const mainMatch = fragment.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i);
+
+  if (mainMatch?.[1]) {
+    fragment = mainMatch[1].trim();
   }
 
-  return shellHtml.replace(/(<main\b[^>]*>)[\s\S]*?(<\/main>)/i, `$1${content}$2`);
+  return fragment
+    .replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, "")
+    .replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/gi, "")
+    .replace(/<\/?html\b[^>]*>/gi, "")
+    .replace(/<\/?body\b[^>]*>/gi, "")
+    .trim();
+}
+
+function replaceMainContent(shellHtml: string, content: string) {
+  const sanitizedContent = sanitizeBase44MirrorFragment(content);
+
+  if (/<main(?:\s|>)/i.test(content) && /<\/main>/i.test(content)) {
+    return shellHtml.replace(
+      /(<main\b[^>]*>)[\s\S]*?(<\/main>)/i,
+      `$1${sanitizedContent}$2`
+    );
+  }
+
+  return shellHtml.replace(/(<main\b[^>]*>)[\s\S]*?(<\/main>)/i, `$1${sanitizedContent}$2`);
 }
 
 function shouldReadBase44Mirror() {
@@ -160,7 +191,7 @@ async function readBase44MirrorPage(pathname: string, localHtml: string): Promis
 
   const query = new URLSearchParams({
     q: JSON.stringify(queryFilter),
-    limit: "1",
+    limit: "250",
   });
 
   try {
@@ -179,7 +210,8 @@ async function readBase44MirrorPage(pathname: string, localHtml: string): Promis
 
     const payload = (await response.json()) as Base44ListResponse<Base44WebsitePage> | Base44WebsitePage[];
     const records = Array.isArray(payload) ? payload : payload.records || [];
-    const content = records[0]?.content?.trim();
+    const record = selectBase44MirrorRecord(records, pathnameToSlug(pathname));
+    const content = record?.content?.trim();
 
     if (!content || !hasRenderableHtml(content)) {
       return undefined;
@@ -189,7 +221,12 @@ async function readBase44MirrorPage(pathname: string, localHtml: string): Promis
       return { html: content, source: "base44-full" };
     }
 
-    return { html: replaceMainContent(localHtml, content), source: "base44-fragment" };
+    const sanitizedContent = sanitizeBase44MirrorFragment(content);
+    if (!hasRenderableHtml(sanitizedContent)) {
+      return undefined;
+    }
+
+    return { html: replaceMainContent(localHtml, sanitizedContent), source: "base44-fragment" };
   } catch (error) {
     console.warn(`Base44 mirror read failed for ${pathname}`, error);
     return undefined;
