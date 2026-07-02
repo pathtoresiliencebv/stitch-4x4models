@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
-import { base44 } from "@/lib/base44";
+import "server-only";
+import { base44List } from "@/lib/base44-api";
 import type {
   BlogPost,
   ProductCategory,
@@ -10,7 +11,6 @@ import type {
 } from "@/types/base44";
 
 export const webshopId = process.env.NEXT_PUBLIC_WEBSHOP_ID;
-const hasBase44App = Boolean(process.env.NEXT_PUBLIC_BASE44_APP_ID);
 
 function withWebshop<T extends Record<string, unknown>>(query: T) {
   return webshopId ? { ...query, webshop_id: webshopId } : query;
@@ -25,17 +25,23 @@ async function safeBase44<T>(loader: () => Promise<T>, fallback: T) {
   }
 }
 
+async function firstRecord<T>(
+  entity: string,
+  q: Record<string, unknown>,
+  sort_by = "-created_date"
+) {
+  const { records } = await base44List<T>(entity, { q, sort_by, limit: 1 });
+  return records[0];
+}
+
 export const getWebshop = unstable_cache(
   async () => {
-    if (!hasBase44App) return undefined;
     return safeBase44(async () => {
       if (webshopId) {
-        const [webshop] = await base44.entities.Webshop.filter({ id: webshopId });
-        return webshop as Webshop | undefined;
+        return firstRecord<Webshop>("Webshop", { id: webshopId });
       }
 
-      const [webshop] = await base44.entities.Webshop.filter({ status: "actief" }, "-created_date", 1);
-      return webshop as Webshop | undefined;
+      return firstRecord<Webshop>("Webshop", { status: "actief" });
     }, undefined);
   },
   ["webshop"],
@@ -44,15 +50,14 @@ export const getWebshop = unstable_cache(
 
 export const getProducts = unstable_cache(
   async (limit = 24, skip = 0, sort: string = "-created_date") => {
-    if (!hasBase44App) return [];
     return safeBase44(
       async () =>
-        (await base44.entities.BlogPost.filter(
-          withWebshop({ is_product: true, status: "active" }),
-          sort,
+        (await base44List<BlogPost>("BlogPost", {
+          q: withWebshop({ is_product: true, status: "active" }),
+          sort_by: sort,
           limit,
-          skip
-        )) as BlogPost[],
+          skip,
+        })).records,
       []
     );
   },
@@ -61,40 +66,33 @@ export const getProducts = unstable_cache(
 );
 
 export async function getProductBySlug(slug: string) {
-  if (!hasBase44App) return undefined;
-  return safeBase44(async () => {
-    const [product] = (await base44.entities.BlogPost.filter(
-      withWebshop({ slug, is_product: true, status: "active" }),
-      "-created_date",
-      1
-    )) as BlogPost[];
-    return product;
-  }, undefined);
+  return safeBase44(
+    () => firstRecord<BlogPost>("BlogPost", withWebshop({ slug, is_product: true, status: "active" })),
+    undefined
+  );
 }
 
 export async function getProductVariants(productId: string) {
-  if (!hasBase44App) return [];
   return safeBase44(
     async () =>
-      (await base44.entities.ProductVariant.filter(
-        { product_id: productId },
-        "position",
-        100
-      )) as ProductVariant[],
+      (await base44List<ProductVariant>("ProductVariant", {
+        q: { product_id: productId },
+        sort_by: "position",
+        limit: 100,
+      })).records,
     []
   );
 }
 
 export const getCategories = unstable_cache(
   async () => {
-    if (!hasBase44App) return [];
     return safeBase44(
       async () =>
-        (await base44.entities.ProductCategory.filter(
-          withWebshop({ status: "published" }),
-          "name",
-          100
-        )) as ProductCategory[],
+        (await base44List<ProductCategory>("ProductCategory", {
+          q: withWebshop({ status: "published" }),
+          sort_by: "name",
+          limit: 100,
+        })).records,
       []
     );
   },
@@ -103,35 +101,33 @@ export const getCategories = unstable_cache(
 );
 
 export async function getCategoryBySlug(slug: string) {
-  if (!hasBase44App) return undefined;
-  return safeBase44(async () => {
-    const [category] = (await base44.entities.ProductCategory.filter(
-      withWebshop({ slug, status: "published" }),
-      "name",
-      1
-    )) as ProductCategory[];
-    return category;
-  }, undefined);
+  return safeBase44(
+    () => firstRecord<ProductCategory>("ProductCategory", withWebshop({ slug, status: "published" }), "name"),
+    undefined
+  );
 }
 
 export async function getProductsByCategory(categoryId: string, limit = 48) {
-  if (!hasBase44App) return [];
   return safeBase44(
     async () =>
-      (await base44.entities.BlogPost.filter(
-        withWebshop({ is_product: true, status: "active", category_id: categoryId }),
-        "-created_date",
-        limit
-      )) as BlogPost[],
+      (await base44List<BlogPost>("BlogPost", {
+        q: withWebshop({ is_product: true, status: "active", category_id: categoryId }),
+        sort_by: "-created_date",
+        limit,
+      })).records,
     []
   );
 }
 
 export const getTags = unstable_cache(
   async () => {
-    if (!hasBase44App) return [];
     return safeBase44(
-      async () => (await base44.entities.ProductTag.filter({ status: "active" }, "name", 100)) as ProductTag[],
+      async () =>
+        (await base44List<ProductTag>("ProductTag", {
+          q: { status: "active" },
+          sort_by: "name",
+          limit: 100,
+        })).records,
       []
     );
   },
@@ -140,11 +136,10 @@ export const getTags = unstable_cache(
 );
 
 export async function getTagBySlug(slug: string) {
-  if (!hasBase44App) return undefined;
-  return safeBase44(async () => {
-    const [tag] = (await base44.entities.ProductTag.filter({ slug, status: "active" }, "name", 1)) as ProductTag[];
-    return tag;
-  }, undefined);
+  return safeBase44(
+    () => firstRecord<ProductTag>("ProductTag", { slug, status: "active" }, "name"),
+    undefined
+  );
 }
 
 export async function getProductsByTag(tagName: string, limit = 48) {
@@ -154,14 +149,13 @@ export async function getProductsByTag(tagName: string, limit = 48) {
 
 export const getLatestBlogPosts = unstable_cache(
   async (limit = 3) => {
-    if (!hasBase44App) return [];
     return safeBase44(
       async () =>
-        (await base44.entities.BlogPost.filter(
-          withWebshop({ is_product: false, status: "published" }),
-          "-created_date",
-          limit
-        )) as BlogPost[],
+        (await base44List<BlogPost>("BlogPost", {
+          q: withWebshop({ is_product: false, status: "published" }),
+          sort_by: "-created_date",
+          limit,
+        })).records,
       []
     );
   },
@@ -170,25 +164,15 @@ export const getLatestBlogPosts = unstable_cache(
 );
 
 export async function getBlogPostBySlug(slug: string) {
-  if (!hasBase44App) return undefined;
-  return safeBase44(async () => {
-    const [post] = (await base44.entities.BlogPost.filter(
-      withWebshop({ slug, is_product: false, status: "published" }),
-      "-created_date",
-      1
-    )) as BlogPost[];
-    return post;
-  }, undefined);
+  return safeBase44(
+    () => firstRecord<BlogPost>("BlogPost", withWebshop({ slug, is_product: false, status: "published" })),
+    undefined
+  );
 }
 
 export async function getWebsitePageBySlug(slug: string) {
-  if (!hasBase44App) return undefined;
-  return safeBase44(async () => {
-    const [page] = (await base44.entities.WebsitePage.filter(
-      withWebshop({ slug, status: "published" }),
-      "-created_date",
-      1
-    )) as WebsitePage[];
-    return page;
-  }, undefined);
+  return safeBase44(
+    () => firstRecord<WebsitePage>("WebsitePage", withWebshop({ slug, status: "published" })),
+    undefined
+  );
 }

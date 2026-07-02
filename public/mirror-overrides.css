@@ -1,0 +1,891 @@
+/* 4x4models local mirror refinements */
+:root {
+  --mirror-accent: #a3681a;
+  --mirror-ink: #171411;
+  --mirror-paper: #fbfaf7;
+  --mirror-rule: #ded7cc;
+  --mirror-soft: #f4efe7;
+}
+
+.mirror-premium > header a[aria-label*="4x4models"] {
+  gap: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  min-width: clamp(150px, 16vw, 230px) !important;
+}
+
+.mirror-premium > header a[aria-label*="4x4models"] > span {
+  display: none !important;
+}
+
+.mirror-premium > header img[src="/images/brand/logo.png"] {
+  display: block !important;
+  height: clamp(34px, 3.2vw, 44px) !important;
+  width: clamp(150px, 16vw, 230px) !important;
+  object-fit: contain !important;
+}
+
+.mirror-premium > header > div {
+  min-height: 76px !important;
+  align-items: center !important;
+}
+
+.mirror-premium > header nav ul {
+  align-items: center !important;
+}
+
+.mirror-premium .footer-brand-logo img {
+  display: block;
+  width: clamp(170px, 18vw, 240px);
+  height: auto;
+  object-fit: contain;
+}
+
+.mirror-premium .powered-by-link {
+  color: var(--mirror-accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.mirror-premium .powered-by-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .mirror-premium > header a[aria-label*="4x4models"],
+  .mirror-premium > header img[src="/images/brand/logo.png"] {
+    min-width: 142px !important;
+    width: 142px !important;
+  }
+}
+
+.mirror-premium {
+  --mirror-accent: #a96f2d;
+  --mirror-accent-strong: #c6914d;
+  --mirror-graphite: #171513;
+  --mirror-graphite-soft: #24211e;
+  --mirror-ivory: #fbfaf6;
+  --mirror-ivory-deep: #f1ece3;
+  --mirror-muted: #746a5e;
+  --mirror-rule: rgba(46, 40, 34, 0.14);
+  --mirror-shadow: 0 28px 70px -52px rgba(18, 14, 10, 0.55);
+  background:
+    radial-gradient(circle at 22% 0%, rgba(198, 145, 77, 0.11), transparent 31rem),
+    linear-gradient(180deg, var(--mirror-ivory), #f7f3ec 58%, var(--mirror-ivory));
+  color: var(--mirror-graphite);
+  text-rendering: geometricPrecision;
+}
+
+.mirror-premium > header {
+  top: 0;
+  opacity: 1 !important;
+  transform: none !important;
+  background: #ffffff !important;
+  border-bottom: 1px solid rgba(36, 31, 26, 0.12) !important;
+  box-shadow: 0 10px 34px -30px rgba(23, 21, 19, 0.55);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.mirror-premium > header > div {
+  min-height: 74px !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+}
+
+.mirror-premium > header nav a {
+  position: relative;
+  padding: 10px 0;
+  color: rgba(23, 21, 19, 0.68) !important;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  line-height: 1.1 !important;
+}
+
+.mirror-premium > header nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--mirror-accent), transparent);
+  opacity: 0;
+  transform: scaleX(0.45);
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mirror-premium > header nav a:hover {
+  color: var(--mirror-graphite) !important;
+}
+
+.mirror-premium > header nav a:hover::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.mirror-premium > header .nl-flag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 18px;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.mirror-premium main > div > section:first-child,
+.mirror-premium article > section:first-child {
+  position: relative;
+  isolation: isolate;
+  max-width: none !important;
+  width: 100% !important;
+  min-height: clamp(360px, 45vh, 560px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-left: max(1.5rem, calc((100vw - 1180px) / 2 + 2.5rem)) !important;
+  padding-right: max(1.5rem, calc((100vw - 1180px) / 2 + 2.5rem)) !important;
+  padding-top: clamp(116px, 14vw, 180px) !important;
+  padding-bottom: clamp(56px, 8vw, 92px) !important;
+  background:
+    linear-gradient(180deg, rgba(9, 8, 7, 0.2), rgba(9, 8, 7, 0.24) 38%, rgba(9, 8, 7, 0.82)),
+    linear-gradient(90deg, rgba(7, 6, 5, 0.72), rgba(7, 6, 5, 0.16) 58%, rgba(7, 6, 5, 0.52)),
+    url("/images/hero/homepage.jpg") center / cover no-repeat !important;
+  color: var(--mirror-ivory) !important;
+}
+
+.mirror-premium main > div > section:first-child::after,
+.mirror-premium article > section:first-child::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(17, 15, 13, 0.04), rgba(17, 15, 13, 0.03) 34%, rgba(17, 15, 13, 0.36) 100%),
+    radial-gradient(circle at 76% 28%, rgba(198, 145, 77, 0.16), transparent 24rem);
+  mix-blend-mode: multiply;
+}
+
+.mirror-premium main > div > section:first-child > .relative,
+.mirror-premium article > section:first-child > .relative {
+  z-index: 2;
+}
+
+.mirror-premium main > div > section:first-child > *,
+.mirror-premium article > section:first-child > * {
+  position: relative;
+  z-index: 2;
+}
+
+.mirror-premium main > div > section:first-child h1,
+.mirror-premium article > section:first-child h1,
+.mirror-premium main > div > section:first-child h2,
+.mirror-premium article > section:first-child h2 {
+  color: #ffffff !important;
+  text-shadow: 0 3px 30px rgba(0, 0, 0, 0.68);
+}
+
+.mirror-premium main > div > section:first-child p,
+.mirror-premium main > div > section:first-child span,
+.mirror-premium article > section:first-child p,
+.mirror-premium article > section:first-child span {
+  color: rgba(251, 250, 246, 0.86) !important;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.58);
+}
+
+.mirror-premium main > div > section:first-child p[class*="uppercase"],
+.mirror-premium article > section:first-child p[class*="uppercase"] {
+  color: rgba(219, 174, 108, 0.96) !important;
+}
+
+.mirror-premium h1,
+.mirror-premium h2,
+.mirror-premium h3 {
+  letter-spacing: -0.018em !important;
+}
+
+.mirror-premium h1 {
+  max-width: 11ch;
+  line-height: 0.98 !important;
+}
+
+.mirror-premium section {
+  scroll-margin-top: 96px;
+}
+
+.mirror-premium .divider {
+  background: linear-gradient(90deg, transparent, rgba(169, 111, 45, 0.32), transparent) !important;
+}
+
+.mirror-premium main section:not(:first-child) {
+  padding-top: clamp(64px, 8vw, 112px) !important;
+}
+
+.mirror-premium main section p[class*="uppercase"],
+.mirror-premium main section span[class*="uppercase"],
+.mirror-premium main time,
+.mirror-premium footer h4 {
+  letter-spacing: 0.18em !important;
+}
+
+main a.group.no-underline {
+  position: relative;
+}
+
+main a[class~="group"][class~="no-underline"] {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 100%;
+  padding: clamp(12px, 1.6vw, 20px);
+  border: 1px solid transparent;
+  border-radius: 8px !important;
+  background: color-mix(in srgb, var(--mirror-paper) 72%, transparent);
+  box-shadow: none;
+  transform: translateY(0);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] {
+  position: relative !important;
+  display: block !important;
+  min-height: clamp(280px, 27vw, 430px) !important;
+  padding: 0 !important;
+  border: 1px solid rgba(54, 45, 36, 0.12) !important;
+  border-radius: 6px !important;
+  background: var(--mirror-graphite) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8), var(--mirror-shadow) !important;
+  overflow: hidden;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:first-child {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden;
+  border-radius: 0 !important;
+  background:
+    linear-gradient(135deg, rgba(198, 145, 77, 0.22), rgba(22, 19, 16, 0.98)),
+    var(--mirror-graphite) !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:first-child::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--card-photo, url("/images/hero/homepage.jpg"));
+  background-size: cover;
+  background-position: center;
+  opacity: 0.9;
+  transform: scale(1.01);
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms ease;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"]:hover > div:first-child::before {
+  opacity: 0.98;
+  transform: scale(1.055);
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:first-child > * {
+  position: relative;
+  z-index: 1;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] img {
+  position: relative;
+  z-index: 1;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transform: scale(1.002);
+  filter: saturate(1.02) contrast(1.04) brightness(0.98) !important;
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1), filter 260ms ease;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] img + div[aria-hidden="true"].absolute.inset-0 {
+  z-index: 2;
+  opacity: 0.38 !important;
+  background:
+    linear-gradient(180deg, rgba(10, 8, 6, 0.04), rgba(10, 8, 6, 0.22) 48%, rgba(10, 8, 6, 0.72)),
+    radial-gradient(circle at 78% 12%, rgba(198, 145, 77, 0.12), transparent 18rem) !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"]:hover {
+  border-color: rgba(169, 111, 45, 0.34) !important;
+  background: var(--mirror-graphite) !important;
+  box-shadow: 0 28px 70px -46px rgba(18, 14, 10, 0.62) !important;
+  transform: translateY(-4px) !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"]:hover img {
+  transform: scale(1.045);
+  filter: saturate(1.09) contrast(1.07) brightness(1.01) !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"]::after {
+  position: absolute;
+  left: clamp(18px, 2vw, 26px);
+  bottom: clamp(18px, 2vw, 26px);
+  z-index: 4;
+  min-height: 38px !important;
+  margin-top: 0 !important;
+  padding: 0 15px !important;
+  border-radius: 2px !important;
+  border-color: rgba(169, 111, 45, 0.42) !important;
+  background: rgba(169, 111, 45, 0.065) !important;
+  color: var(--mirror-accent) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.14em !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"]:hover::after {
+  background: var(--mirror-graphite) !important;
+  border-color: var(--mirror-graphite) !important;
+  color: var(--mirror-ivory) !important;
+}
+
+.mirror-premium div[class*="bg-ink"],
+.mirror-premium div[class*="bg-terrain"] {
+  background-color: var(--mirror-graphite) !important;
+}
+
+.mirror-premium div[class*="bg-ink"]:not(:has(img)) {
+  background:
+    linear-gradient(135deg, rgba(198, 145, 77, 0.24), rgba(20, 18, 16, 0.96) 38%, rgba(9, 8, 7, 1)),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 13px) !important;
+}
+
+.mirror-premium main a[aria-label] h3,
+.mirror-premium main a[aria-label] h2 {
+  transition: color 180ms ease;
+}
+
+.mirror-premium main a[aria-label]:hover h3,
+.mirror-premium main a[aria-label]:hover h2 {
+  color: var(--mirror-accent) !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:not(:first-child) {
+  position: absolute !important;
+  inset: auto 0 0 0 !important;
+  z-index: 3 !important;
+  padding: clamp(22px, 3vw, 34px) clamp(18px, 2vw, 26px) clamp(68px, 6vw, 84px) !important;
+  color: var(--mirror-ivory) !important;
+  background: linear-gradient(180deg, transparent, rgba(8, 7, 6, 0.46) 16%, rgba(8, 7, 6, 0.9)) !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"]:has(> div:first-child h3) > div:not(:first-child),
+.mirror-premium main a[class~="group"][class~="no-underline"]:has(> div:first-child h2) > div:not(:first-child) {
+  display: none !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:first-child > div:last-child {
+  z-index: 3 !important;
+  padding: clamp(20px, 2.4vw, 32px) !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:first-child h2,
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:first-child h3 {
+  color: #ffffff !important;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.62);
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:first-child [class*="uppercase"] {
+  color: rgba(198, 145, 77, 0.94) !important;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.58);
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:not(:first-child) * {
+  color: rgba(251, 250, 246, 0.82) !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:not(:first-child) h2,
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:not(:first-child) h3 {
+  color: #ffffff !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:not(:first-child) p {
+  max-width: 34ch;
+  color: rgba(251, 250, 246, 0.76) !important;
+}
+
+.mirror-premium main a[href^="/amerikaans/"] > div:first-child::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--card-photo, url("/images/hero/homepage.jpg"));
+  background-size: cover;
+  background-position: center;
+  opacity: 0.82;
+  transform: scale(1.01);
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms ease;
+}
+
+.mirror-premium main a[href^="/amerikaans/"] > div:first-child > div {
+  z-index: 1;
+}
+
+.mirror-premium main a[href^="/amerikaans/"] > div:first-child > div[aria-hidden="true"]:first-child {
+  background: transparent !important;
+}
+
+.mirror-premium main a[href^="/amerikaans/"] > div:first-child > div[aria-hidden="true"]:not(:first-child) {
+  background:
+    linear-gradient(180deg, rgba(8, 7, 6, 0.06), rgba(8, 7, 6, 0.36) 48%, rgba(8, 7, 6, 0.86)),
+    radial-gradient(circle at 72% 14%, rgba(198, 145, 77, 0.16), transparent 18rem) !important;
+}
+
+.mirror-premium main a[href^="/amerikaans/"]:hover > div:first-child::before {
+  opacity: 0.94;
+  transform: scale(1.055);
+}
+
+.mirror-premium main a[href^="/merken/"] > div:first-child::before,
+.mirror-premium main a[href^="/collecties/"] > div:first-child::before,
+.mirror-premium main a[href^="/journal/"] > div:first-child::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--card-photo, url("/images/hero/homepage.jpg"));
+  background-size: cover;
+  background-position: center;
+  opacity: 0.88;
+  transform: scale(1.01);
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms ease;
+}
+
+.mirror-premium main a[href^="/merken/"] > div:first-child > div,
+.mirror-premium main a[href^="/collecties/"] > div:first-child > div,
+.mirror-premium main a[href^="/journal/"] > div:first-child > div {
+  z-index: 1;
+}
+
+.mirror-premium main a[href^="/merken/"] > div:first-child > div[aria-hidden="true"]:first-child,
+.mirror-premium main a[href^="/collecties/"] > div:first-child > div[aria-hidden="true"]:first-child,
+.mirror-premium main a[href^="/journal/"] > div:first-child > div[aria-hidden="true"]:first-child {
+  background: transparent !important;
+}
+
+.mirror-premium main a[href^="/merken/"] > div:first-child > div[aria-hidden="true"]:not(:first-child),
+.mirror-premium main a[href^="/collecties/"] > div:first-child > div[aria-hidden="true"]:not(:first-child),
+.mirror-premium main a[href^="/journal/"] > div:first-child > div[aria-hidden="true"]:not(:first-child) {
+  background:
+    linear-gradient(180deg, rgba(8, 7, 6, 0.04), rgba(8, 7, 6, 0.34) 48%, rgba(8, 7, 6, 0.88)),
+    radial-gradient(circle at 72% 14%, rgba(198, 145, 77, 0.14), transparent 18rem) !important;
+}
+
+.mirror-premium main a[href^="/merken/"]:hover > div:first-child::before,
+.mirror-premium main a[href^="/collecties/"]:hover > div:first-child::before,
+.mirror-premium main a[href^="/journal/"]:hover > div:first-child::before {
+  opacity: 0.96;
+  transform: scale(1.055);
+}
+
+.mirror-premium main a[href="/amerikaans/tuners/warn-industries"],
+.mirror-premium main a[href="/amerikaans/tuners/addictive-desert-designs"],
+.mirror-premium main a[href="/amerikaans/events/sema-show"],
+.mirror-premium main a[href="/amerikaans/events/mint-400"],
+.mirror-premium main a[href="/amerikaans/events/ultimate-adventure"] {
+  --card-photo: url("/images/brands/ford.jpg");
+}
+
+.mirror-premium main a[href="/amerikaans/tuners/old-man-emu-arb"],
+.mirror-premium main a[href="/amerikaans/events/overland-expo-west"],
+.mirror-premium main a[href="/amerikaans/events/bronco-safari"] {
+  --card-photo: url("/images/collections/beste-4x4-voor-overlanding.jpg");
+}
+
+.mirror-premium main a[href="/amerikaans/tuners/fox-factory"],
+.mirror-premium main a[href="/amerikaans/tuners/king-shocks"],
+.mirror-premium main a[href="/amerikaans/events/king-of-the-hammers"],
+.mirror-premium main a[href="/amerikaans/events/rednecks-with-paychecks"] {
+  --card-photo: url("/images/blog/amerikaanse-v8-4x4-ford-raptor-ram-trx.jpg");
+}
+
+.mirror-premium main a[href="/amerikaans/tuners/dv8-offroad"],
+.mirror-premium main a[href="/amerikaans/tuners/method-race-wheels"],
+.mirror-premium main a[href="/amerikaans/events/jeep-badge-of-honor"] {
+  --card-photo: url("/images/brands/jeep.jpg");
+}
+
+.mirror-premium main a[href="/merken/byd"] { --card-photo: url("/images/brands/byd.jpg"); }
+.mirror-premium main a[href="/merken/chevrolet-gmc"] { --card-photo: url("/images/brands/chevrolet-gmc.jpg"); }
+.mirror-premium main a[href="/merken/dacia"] { --card-photo: url("/images/brands/dacia.jpg"); }
+.mirror-premium main a[href="/merken/ford"] { --card-photo: url("/images/brands/ford.jpg"); }
+.mirror-premium main a[href="/merken/hummer"] { --card-photo: url("/images/brands/hummer.jpg"); }
+.mirror-premium main a[href="/merken/ineos"],
+.mirror-premium main a[href="/merken/ineos-fusilier"] { --card-photo: url("/images/brands/ineos.jpg"); }
+.mirror-premium main a[href="/merken/isuzu"] { --card-photo: url("/images/brands/isuzu.jpg"); }
+.mirror-premium main a[href="/merken/jeep"] { --card-photo: url("/images/brands/jeep.jpg"); }
+.mirror-premium main a[href="/merken/land-rover"] { --card-photo: url("/images/brands/land-rover.jpg"); }
+.mirror-premium main a[href="/merken/mahindra"] { --card-photo: url("/images/brands/mahindra.jpg"); }
+.mirror-premium main a[href="/merken/mercedes-benz"] { --card-photo: url("/images/brands/mercedes-benz.jpg"); }
+.mirror-premium main a[href="/merken/mitsubishi"] { --card-photo: url("/images/brands/mitsubishi.jpg"); }
+.mirror-premium main a[href="/merken/nissan"] { --card-photo: url("/images/brands/nissan.jpg"); }
+.mirror-premium main a[href="/merken/ram"] { --card-photo: url("/images/brands/ram.jpg"); }
+.mirror-premium main a[href="/merken/scout"] { --card-photo: url("/images/brands/scout.jpg"); }
+.mirror-premium main a[href="/merken/suzuki"] { --card-photo: url("/images/brands/suzuki.jpg"); }
+.mirror-premium main a[href="/merken/toyota"] { --card-photo: url("/images/brands/toyota.jpg"); }
+
+.mirror-premium main a[href="/collecties/amerikaanse-4x4-v8-legacy"] { --card-photo: url("/images/collections/amerikaanse-4x4-v8-legacy.jpg"); }
+.mirror-premium main a[href="/collecties/beste-4x4-sneeuw-ijs"] { --card-photo: url("/images/collections/beste-4x4-sneeuw-ijs.jpg"); }
+.mirror-premium main a[href="/collecties/beste-4x4-voor-overlanding"] { --card-photo: url("/images/collections/beste-4x4-voor-overlanding.jpg"); }
+.mirror-premium main a[href="/collecties/beste-4x4-woestijn"] { --card-photo: url("/images/collections/beste-4x4-woestijn.jpg"); }
+.mirror-premium main a[href="/collecties/beste-elektrische-4x4-2026"] { --card-photo: url("/images/collections/beste-elektrische-4x4-2026.jpg"); }
+.mirror-premium main a[href="/collecties/budget-4x4-betaalbaar-offroad"] { --card-photo: url("/images/collections/budget-4x4-betaalbaar-offroad.jpg"); }
+.mirror-premium main a[href="/collecties/historische-iconen-4x4-legendes"] { --card-photo: url("/images/collections/historische-iconen-4x4-legendes.jpg"); }
+.mirror-premium main a[href="/collecties/luxe-4x4-premium-offroad"] { --card-photo: url("/images/collections/luxe-4x4-premium-offroad.jpg"); }
+
+.mirror-premium main a[href="/journal/defender-octa-2026-update"] { --card-photo: url("/images/journal/defender-octa-2026-update.jpg"); }
+.mirror-premium main a[href="/journal/marktanalyse-4x4-verkopen-europa-q1-2026"] { --card-photo: url("/images/journal/marktanalyse-4x4-verkopen-europa-q1-2026.jpg"); }
+.mirror-premium main a[href="/journal/mercedes-g580-eq-range-kritiek"] { --card-photo: url("/images/journal/mercedes-g580-eq-range-kritiek.jpg"); }
+.mirror-premium main a[href="/journal/ram-1500-rho-vervangt-trx"] { --card-photo: url("/images/journal/ram-1500-rho-vervangt-trx.jpg"); }
+.mirror-premium main a[href="/journal/scout-traveler-productie-2027"] { --card-photo: url("/images/journal/scout-traveler-productie-2027.jpg"); }
+.mirror-premium main a[href="/journal/toyota-land-cruiser-250-europa-2026-trims"] { --card-photo: url("/images/journal/toyota-land-cruiser-250-europa-2026-trims.jpg"); }
+
+.mirror-premium main a[href^="/forum/"] {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  min-height: clamp(260px, 24vw, 360px) !important;
+  padding: clamp(22px, 2.3vw, 32px) !important;
+  background: #15110d !important;
+}
+
+.mirror-premium main a[href^="/forum/"]::before,
+.mirror-premium main a[href^="/forum?categorie="]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--forum-photo, var(--forum-category-photo, url("/images/hero/homepage.jpg")));
+  background-size: cover;
+  background-position: center;
+  opacity: 0.72;
+  transform: scale(1.01);
+  transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms ease;
+}
+
+.mirror-premium main a[href^="/forum/"]::after,
+.mirror-premium main a[href^="/forum?categorie="]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(13, 11, 9, 0.05), rgba(13, 11, 9, 0.55) 48%, rgba(8, 7, 6, 0.94)),
+    radial-gradient(circle at 72% 16%, rgba(198, 145, 77, 0.15), transparent 18rem);
+}
+
+.mirror-premium main a[href^="/forum/"]:hover::before,
+.mirror-premium main a[href^="/forum?categorie="]:hover::before {
+  opacity: 0.88;
+  transform: scale(1.055);
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"][href^="/forum/"] > *,
+.mirror-premium main a[class~="group"][class~="no-underline"][href^="/forum?categorie="] > * {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2 !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"][href^="/forum/"] > div:first-child,
+.mirror-premium main a[class~="group"][class~="no-underline"][href^="/forum?categorie="] > div:first-child {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin-top: auto !important;
+  margin-bottom: 14px !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"][href^="/forum/"] > div:not(:first-child),
+.mirror-premium main a[class~="group"][class~="no-underline"][href^="/forum?categorie="] > div:not(:first-child) {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.mirror-premium main a[href^="/forum/"] h3 {
+  display: block !important;
+  color: #ffffff !important;
+  font-size: clamp(18px, 1.35vw, 23px) !important;
+  line-height: 1.06 !important;
+  max-width: 20ch;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.68);
+}
+
+.mirror-premium main a[href^="/forum/"] p {
+  display: none !important;
+}
+
+.mirror-premium main a[href^="/forum/"] p,
+.mirror-premium main a[href^="/forum/"] span {
+  color: rgba(251, 250, 246, 0.76) !important;
+}
+
+.mirror-premium main a[href^="/forum/"] strong {
+  color: #ffffff !important;
+}
+
+.mirror-premium main a[href="/forum/mijn-1998-land-cruiser-hzj75-build"],
+.mirror-premium main a[href="/forum/hoeveel-km-gaat-lc70-motor-mee"],
+.mirror-premium main a[href="/forum/defender-110-naar-130-conversie"] {
+  --forum-photo: url("/images/brands/toyota.jpg");
+}
+
+.mirror-premium main a[href="/forum/beste-budget-lift-voor-jimny"],
+.mirror-premium main a[href="/forum/budget-build-jimny-33-cooper"] {
+  --forum-photo: url("/images/brands/suzuki.jpg");
+}
+
+.mirror-premium main a[href="/forum/lada-niva-vs-nieuwe-defender-wie-wint"],
+.mirror-premium main a[href="/forum/is-de-defender-octa-echt-off-road"] {
+  --forum-photo: url("/images/brands/land-rover.jpg");
+}
+
+.mirror-premium main a[href="/forum/mijn-4h-schakelt-pas-na-3-seconden"],
+.mirror-premium main a[href="/forum/differentieelslot-vs-lsd-wanneer-wat"] {
+  --forum-photo: url("/images/blog/differentieelslot-open-limited-slip-locking.jpg");
+}
+
+.mirror-premium main a[href^="/forum?categorie="] {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  min-height: clamp(250px, 24vw, 350px) !important;
+  padding: clamp(22px, 2.4vw, 32px) !important;
+  background: #15110d !important;
+  border: 1px solid rgba(198, 145, 77, 0.16) !important;
+}
+
+.mirror-premium main a[href^="/forum?categorie="] > * {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2 !important;
+}
+
+.mirror-premium main a[href^="/forum?categorie="] > div:first-child {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin-top: auto !important;
+  margin-bottom: 14px !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+.mirror-premium main a[href^="/forum?categorie="] > div:first-child::before,
+.mirror-premium main a[href^="/forum?categorie="] > div:first-child > div[aria-hidden="true"] {
+  display: none !important;
+}
+
+.mirror-premium main a[href^="/forum?categorie="] h2,
+.mirror-premium main a[href^="/forum?categorie="] h3 {
+  display: block !important;
+  color: #ffffff !important;
+  font-size: clamp(22px, 1.9vw, 30px) !important;
+  line-height: 1.05 !important;
+  max-width: 16ch;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.72);
+}
+
+.mirror-premium main a[href^="/forum?categorie="] p,
+.mirror-premium main a[href^="/forum?categorie="] span {
+  color: rgba(251, 250, 246, 0.78) !important;
+}
+
+.mirror-premium main a[href="/forum?categorie=algemeen#threads"] {
+  --forum-category-photo: url("/images/hero/homepage.jpg");
+}
+
+.mirror-premium main a[href="/forum?categorie=techniek#threads"] {
+  --forum-category-photo: url("/images/blog/differentieelslot-open-limited-slip-locking.jpg");
+}
+
+.mirror-premium main a[href="/forum?categorie=mods-en-builds#threads"] {
+  --forum-category-photo: url("/images/brands/toyota.jpg");
+}
+
+.mirror-premium main a[href="/forum?categorie=evenementen#threads"] {
+  --forum-category-photo: url("/images/collections/beste-4x4-voor-overlanding.jpg");
+}
+
+.mirror-premium main a[class~="inline-flex"][href^="/journal/"] {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 1rem !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  color: var(--mirror-ink) !important;
+}
+
+.mirror-premium main a[class~="inline-flex"][href^="/journal/"]::before,
+.mirror-premium main a[class~="inline-flex"][href^="/journal/"]::after,
+.mirror-premium main a[class~="inline-flex"][href^="/journal/"] > div:first-child::before {
+  display: none !important;
+}
+
+.mirror-premium main a[class~="inline-flex"][href^="/journal/"] > * {
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
+  color: inherit !important;
+  text-shadow: none !important;
+}
+
+.mirror-premium main a[class~="inline-flex"][href^="/journal/"] span:first-child {
+  color: var(--mirror-accent) !important;
+}
+
+.mirror-premium footer {
+  margin-top: clamp(88px, 10vw, 144px) !important;
+  border-top: 0 !important;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(198, 145, 77, 0.18), transparent 28rem),
+    linear-gradient(180deg, #211d19, #12100e 72%) !important;
+  color: rgba(251, 250, 246, 0.82) !important;
+}
+
+.mirror-premium footer > div {
+  padding-top: clamp(52px, 6vw, 82px) !important;
+  padding-bottom: 28px !important;
+}
+
+.mirror-premium footer p,
+.mirror-premium footer span,
+.mirror-premium footer li,
+.mirror-premium footer a {
+  color: rgba(251, 250, 246, 0.7) !important;
+}
+
+.mirror-premium footer h4 {
+  color: rgba(198, 145, 77, 0.78) !important;
+}
+
+.mirror-premium footer a:hover,
+.mirror-premium footer .powered-by-link {
+  color: var(--mirror-accent-strong) !important;
+}
+
+.mirror-premium footer .footer-brand-logo {
+  margin-bottom: 14px;
+}
+
+.mirror-premium footer .footer-brand-logo img {
+  width: clamp(190px, 20vw, 270px);
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.26));
+}
+
+.mirror-premium footer [class*="border-t"] {
+  border-color: rgba(251, 250, 246, 0.11) !important;
+}
+
+.mirror-premium footer a[aria-label*="Volg"] {
+  border-color: rgba(251, 250, 246, 0.16) !important;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:first-child {
+  border-radius: 6px;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] img {
+  opacity: 1 !important;
+  filter: saturate(1.06) contrast(1.02);
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] img + div[aria-hidden="true"].absolute.inset-0 {
+  opacity: 0.24 !important;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"] > div:not(:first-child) {
+  padding-top: 18px !important;
+  padding-bottom: 0;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"]:not([href^="/forum/"]):not([href^="/forum?categorie="])::after {
+  content: "Bekijk details \2192";
+  align-self: flex-start;
+  margin-top: 18px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  border: 1px solid color-mix(in srgb, var(--mirror-accent) 42%, transparent);
+  border-radius: 999px;
+  background: rgba(163, 104, 26, 0.08);
+  color: var(--mirror-accent);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 180ms ease, color 180ms ease;
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"]:hover {
+  border-color: color-mix(in srgb, var(--mirror-accent) 45%, var(--mirror-rule));
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 18px 42px -34px rgba(23, 20, 17, 0.48);
+  transform: translateY(-3px);
+}
+
+.mirror-premium main a[class~="group"][class~="no-underline"]:not([href^="/forum/"]):not([href^="/forum?categorie="]):hover::after {
+  opacity: 1;
+  transform: translateY(0);
+  background: var(--mirror-accent);
+  color: white;
+}
+
+.mirror-premium main a.inline-flex,
+.mirror-premium main button.inline-flex,
+.mirror-premium main button[type="submit"] {
+  text-transform: uppercase;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .mirror-premium main a[class~="group"][class~="no-underline"]:not([href^="/forum/"]):not([href^="/forum?categorie="])::after {
+    opacity: 1;
+    transform: none;
+  }
+}

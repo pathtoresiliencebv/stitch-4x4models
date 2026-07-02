@@ -1,0 +1,8 @@
+zero/
+.git/
+.agents/
+.codex/
+node_modules/
+.next/
+coverage/
+*.log

@@ -7,6 +7,12 @@ import { Trash2 } from "lucide-react";
 import { useCart } from "@/lib/CartContext";
 import { formatCurrency } from "@/lib/format";
 
+type CheckoutResponse = {
+  checkoutUrl?: string;
+  order_id?: string;
+  error?: string;
+};
+
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem } = useCart();
   const [error, setError] = useState("");
@@ -43,9 +49,15 @@ export default function CartPage() {
       }),
     });
 
-    const data = await res.json();
+    const data = (await res.json()) as CheckoutResponse;
     if (data.error) {
       setError(data.error);
+      setLoading(false);
+      return;
+    }
+
+    if (!data.checkoutUrl) {
+      setError("Checkout could not be started.");
       setLoading(false);
       return;
     }

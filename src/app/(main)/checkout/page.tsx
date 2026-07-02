@@ -5,6 +5,12 @@ import Link from "next/link";
 import { useCart } from "@/lib/CartContext";
 import { formatCurrency } from "@/lib/format";
 
+type CheckoutResponse = {
+  checkoutUrl?: string;
+  order_id?: string;
+  error?: string;
+};
+
 export default function CheckoutPage() {
   const { items, total } = useCart();
   const [error, setError] = useState("");
@@ -38,7 +44,7 @@ export default function CheckoutPage() {
         },
       }),
     });
-    const data = await res.json();
+    const data = (await res.json()) as CheckoutResponse;
     if (data.checkoutUrl) {
       if (data.order_id) sessionStorage.setItem("checkout_order_id", data.order_id);
       window.location.href = data.checkoutUrl;

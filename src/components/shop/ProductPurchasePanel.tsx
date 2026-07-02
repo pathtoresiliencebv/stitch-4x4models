@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useMemo, useState, type ChangeEvent } from "react";
 import { ShoppingCart, Upload } from "lucide-react";
-import { base44 } from "@/lib/base44";
 import { useCart } from "@/lib/CartContext";
 import { formatCurrency } from "@/lib/format";
 import type { BlogPost, CustomField, ProductOption, ProductOptionValue, ProductVariant } from "@/types/base44";
@@ -86,8 +85,15 @@ function CustomFieldsForm({
   async function uploadFile(field: CustomField, event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    const upload = await base44.integrations.Core.UploadFile({ file });
-    onFile(field.label, upload.file_url || "");
+    const formData = new FormData();
+    formData.set("file", file);
+    const response = await fetch("/api/cms/upload", {
+      method: "POST",
+      body: formData,
+    });
+    const upload = (await response.json()) as { url?: string; error?: string };
+    if (!response.ok || !upload.url) throw new Error(upload.error || "Upload failed");
+    onFile(field.label, upload.url);
   }
 
   if (!fields.length) return null;

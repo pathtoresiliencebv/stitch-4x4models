@@ -1,16 +1,23 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
+type RevalidatePayload = {
+  secret?: string;
+  type?: string;
+  slug?: string;
+  path?: string;
+};
+
 export async function POST(req: Request) {
   const secret = process.env.REVALIDATE_SECRET;
-  const payload = await req.json().catch(() => ({}));
+  const payload = (await req.json().catch(() => ({}))) as RevalidatePayload;
 
   if (secret && payload.secret !== secret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const type = payload.type as string | undefined;
-  const slug = payload.slug as string | undefined;
+  const type = payload.type;
+  const slug = payload.slug;
 
   revalidatePath("/");
   if (type === "product" && slug) {

@@ -17,6 +17,10 @@ function hasApiKey() {
   return Boolean(process.env.BASE44_API_KEY);
 }
 
+type ApiErrorPayload = {
+  message?: string;
+};
+
 export function normalizeListResponse<T>(payload: unknown): ApiListResponse<T> {
   if (Array.isArray(payload)) {
     return { records: payload as T[], total: payload.length };
@@ -73,7 +77,7 @@ export async function base44Fetch<T>(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: "API Error" }));
+    const error = (await response.json().catch(() => ({ message: "API Error" }))) as ApiErrorPayload;
     throw new Error(error.message || `CMS request failed (${response.status})`);
   }
 

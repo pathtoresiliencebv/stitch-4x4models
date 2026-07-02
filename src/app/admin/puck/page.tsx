@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import PuckEditorClient from "@/components/puck/PuckEditorClient";
+import { getAuthSession } from "@/lib/auth/casdoor";
 import { isLocale } from "@/lib/locale";
 import { buildDefaultPuckData } from "@/lib/puck/default-data";
 import { getPuckPageData } from "@/lib/services/puck-page";
@@ -103,6 +105,10 @@ export default async function PuckAdminPage({
 }: {
   searchParams: Promise<{ page?: string; locale?: string }>;
 }) {
+  const session = await getAuthSession();
+  if (!session) redirect("/api/auth/login?returnTo=/admin/puck");
+  if (session.user.role !== "admin") notFound();
+
   const params = await searchParams;
   const page = (params.page || "home") as ManagedPage;
   const locale = params.locale || "en";

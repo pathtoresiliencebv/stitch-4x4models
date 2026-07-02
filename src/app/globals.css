@@ -73,6 +73,24 @@
 }
 
 @theme inline {
+  --color-paper: #fbfaf7;
+  --color-ink: #171411;
+  --color-ink-soft: #675f55;
+  --color-ink-muted: #91877b;
+  --color-rule: #ded7cc;
+  --color-accent: #a3681a;
+  --color-rust: #8a3e1f;
+  --color-rust-soft: #f1e5d6;
+  --color-forest: #3f5b3d;
+  --container-wide: 92rem;
+  --container-content: 74rem;
+  --tracking-tightest: -0.035em;
+  --font-display: "Space Grotesk", "Aptos Display", "Segoe UI", system-ui, sans-serif;
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+  --duration-slow: 700ms;
+
   /* Brand Colors */
   --color-primary: var(--color-primary);
   --color-primary-container: var(--color-primary-container);
@@ -144,9 +162,9 @@
   --radius-2xl: var(--radius-2xl);
 
   /* Font families */
-  --font-headline: "Space Grotesk", sans-serif;
-  --font-body: "Manrope", sans-serif;
-  --font-label: "Manrope", sans-serif;
+  --font-headline: "Space Grotesk", "Aptos Display", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Manrope", "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-label: "Manrope", "Inter", "Segoe UI", system-ui, sans-serif;
 }
 
 /* Noise texture overlay */
@@ -389,4 +407,37 @@ html {
   .premium-link {
     transition: none;
   }
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+::selection {
+  background: rgba(163, 104, 26, 0.2);
+  color: var(--color-ink);
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-rule);
+}
+
+.live-pattern {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'><g fill='none' stroke='%238a3e1f' stroke-width='1' stroke-opacity='0.04'><path d='M0 40 L160 -120'/><path d='M0 80 L160 -80'/><path d='M0 120 L160 -40'/><path d='M0 160 L160 0'/><path d='M0 200 L160 40'/><path d='M0 240 L160 80'/><path d='M0 280 L160 120'/><path d='M0 320 L160 160'/></g></svg>");
+  background-repeat: repeat;
+}
+
+@keyframes ken-burns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+.animate-ken-burns {
+  animation: ken-burns 24s ease-out infinite alternate;
 }

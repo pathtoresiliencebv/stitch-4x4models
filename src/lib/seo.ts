@@ -47,8 +47,7 @@ export const defaultSiteKeywords = [
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.NEXT_PUBLIC_VERCEL_URL ||
-  "https://4x4models.com";
+  "https://www.4x4models.com";
 
 export function absoluteUrl(path: string) {
   const base = siteUrl.startsWith("http") ? siteUrl : `https://${siteUrl}`;

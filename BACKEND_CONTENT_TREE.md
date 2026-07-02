@@ -659,7 +659,7 @@
 const API_CONFIG = {
   baseUrl: 'https://stimulating-growth-suite-ai.base44.app/api',
   appId: '699871557dfcaafa02868052',
-  apiKey: 'f497a9fa558244729d43461df1f9b91b',
+  apiKey: process.env.BASE44_API_KEY,
 };
 
 // Frontend Services

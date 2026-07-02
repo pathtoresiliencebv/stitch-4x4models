@@ -1,145 +1,59 @@
 import type { MetadataRoute } from "next";
-import { blogService } from "@/lib/services/blog";
-import { categoryService, productService, tagService } from "@/lib/services/product";
-import { vehicleService } from "@/lib/services/vehicle";
-import type { Locale } from "@/types/common";
+import manifest from "@/data/live-mirror/manifest.json";
+import { mirrorImageForPath } from "@/data/live-mirror/image-map";
 
-const locales: Locale[] = ["en", "nl"];
-const SITEMAP_ORIGIN = "https://4x4models.com";
+type MirrorManifest = {
+  pages: Record<string, string>;
+};
+
+const SITEMAP_ORIGIN = "https://www.4x4models.com";
+const routes = Object.keys((manifest as MirrorManifest).pages).sort();
 
 function sitemapUrl(path: string) {
   return new URL(path, SITEMAP_ORIGIN).toString();
 }
 
-const STATIC_PATHS = [
-  "",
-  "/vehicles",
-  "/journal",
-  "/gear",
-  "/shop",
-  "/login",
-  "/register",
-];
+function localizedAlternates(path: string) {
+  const withoutLocale = path.startsWith("/en/") ? path.slice(3) : path === "/en" ? "/" : path;
+  const enPath = withoutLocale === "/" ? "/en" : `/en${withoutLocale}`;
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [vehicles, enArticles, nlArticles, products, categories, tags] = await Promise.all([
-    vehicleService.list(500).catch(() => []),
-    blogService.getLatest(500, "en").catch(() => []),
-    blogService.getLatest(500, "nl").catch(() => []),
-    productService.listPublished({ limit: 500 }).catch(() => { return { records: [], total: 0 }; }),
-    categoryService.list().catch(() => []),
-    tagService.list().catch(() => []),
-  ]);
+  if (!routes.includes(enPath) && !routes.includes(withoutLocale)) return undefined;
 
-  const now = new Date();
-  const staticEntries = locales.flatMap((locale) =>
-    STATIC_PATHS.map((path) => ({
-      url: sitemapUrl(`/${locale}${path}`),
-      lastModified: now,
-      changeFrequency: path === "" ? ("daily" as const) : ("weekly" as const),
-      priority: path === "" ? 1 : 0.8,
-      alternates: {
-        languages: Object.fromEntries(
-          locales.map((other) => [other, sitemapUrl(`/${other}${path}`)])
-        ),
-      },
-    }))
-  );
-
-  const vehicleEntries = locales.flatMap((locale) =>
-    vehicles
-      .filter((vehicle) => vehicle.slug)
-      .map((vehicle) => ({
-        url: sitemapUrl(`/${locale}/vehicles/${vehicle.slug}`),
-        lastModified: vehicle.updated_date ? new Date(vehicle.updated_date) : now,
-        changeFrequency: "weekly" as const,
-        priority: 0.9,
-        images: [vehicle.hero_image_url, vehicle.featured_image_url].filter(Boolean) as string[],
-        alternates: {
-          languages: Object.fromEntries(
-            locales.map((other) => [other, sitemapUrl(`/${other}/vehicles/${vehicle.slug}`)])
-          ),
-        },
-      }))
-  );
-
-  const articleEntries = [
-    ...enArticles.map((article) => ({ locale: "en" as const, article })),
-    ...nlArticles.map((article) => ({ locale: "nl" as const, article })),
-  ]
-    .filter(({ article }) => article.slug)
-    .map(({ locale, article }) => ({
-      url: sitemapUrl(`/${locale}/journal/${article.slug}`),
-      lastModified: new Date(
-        article.updated_date || article.published_at || article.created_date || now.toISOString()
-      ),
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-      images: article.featured_image_url ? [article.featured_image_url] : undefined,
-      alternates: {
-        languages: Object.fromEntries(
-          locales.map((other) => [other, sitemapUrl(`/${other}/journal/${article.slug}`)])
-        ),
-      },
-    }));
-
-  const productEntries = locales.flatMap((locale) =>
-    products.records
-      .filter((product) => product.slug)
-      .map((product) => ({
-        url: sitemapUrl(`/${locale}/shop/${product.slug}`),
-        lastModified: product.created_date ? new Date(product.created_date) : now,
-        changeFrequency: "weekly" as const,
-        priority: 0.6,
-        images: [
-          product.featured_image_url,
-          product.product_images?.[0]?.url,
-        ].filter(Boolean) as string[],
-        alternates: {
-          languages: Object.fromEntries(
-            locales.map((other) => [other, sitemapUrl(`/${other}/shop/${product.slug}`)])
-          ),
-        },
-      }))
-  );
-
-  const categoryEntries = locales.flatMap((locale) =>
-    categories
-      .filter((category) => category.slug)
-      .map((category) => ({
-        url: sitemapUrl(`/${locale}/gear/${category.slug}`),
-        lastModified: now,
-        changeFrequency: "weekly" as const,
-        priority: 0.6,
-      }))
-  );
-
-  const tagEntries = locales.flatMap((locale) =>
-    tags
-      .filter((tag) => tag.slug)
-      .map((tag) => ({
-        url: sitemapUrl(`/${locale}/tags/${tag.slug}`),
-        lastModified: now,
-        changeFrequency: "weekly" as const,
-        priority: 0.5,
-      }))
-  );
-
-  return [
-    {
-      url: sitemapUrl("/"),
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 1,
-      alternates: {
-        languages: Object.fromEntries(locales.map((other) => [other, sitemapUrl(`/${other}`)])),
-      },
+  return {
+    languages: {
+      nl: sitemapUrl(withoutLocale),
+      en: sitemapUrl(enPath),
+      "x-default": sitemapUrl(withoutLocale),
     },
-    ...staticEntries,
-    ...vehicleEntries,
-    ...articleEntries,
-    ...productEntries,
-    ...categoryEntries,
-    ...tagEntries,
-  ];
+  };
+}
+
+function routePriority(path: string) {
+  if (path === "/") return 1;
+  if (["/merken", "/amerikaans", "/collecties", "/blog", "/journal", "/shop", "/forum"].includes(path)) return 0.9;
+  if (path.split("/").length <= 3) return 0.75;
+  return 0.62;
+}
+
+function changeFrequency(path: string): MetadataRoute.Sitemap[number]["changeFrequency"] {
+  if (path === "/" || path === "/journal" || path.startsWith("/journal/")) return "daily";
+  if (path === "/blog" || path.startsWith("/blog/") || path === "/shop" || path.startsWith("/shop/")) return "weekly";
+  return "monthly";
+}
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const now = new Date();
+
+  return routes.map((path) => {
+    const image = mirrorImageForPath(path);
+
+    return {
+      url: sitemapUrl(path),
+      lastModified: now,
+      changeFrequency: changeFrequency(path),
+      priority: routePriority(path),
+      images: image ? [sitemapUrl(image)] : undefined,
+      alternates: localizedAlternates(path),
+    };
+  });
 }

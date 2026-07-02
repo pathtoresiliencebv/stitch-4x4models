@@ -1,86 +1,70 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Space_Grotesk, Manrope } from "next/font/google";
 import { OrganizationJsonLd } from "next-seo";
 import { AuthProvider } from "@/lib/AuthContext";
 import { CartProvider } from "@/lib/CartContext";
-import { absoluteUrl, defaultSiteDescription, defaultSiteTitle, jsonLd, websiteJsonLd } from "@/lib/seo";
+import { absoluteUrl, defaultSiteTitle, jsonLd, websiteJsonLd } from "@/lib/seo";
 import "./globals.css";
-
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  display: "swap",
-});
-
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
 
 const gaMeasurementId =
   process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "G-NLDZ4NR6XQ";
 const gscVerification = process.env.NEXT_PUBLIC_GSC_VERIFICATION || "";
-const brandLogoUrl =
-  "https://media.base44.com/images/public/699871557dfcaafa02868052/8ae82d41d_4x4models.png";
+const brandLogoUrl = absoluteUrl("/images/brand/logo.png");
 
 export const metadata: Metadata = {
   metadataBase: new URL(absoluteUrl("/")),
   title: {
-    default: `${defaultSiteTitle} | Premium 4x4 Off-Road Adventures`,
-    template: `%s | ${defaultSiteTitle}`,
+    default: "4x4models — kenniscentrum voor 4x4",
+    template: `%s | 4x4models`,
   },
-  description: defaultSiteDescription,
-  applicationName: defaultSiteTitle,
-  authors: [{ name: "4x4models Editorial" }],
+  description:
+    "Onafhankelijk kenniscentrum over 4x4-modellen: merken, techniek en erfgoed. Artikelen, modellenoverzichten en specificaties.",
+  applicationName: "4x4models",
+  authors: [{ name: "4x4models Redactie" }],
   generator: "4x4models.com",
   keywords: [
     "4x4",
+    "terreinwagen",
+    "SUV",
     "off-road",
-    "overlanding",
-    "Toyota Land Cruiser",
-    "Tacoma",
-    "Hilux",
-    "4Runner",
-    "Jeep Wrangler",
-    "Ford Bronco",
-    "recovery gear",
-    "suspension",
-    "tires",
+    "Land Rover",
+    "Toyota",
+    "Jeep",
+    "Mercedes-Benz G",
+    "INEOS Grenadier",
   ],
   category: "Automotive",
   alternates: {
     canonical: "/",
     languages: {
+      nl: "/",
       en: "/en",
-      nl: "/nl",
-      "x-default": "/en",
+      "x-default": "/",
     },
   },
   openGraph: {
-    siteName: defaultSiteTitle,
+    siteName: "4x4models",
     type: "website",
-    locale: "en_US",
+    locale: "nl_NL",
     url: absoluteUrl("/"),
-    title: `${defaultSiteTitle} | Premium 4x4 Off-Road Adventures`,
-    description: defaultSiteDescription,
+    title: "4x4models — kenniscentrum voor 4x4",
+    description:
+      "Onafhankelijk kenniscentrum over 4x4-modellen: merken, techniek en erfgoed. Artikelen, modellenoverzichten en specificaties.",
     images: [
       {
-        url: absoluteUrl("/images/og-cover.jpg"),
+        url: absoluteUrl("/images/og/og-1200x630.png"),
         width: 1200,
         height: 630,
-        alt: "4x4models — Off-road rigs, gear and field stories",
+        alt: "4x4models — kenniscentrum voor 4x4",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${defaultSiteTitle} | Premium 4x4 Off-Road Adventures`,
-    description: defaultSiteDescription,
-    images: [absoluteUrl("/images/og-cover.jpg")],
+    title: "4x4models — kenniscentrum voor 4x4",
+    description:
+      "Onafhankelijk kenniscentrum over 4x4-modellen: merken, techniek en erfgoed. Artikelen, modellenoverzichten en specificaties.",
+    images: [absoluteUrl("/images/og/og-1200x630.png")],
   },
   robots: {
     index: true,
@@ -99,8 +83,12 @@ export const metadata: Metadata = {
       }
     : undefined,
   other: {
-    "theme-color": "#0e0f12",
+    "theme-color": "#fbfaf7",
     "format-detection": "telephone=no",
+  },
+  icons: {
+    icon: [{ url: "/favicon.ico", type: "image/x-icon", sizes: "32x32" }],
+    apple: [{ url: "/images/brand/icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
@@ -110,14 +98,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="nl">
       <head>
         {gscVerification ? (
           <meta name="google-site-verification" content={gscVerification} />
         ) : null}
       </head>
       <body
-        className={`${spaceGrotesk.variable} ${manrope.variable} font-body antialiased min-h-screen flex flex-col bg-surface text-on-surface`}
+        className="font-body antialiased min-h-screen flex flex-col bg-paper text-ink"
       >
         <script
           type="application/ld+json"

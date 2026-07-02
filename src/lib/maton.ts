@@ -38,6 +38,11 @@ type MatonOptions = {
   next?: { revalidate?: number; tags?: string[] };
 };
 
+type MatonErrorPayload = {
+  error?: { message?: string };
+  message?: string;
+};
+
 async function matonFetch(
   method: string,
   path: string,
@@ -86,7 +91,7 @@ export async function matonSend<T = unknown>(
 async function throwMatonError(res: Response, method: string, path: string): Promise<never> {
   let detail = "";
   try {
-    const data = await res.json();
+    const data = (await res.json()) as MatonErrorPayload | string;
     detail =
       typeof data === "string"
         ? data
