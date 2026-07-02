@@ -2,6 +2,12 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import manifest from "@/data/live-mirror/manifest.json";
 import { mirrorCssVarsForHref } from "@/data/live-mirror/image-map";
+import {
+  localeForPublicPathname,
+  publicPathForLocale,
+  stripSupportedLocalePrefix,
+  type Locale,
+} from "@/lib/i18n-routing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,8 +33,6 @@ type Base44MirrorPage = {
   html: string;
   source: Exclude<MirrorSource, "local">;
 };
-
-type Locale = "nl" | "en";
 
 const BASE44_BASE_URL =
   process.env.NEXT_PUBLIC_BASE44_API_URL ||
@@ -90,40 +94,31 @@ function rewriteBrandAssets(html: string) {
     );
 }
 
-function localeForPathname(pathname: string): Locale {
-  return pathname === "/en" || pathname.startsWith("/en/") ? "en" : "nl";
-}
-
-function pathWithoutLocale(pathname: string) {
-  if (pathname === "/en") return "/";
-  if (pathname.startsWith("/en/")) return pathname.replace(/^\/en/, "") || "/";
-  return pathname;
-}
-
 export function alternateLocalePath(pathname: string, targetLocale: Locale) {
-  const basePath = pathWithoutLocale(pathname);
-
-  if (targetLocale === "nl") {
-    return basePath;
-  }
-
-  return basePath === "/" ? "/en" : `/en${basePath}`;
+  return publicPathForLocale(pathname, targetLocale);
 }
 
 function localizedPath(pathname: string, locale: Locale) {
-  return locale === "en" ? alternateLocalePath(pathname, "en") : pathname;
+  return publicPathForLocale(pathname, locale);
+}
+
+function languageSwitchHref(pathname: string, targetLocale: Locale) {
+  const href = alternateLocalePath(pathname, targetLocale);
+  const separator = href.includes("?") ? "&" : "?";
+  return `${href}${separator}lang=${targetLocale}`;
 }
 
 function languageSwitcherHtml(pathname: string) {
-  const locale = localeForPathname(pathname);
+  const locale = localeForPublicPathname(pathname);
   const nlClass = locale === "nl" ? " is-active" : "";
   const enClass = locale === "en" ? " is-active" : "";
+  const label = locale === "nl" ? "Taalkeuze" : "Language";
 
   return [
-    '<div class="language-switcher" aria-label="Taalkeuze">',
-    `<a class="language-switcher__link${nlClass}" href="${alternateLocalePath(pathname, "nl")}" aria-label="Bekijk de Nederlandse versie"><span aria-hidden="true" class="nl-flag">🇳🇱</span><span>NL</span></a>`,
+    `<div class="language-switcher" aria-label="${label}">`,
+    `<a class="language-switcher__link${nlClass}" href="${languageSwitchHref(pathname, "nl")}" aria-label="Bekijk de Nederlandse versie"><span aria-hidden="true" class="nl-flag">🇳🇱</span><span>NL</span></a>`,
     '<span class="language-switcher__divider" aria-hidden="true">/</span>',
-    `<a class="language-switcher__link${enClass}" href="${alternateLocalePath(pathname, "en")}" aria-label="View the English version"><span>EN</span></a>`,
+    `<a class="language-switcher__link${enClass}" href="${languageSwitchHref(pathname, "en")}" aria-label="View the English version"><span>EN</span></a>`,
     "</div>",
   ].join("");
 }
@@ -136,8 +131,8 @@ function rewriteLanguageSwitcher(html: string, pathname: string) {
 }
 
 function mobileNavHtml(pathname: string) {
-  const locale = localeForPathname(pathname);
-  const currentPath = pathWithoutLocale(pathname);
+  const locale = localeForPublicPathname(pathname);
+  const currentPath = stripSupportedLocalePrefix(pathname);
   const links = mobileNavItems[locale]
     .map(([label, href]) => {
       const localizedHref = localizedPath(href, locale);
@@ -156,15 +151,66 @@ function injectMobileNav(html: string, pathname: string) {
   return html.replace("</header>", `</header>${mobileNavHtml(pathname)}`);
 }
 
+function absoluteSiteUrl(pathname: string) {
+  return `${SITE_ORIGIN}${pathname === "/" ? "/" : pathname}`;
+}
+
+function alternateLinkTags(pathname: string) {
+  const enPath = publicPathForLocale(pathname, "en");
+  const nlPath = publicPathForLocale(pathname, "nl");
+
+  return [
+    `<link rel="alternate" hrefLang="en" href="${absoluteSiteUrl(enPath)}"/>`,
+    `<link rel="alternate" hrefLang="nl" href="${absoluteSiteUrl(nlPath)}"/>`,
+    `<link rel="alternate" hrefLang="x-default" href="${absoluteSiteUrl(enPath)}"/>`,
+  ].join("");
+}
+
+function rewriteHtmlLang(html: string, locale: Locale) {
+  if (/<html\b[^>]*\blang="/i.test(html)) {
+    return html.replace(/<html\b([^>]*)\blang="[^"]*"/i, `<html$1lang="${locale}"`);
+  }
+
+  return html.replace(/<html\b/i, `<html lang="${locale}"`);
+}
+
+function shouldLocalizeHref(pathname: string) {
+  return ![
+    "/api",
+    "/admin",
+    "/_next",
+    "/live-mirror",
+    "/mirror-next-static",
+    "/images",
+    "/favicons",
+    "/brand-kit",
+  ].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)) && ![
+    "/favicon.ico",
+    "/mirror-overrides.css",
+    "/robots.txt",
+    "/sitemap.xml",
+  ].includes(pathname);
+}
+
+function rewriteLocalizedInternalLinks(html: string, locale: Locale) {
+  return html.replace(/href="\/([^"#?]*)(\?[^"]*)?"/g, (match, pathPart: string, query = "") => {
+    const pathname = `/${pathPart}`;
+    if (!shouldLocalizeHref(pathname)) return match;
+
+    return `href="${publicPathForLocale(pathname, locale)}${query}"`;
+  });
+}
+
 function rewriteCanonicalUrls(html: string, pathname: string) {
   const canonicalUrl = `${SITE_ORIGIN}${pathname === "/" ? "/" : pathname}`;
   const normalized = html
     .replaceAll("https://4x4models.com", SITE_ORIGIN)
-    .replaceAll("http://4x4models.com", SITE_ORIGIN);
+    .replaceAll("http://4x4models.com", SITE_ORIGIN)
+    .replace(/<link\s+rel="alternate"[^>]*>/gi, "");
 
   const withCanonical = normalized.includes('rel="canonical"')
-    ? normalized.replace(/<link rel="canonical" href="[^"]*"\/?>/g, `<link rel="canonical" href="${canonicalUrl}"/>`)
-    : normalized.replace("</head>", `<link rel="canonical" href="${canonicalUrl}"/></head>`);
+    ? normalized.replace(/<link rel="canonical" href="[^"]*"\/?>/g, `<link rel="canonical" href="${canonicalUrl}"/>${alternateLinkTags(pathname)}`)
+    : normalized.replace("</head>", `<link rel="canonical" href="${canonicalUrl}"/>${alternateLinkTags(pathname)}</head>`);
 
   return withCanonical
     .replace(/<meta property="og:url" content="[^"]*"\/?>/g, `<meta property="og:url" content="${canonicalUrl}"/>`)
@@ -210,6 +256,23 @@ function normalizePathname(parts?: string[]) {
 
 function pathnameToSlug(pathname: string) {
   return pathname === "/" ? "home" : pathname.replace(/^\/+/, "");
+}
+
+export function resolveMirrorContentPathname(
+  publicPathname: string,
+  pages: Record<string, string>
+) {
+  const locale = localeForPublicPathname(publicPathname);
+  const basePathname = stripSupportedLocalePrefix(publicPathname);
+  const englishPathname = basePathname === "/" ? "/en" : `/en${basePathname}`;
+  const contentPathname =
+    locale === "en" && pages[englishPathname] ? englishPathname : basePathname;
+
+  return {
+    locale,
+    publicPathname: publicPathForLocale(publicPathname, locale),
+    contentPathname,
+  };
 }
 
 function hasFullHtmlDocument(html: string) {
@@ -339,23 +402,64 @@ async function readBase44MirrorPage(pathname: string, localHtml: string): Promis
   }
 }
 
-function applyMirrorTransforms(html: string, pathname: string) {
+function applyMirrorTransforms(html: string, pathname: string, locale: Locale) {
   return injectMirrorOverrides(
     addPremiumBodyClass(
-      addCardImageVars(
+      rewriteHtmlLang(
         rewriteCanonicalUrls(
           injectMobileNav(
             rewriteLanguageSwitcher(
-              rewriteBrandAssets(rewriteLocalImageUrls(html)),
+              rewriteLocalizedInternalLinks(
+                addCardImageVars(
+                  rewriteBrandAssets(rewriteLocalImageUrls(html))
+                ),
+                locale
+              ),
               pathname
             ),
             pathname
           ),
           pathname
-        )
+        ),
+        locale
       )
     )
   );
+}
+
+function notFoundResponse() {
+  return new Response("Pagina niet gevonden.", {
+    status: 404,
+    headers: { "content-type": "text/plain; charset=utf-8" },
+  });
+}
+
+async function readMirrorHtml(contentPathname: string, fileName?: string) {
+  if (!fileName) {
+    return undefined;
+  }
+
+  return {
+    contentPathname,
+    html: await readLocalMirrorHtml(fileName),
+  };
+}
+
+async function readResolvedMirrorHtml(
+  publicPathname: string,
+  pages: Record<string, string>
+) {
+  const resolved = resolveMirrorContentPathname(publicPathname, pages);
+  const primary = await readMirrorHtml(resolved.contentPathname, pages[resolved.contentPathname]);
+
+  if (primary) return { ...resolved, ...primary };
+
+  const fallbackPathname = stripSupportedLocalePrefix(publicPathname);
+  const fallback = await readMirrorHtml(fallbackPathname, pages[fallbackPathname]);
+
+  if (fallback) return { ...resolved, ...fallback, contentPathname: fallbackPathname };
+
+  return undefined;
 }
 
 export async function GET(
@@ -364,25 +468,23 @@ export async function GET(
 ) {
   const { path: routeParts } = await props.params;
   const pathname = normalizePathname(routeParts);
-  const fileName = (manifest as MirrorManifest).pages[pathname];
+  const resolved = await readResolvedMirrorHtml(pathname, (manifest as MirrorManifest).pages);
 
-  if (!fileName) {
-    return new Response("Pagina niet gevonden.", {
-      status: 404,
-      headers: { "content-type": "text/plain; charset=utf-8" },
-    });
+  if (!resolved) {
+    return notFoundResponse();
   }
 
-  const localHtml = await readLocalMirrorHtml(fileName);
-  const base44Page = await readBase44MirrorPage(pathname, localHtml);
-  const html = base44Page?.html || localHtml;
+  const base44Page = await readBase44MirrorPage(resolved.contentPathname, resolved.html);
+  const html = base44Page?.html || resolved.html;
   const source: MirrorSource = base44Page?.source || "local";
 
-  return new Response(applyMirrorTransforms(html, pathname), {
+  return new Response(applyMirrorTransforms(html, resolved.publicPathname, resolved.locale), {
     headers: {
       "content-type": "text/html; charset=utf-8",
       "cache-control": "public, max-age=0, must-revalidate",
       "x-mirror-source": source,
+      "x-mirror-locale": resolved.locale,
+      "x-mirror-content-path": resolved.contentPathname,
     },
   });
 }

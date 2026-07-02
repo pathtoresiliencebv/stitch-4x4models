@@ -3,6 +3,7 @@ import {
   alternateLocalePath,
   hasIncompleteHtmlTag,
   isUsableBase44MirrorContent,
+  resolveMirrorContentPathname,
   sanitizeBase44MirrorFragment,
   selectBase44MirrorRecord,
 } from "@/app/live-mirror/[[...path]]/route";
@@ -51,10 +52,41 @@ describe("live mirror Base44 safety", () => {
   });
 
   it("maps language links without changing the current content route", () => {
-    expect(alternateLocalePath("/", "en")).toBe("/en");
-    expect(alternateLocalePath("/merken/hummer/h1", "en")).toBe("/en/merken/hummer/h1");
-    expect(alternateLocalePath("/en", "nl")).toBe("/");
-    expect(alternateLocalePath("/en/journal/toyota-land-cruiser-250-europa-2026-trims", "nl"))
+    expect(alternateLocalePath("/", "en")).toBe("/");
+    expect(alternateLocalePath("/", "nl")).toBe("/nl");
+    expect(alternateLocalePath("/merken/hummer/h1", "nl")).toBe("/nl/merken/hummer/h1");
+    expect(alternateLocalePath("/nl/merken/hummer/h1", "en")).toBe("/merken/hummer/h1");
+    expect(alternateLocalePath("/en/journal/toyota-land-cruiser-250-europa-2026-trims", "en"))
       .toBe("/journal/toyota-land-cruiser-250-europa-2026-trims");
+  });
+
+  it("uses English mirror pages for unprefixed public URLs when available", () => {
+    const pages = {
+      "/": "__root__.html",
+      "/en": "en.html",
+      "/merken/hummer/h2": "h2.html",
+      "/en/merken": "en__merken.html",
+    };
+
+    expect(resolveMirrorContentPathname("/", pages)).toMatchObject({
+      locale: "en",
+      publicPathname: "/",
+      contentPathname: "/en",
+    });
+    expect(resolveMirrorContentPathname("/nl", pages)).toMatchObject({
+      locale: "nl",
+      publicPathname: "/nl",
+      contentPathname: "/",
+    });
+    expect(resolveMirrorContentPathname("/merken", pages)).toMatchObject({
+      locale: "en",
+      publicPathname: "/merken",
+      contentPathname: "/en/merken",
+    });
+    expect(resolveMirrorContentPathname("/merken/hummer/h2", pages)).toMatchObject({
+      locale: "en",
+      publicPathname: "/merken/hummer/h2",
+      contentPathname: "/merken/hummer/h2",
+    });
   });
 });

@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import manifest from "@/data/live-mirror/manifest.json";
 import { mirrorImageForPath } from "@/data/live-mirror/image-map";
+import { publicPathForLocale, stripSupportedLocalePrefix } from "@/lib/i18n-routing";
 
 type MirrorManifest = {
   pages: Record<string, string>;
@@ -8,44 +9,54 @@ type MirrorManifest = {
 
 const SITEMAP_ORIGIN = "https://www.4x4models.com";
 const routes = Object.keys((manifest as MirrorManifest).pages).sort();
+const publicRoutes = Array.from(new Set(
+  routes.flatMap((path) => {
+    const basePath = stripSupportedLocalePrefix(path);
+    return [
+      publicPathForLocale(basePath, "en"),
+      publicPathForLocale(basePath, "nl"),
+    ];
+  })
+)).sort();
 
 function sitemapUrl(path: string) {
   return new URL(path, SITEMAP_ORIGIN).toString();
 }
 
 function localizedAlternates(path: string) {
-  const withoutLocale = path.startsWith("/en/") ? path.slice(3) : path === "/en" ? "/" : path;
-  const enPath = withoutLocale === "/" ? "/en" : `/en${withoutLocale}`;
-
-  if (!routes.includes(enPath) && !routes.includes(withoutLocale)) return undefined;
+  const basePath = stripSupportedLocalePrefix(path);
+  const enPath = publicPathForLocale(basePath, "en");
+  const nlPath = publicPathForLocale(basePath, "nl");
 
   return {
     languages: {
-      nl: sitemapUrl(withoutLocale),
       en: sitemapUrl(enPath),
-      "x-default": sitemapUrl(withoutLocale),
+      nl: sitemapUrl(nlPath),
+      "x-default": sitemapUrl(enPath),
     },
   };
 }
 
 function routePriority(path: string) {
-  if (path === "/") return 1;
-  if (["/merken", "/amerikaans", "/collecties", "/blog", "/journal", "/shop", "/forum"].includes(path)) return 0.9;
-  if (path.split("/").length <= 3) return 0.75;
+  const basePath = stripSupportedLocalePrefix(path);
+  if (basePath === "/") return 1;
+  if (["/merken", "/amerikaans", "/collecties", "/blog", "/journal", "/shop", "/forum"].includes(basePath)) return 0.9;
+  if (basePath.split("/").length <= 3) return 0.75;
   return 0.62;
 }
 
 function changeFrequency(path: string): MetadataRoute.Sitemap[number]["changeFrequency"] {
-  if (path === "/" || path === "/journal" || path.startsWith("/journal/")) return "daily";
-  if (path === "/blog" || path.startsWith("/blog/") || path === "/shop" || path.startsWith("/shop/")) return "weekly";
+  const basePath = stripSupportedLocalePrefix(path);
+  if (basePath === "/" || basePath === "/journal" || basePath.startsWith("/journal/")) return "daily";
+  if (basePath === "/blog" || basePath.startsWith("/blog/") || basePath === "/shop" || basePath.startsWith("/shop/")) return "weekly";
   return "monthly";
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
-  return routes.map((path) => {
-    const image = mirrorImageForPath(path);
+  return publicRoutes.map((path) => {
+    const image = mirrorImageForPath(stripSupportedLocalePrefix(path));
 
     return {
       url: sitemapUrl(path),
