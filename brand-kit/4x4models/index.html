@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>4x4models Brand & Press Kit</title>
+    <style>
+      :root {
+        --graphite: #171513;
+        --graphite-soft: #24211e;
+        --gold: #a96f2d;
+        --gold-strong: #c6914d;
+        --ivory: #fbfaf6;
+        --rule: #ded7cc;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--graphite);
+        background: var(--ivory);
+        line-height: 1.55;
+      }
+
+      main {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 48px 24px 72px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 32px;
+        padding: 42px;
+        border: 1px solid var(--rule);
+        background: #fff;
+      }
+
+      .hero img {
+        width: min(520px, 100%);
+        height: auto;
+      }
+
+      h1 {
+        max-width: 760px;
+        margin: 28px 0 10px;
+        font-size: clamp(36px, 6vw, 72px);
+        line-height: 0.98;
+        letter-spacing: -0.025em;
+      }
+
+      h2 {
+        margin: 0 0 18px;
+        font-size: clamp(24px, 3vw, 36px);
+        letter-spacing: -0.018em;
+      }
+
+      p {
+        max-width: 680px;
+        margin: 0;
+        color: #5d554d;
+      }
+
+      .eyebrow {
+        margin-bottom: 14px;
+        color: var(--gold);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+        margin-top: 28px;
+      }
+
+      .panel {
+        min-height: 190px;
+        padding: 28px;
+        border: 1px solid var(--rule);
+        background: #fff;
+      }
+
+      .panel.dark {
+        color: var(--ivory);
+        background:
+          radial-gradient(circle at 20% 0%, rgba(198, 145, 77, 0.18), transparent 320px),
+          linear-gradient(180deg, var(--graphite-soft), var(--graphite));
+      }
+
+      .panel.dark p,
+      .panel.dark li {
+        color: rgba(251, 250, 246, 0.72);
+      }
+
+      .logo-card {
+        display: grid;
+        place-items: center;
+        min-height: 220px;
+      }
+
+      .logo-card img {
+        max-width: 100%;
+        height: auto;
+      }
+
+      .icon-card img {
+        width: 156px;
+      }
+
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+      }
+
+      .swatch {
+        overflow: hidden;
+        border: 1px solid var(--rule);
+        background: #fff;
+      }
+
+      .swatch-color {
+        height: 92px;
+      }
+
+      .swatch-label {
+        padding: 12px 14px;
+        font-size: 13px;
+      }
+
+      .section {
+        margin-top: 56px;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      li + li {
+        margin-top: 8px;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        color: var(--gold);
+      }
+
+      .assets {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .asset-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      .asset-row span {
+        color: #756c62;
+      }
+
+      a {
+        color: var(--gold);
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Brand & Press Kit</div>
+          <img src="assets/logo-primary.png" alt="4x4models logo" />
+          <h1>Premium automotive kenniscentrum voor 4x4 liefhebbers.</h1>
+          <p>
+            Compacte klantkit met het officiele logo, icoon, social preview en basisrichtlijnen voor correct gebruik.
+          </p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="eyebrow">Logo</div>
+        <h2>Primaire merkassets</h2>
+        <div class="grid">
+          <div class="panel logo-card">
+            <img src="assets/logo-primary.png" alt="Primair breed 4x4models logo" />
+          </div>
+          <div class="panel dark logo-card">
+            <img src="assets/logo-primary.png" alt="4x4models logo op donkere achtergrond" />
+          </div>
+          <div class="panel logo-card icon-card">
+            <img src="assets/icon-primary.png" alt="4x4models icoon" />
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="eyebrow">Kleuren</div>
+        <h2>Premium automotive palet</h2>
+        <div class="swatches">
+          <div class="swatch">
+            <div class="swatch-color" style="background:#171513"></div>
+            <div class="swatch-label"><strong>Graphite</strong><br /><code>#171513</code></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#a96f2d"></div>
+            <div class="swatch-label"><strong>Gold accent</strong><br /><code>#a96f2d</code></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#c6914d"></div>
+            <div class="swatch-label"><strong>Strong gold</strong><br /><code>#c6914d</code></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background:#fbfaf6"></div>
+            <div class="swatch-label"><strong>Ivory</strong><br /><code>#fbfaf6</code></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="eyebrow">Gebruik</div>
+        <h2>Logo-regels</h2>
+        <div class="grid">
+          <div class="panel">
+            <h3>Wel doen</h3>
+            <ul>
+              <li>Gebruik het brede logo op witte of rustige lichte achtergronden.</li>
+              <li>Gebruik het icoon alleen bij kleine formaten.</li>
+              <li>Laat genoeg witruimte rondom het logo.</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Niet doen</h3>
+            <ul>
+              <li>Logo niet uitrekken, draaien of recoloren.</li>
+              <li>Niet op drukke foto's plaatsen zonder overlay.</li>
+              <li>Goud niet als grote dominante achtergrondkleur gebruiken.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="eyebrow">Bestanden</div>
+        <h2>Asset-overzicht</h2>
+        <div class="assets">
+          <div class="asset-row"><strong>logo-primary.png</strong><span>Primair breed logo, 1681 x 329</span></div>
+          <div class="asset-row"><strong>logo-vector.svg</strong><span>Schaalbaar vectorlogo</span></div>
+          <div class="asset-row"><strong>icon-primary.png</strong><span>Los icoon, 715 x 714</span></div>
+          <div class="asset-row"><strong>favicon.ico</strong><span>Browser/favicon, 32 x 32</span></div>
+          <div class="asset-row"><strong>og-image-1200x630.png</strong><span>Social preview image</span></div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
