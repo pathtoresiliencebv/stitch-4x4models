@@ -19,6 +19,12 @@ const passThroughFiles = [
   "/sitemap.xml",
 ];
 
+export const config = {
+  matcher: [
+    "/((?!live-mirror|api|_next|mirror-next-static|images|favicons|brand-kit|favicon\\.ico|mirror-overrides\\.css|robots\\.txt|sitemap\\.xml).*)",
+  ],
+};
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
