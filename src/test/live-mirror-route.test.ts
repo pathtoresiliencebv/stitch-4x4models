@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   alternateLocalePath,
+  hasIncompleteHtmlTag,
+  isUsableBase44MirrorContent,
   sanitizeBase44MirrorFragment,
   selectBase44MirrorRecord,
 } from "@/app/live-mirror/[[...path]]/route";
@@ -33,6 +35,19 @@ describe("live mirror Base44 safety", () => {
     expect(fragment).not.toContain("<main");
     expect(fragment).not.toContain("<footer");
     expect(fragment).not.toContain("Footer CTA");
+  });
+
+  it("rejects Base44 fragments that end inside a partial HTML tag", () => {
+    const fragment = sanitizeBase44MirrorFragment(`
+      <main>
+        <section><div><div cla
+      </main>
+    `);
+
+    expect(fragment).toContain("<div cla");
+    expect(hasIncompleteHtmlTag(fragment)).toBe(true);
+    expect(isUsableBase44MirrorContent(fragment)).toBe(false);
+    expect(isUsableBase44MirrorContent("<section><h1>Titel</h1></section>")).toBe(true);
   });
 
   it("maps language links without changing the current content route", () => {

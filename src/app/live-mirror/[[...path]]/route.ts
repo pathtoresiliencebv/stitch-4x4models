@@ -220,6 +220,20 @@ function hasRenderableHtml(html: string) {
   return /<(?:main|section|article|div|header|footer|h1|p)(?:\s|>)/i.test(html);
 }
 
+export function hasIncompleteHtmlTag(html: string) {
+  const trimmed = html.trim();
+  const lastLt = trimmed.lastIndexOf("<");
+  const lastGt = trimmed.lastIndexOf(">");
+
+  if (lastLt <= lastGt) return false;
+
+  return /^<\/?[A-Za-z][A-Za-z0-9:-]*(?:\s|$)/.test(trimmed.slice(lastLt));
+}
+
+export function isUsableBase44MirrorContent(html: string) {
+  return hasRenderableHtml(html) && !hasIncompleteHtmlTag(html);
+}
+
 export function selectBase44MirrorRecord(
   records: Base44WebsitePage[],
   expectedSlug: string
@@ -305,7 +319,7 @@ async function readBase44MirrorPage(pathname: string, localHtml: string): Promis
     const record = selectBase44MirrorRecord(records, pathnameToSlug(pathname));
     const content = record?.content?.trim();
 
-    if (!content || !hasRenderableHtml(content)) {
+    if (!content || !isUsableBase44MirrorContent(content)) {
       return undefined;
     }
 
@@ -314,7 +328,7 @@ async function readBase44MirrorPage(pathname: string, localHtml: string): Promis
     }
 
     const sanitizedContent = sanitizeBase44MirrorFragment(content);
-    if (!hasRenderableHtml(sanitizedContent)) {
+    if (!isUsableBase44MirrorContent(sanitizedContent)) {
       return undefined;
     }
 
