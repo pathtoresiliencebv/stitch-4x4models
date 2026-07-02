@@ -8,6 +8,7 @@ import {
   stripSupportedLocalePrefix,
   type Locale,
 } from "@/lib/i18n-routing";
+import { searchLiveMirror, type SearchResult } from "@/lib/live-mirror-search";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,6 +65,68 @@ const mobileNavItems = {
   ],
 } satisfies Record<Locale, [string, string][]>;
 
+const searchSuggestions = {
+  nl: [
+    "Hummer H2",
+    "Toyota Land Cruiser",
+    "Land Rover Defender",
+    "differentiëel",
+    "overlanding",
+    "Mercedes G",
+    "Jimny",
+    "elektrische 4x4",
+  ],
+  en: [
+    "Hummer H2",
+    "Toyota Land Cruiser",
+    "Land Rover Defender",
+    "differential",
+    "overlanding",
+    "Mercedes G",
+    "Jimny",
+    "electric 4x4",
+  ],
+} satisfies Record<Locale, string[]>;
+
+const searchCopy = {
+  nl: {
+    eyebrow: "4x4models zoeken",
+    title: "Zoek door het complete 4x4 dossier.",
+    intro: "Vind merken, modellen, collecties, artikelen, forumtopics en shop-items in één snelle zoeklaag.",
+    placeholder: "Zoek Hummer, Land Cruiser, techniek...",
+    button: "Zoeken",
+    compactLabel: "Zoeken",
+    suggestions: "Populaire zoekopdrachten",
+    emptyTitle: "Begin met zoeken.",
+    emptyText: "Typ een merk, model, techniekterm of collectie. De resultaten komen uit de bestaande 4x4models pagina's.",
+    noResultsTitle: "Geen resultaten gevonden.",
+    noResultsText: "Probeer een merknaam, modelnaam of bredere off-road term.",
+    resultsSingular: "resultaat",
+    resultsPlural: "resultaten",
+    resultAction: "Bekijk pagina",
+    metaTitle: "Zoeken",
+    metaDescription: "Zoek door merken, modellen, artikelen, collecties, forumtopics en shop-items op 4x4models.",
+  },
+  en: {
+    eyebrow: "4x4models search",
+    title: "Search the full 4x4 dossier.",
+    intro: "Find brands, model pages, collections, articles, forum threads and shop items from one fast search layer.",
+    placeholder: "Search Hummer, Land Cruiser, suspension...",
+    button: "Search",
+    compactLabel: "Search",
+    suggestions: "Popular searches",
+    emptyTitle: "Start searching.",
+    emptyText: "Type a brand, model, technical term or collection. Results are built from the existing 4x4models pages.",
+    noResultsTitle: "No results found.",
+    noResultsText: "Try a brand name, model name or broader off-road term.",
+    resultsSingular: "result",
+    resultsPlural: "results",
+    resultAction: "View page",
+    metaTitle: "Search",
+    metaDescription: "Search brands, models, articles, collections, forum threads and shop items on 4x4models.",
+  },
+} satisfies Record<Locale, Record<string, string>>;
+
 function injectMirrorOverrides(html: string) {
   const href = "/mirror-overrides.css";
   if (html.includes(href)) return html;
@@ -90,6 +153,10 @@ function rewriteBrandAssets(html: string) {
     )
     .replace(
       "<span>Gebouwd met Next.js · Statisch gegenereerd</span>",
+      '<span>Powered by <a class="powered-by-link" href="https://jasonmohabali.com" target="_blank" rel="noopener noreferrer">jasonmohabali.com</a></span>'
+    )
+    .replace(
+      "<span>Built with Next.js · Statically generated</span>",
       '<span>Powered by <a class="powered-by-link" href="https://jasonmohabali.com" target="_blank" rel="noopener noreferrer">jasonmohabali.com</a></span>'
     );
 }
@@ -127,6 +194,55 @@ function rewriteLanguageSwitcher(html: string, pathname: string) {
   return html.replace(
     /<div class="relative shrink-0">\s*<button\b(?=[^>]*aria-haspopup="listbox")(?=[^>]*aria-label="(?:Taal|Language)")[\s\S]*?<\/button>\s*<\/div>/g,
     languageSwitcherHtml(pathname)
+  );
+}
+
+function searchPublicPath(locale: Locale) {
+  return locale === "nl" ? "/nl/zoeken" : "/search";
+}
+
+function isSearchPathname(pathname: string) {
+  return pathname === "/search" ||
+    pathname === "/zoeken" ||
+    pathname === "/nl/zoeken" ||
+    pathname === "/nl/search";
+}
+
+function searchLocaleForPathname(pathname: string): Locale {
+  return pathname === "/nl/zoeken" || pathname === "/nl/search" || pathname === "/zoeken"
+    ? "nl"
+    : "en";
+}
+
+function searchIconSvg() {
+  return '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M16.5 16.5 L21 21"></path></svg>';
+}
+
+function searchHeaderHtml(pathname: string) {
+  const locale = localeForPublicPathname(pathname);
+  const copy = searchCopy[locale];
+  const action = searchPublicPath(locale);
+
+  return [
+    '<div class="mirror-search-shell">',
+    `<form class="mirror-search-form" action="${action}" method="get" role="search" aria-label="${copy.compactLabel}">`,
+    '<label class="mirror-search-label">',
+    `<span class="mirror-search-icon">${searchIconSvg()}</span>`,
+    `<input class="mirror-search-input" name="q" type="search" placeholder="${copy.placeholder}" autoComplete="off"/>`,
+    "</label>",
+    `<button class="mirror-search-submit" type="submit">${copy.button}</button>`,
+    "</form>",
+    `<a class="mirror-search-compact" href="${action}" aria-label="${copy.compactLabel}">${searchIconSvg()}</a>`,
+    "</div>",
+  ].join("");
+}
+
+function injectHeaderSearch(html: string, pathname: string) {
+  if (html.includes("mirror-search-shell")) return html;
+
+  return html.replace(
+    /(<div class="language-switcher"[\s\S]*?<\/div>)/g,
+    `$1${searchHeaderHtml(pathname)}`
   );
 }
 
@@ -215,6 +331,155 @@ function rewriteCanonicalUrls(html: string, pathname: string) {
   return withCanonical
     .replace(/<meta property="og:url" content="[^"]*"\/?>/g, `<meta property="og:url" content="${canonicalUrl}"/>`)
     .replace(/<meta name="twitter:url" content="[^"]*"\/?>/g, `<meta name="twitter:url" content="${canonicalUrl}"/>`);
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function readSearchShellPath(locale: Locale, pages: Record<string, string>) {
+  if (locale === "en" && pages["/en"]) return "/en";
+  return "/";
+}
+
+async function readSearchShellHtml(locale: Locale, pages: Record<string, string>) {
+  const contentPathname = readSearchShellPath(locale, pages);
+  const fileName = pages[contentPathname] || pages["/"];
+
+  if (!fileName) return undefined;
+
+  return {
+    contentPathname,
+    html: await readLocalMirrorHtml(fileName),
+  };
+}
+
+function rewriteSearchMetadata(html: string, locale: Locale, query: string) {
+  const copy = searchCopy[locale];
+  const pageTitle = query
+    ? `${query} - ${copy.metaTitle} · 4x4models`
+    : `${copy.metaTitle} · 4x4models`;
+
+  return html
+    .replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(pageTitle)}</title>`)
+    .replace(
+      /<meta\s+name="description"\s+content="[^"]*"\/?>/i,
+      `<meta name="description" content="${escapeHtml(copy.metaDescription)}"/>`
+    );
+}
+
+function resultCountLabel(count: number, locale: Locale) {
+  const copy = searchCopy[locale];
+  const noun = count === 1 ? copy.resultsSingular : copy.resultsPlural;
+  return locale === "nl" ? `${count} ${noun}` : `${count} ${noun}`;
+}
+
+function renderSuggestionLinks(locale: Locale) {
+  const action = searchPublicPath(locale);
+
+  return searchSuggestions[locale]
+    .map((suggestion) => (
+      `<a class="mirror-search-chip" href="${action}?q=${encodeURIComponent(suggestion)}">${escapeHtml(suggestion)}</a>`
+    ))
+    .join("");
+}
+
+function renderSearchResult(result: SearchResult, locale: Locale) {
+  const copy = searchCopy[locale];
+  const pathLabel = result.path === "/" ? "4x4models.com" : result.path;
+
+  return [
+    `<a class="mirror-search-card" href="${escapeHtml(result.path)}">`,
+    '<span class="mirror-search-card__media" aria-hidden="true">',
+    `<img src="${escapeHtml(result.image)}" alt="" loading="lazy"/>`,
+    "</span>",
+    '<span class="mirror-search-card__content">',
+    '<span class="mirror-search-card__meta">',
+    `<span>${escapeHtml(result.section)}</span>`,
+    `<span>${escapeHtml(pathLabel)}</span>`,
+    "</span>",
+    `<span class="mirror-search-card__title">${escapeHtml(result.title)}</span>`,
+    `<span class="mirror-search-card__description">${escapeHtml(result.description)}</span>`,
+    `<span class="mirror-search-card__cta">${copy.resultAction} <span aria-hidden="true">→</span></span>`,
+    "</span>",
+    "</a>",
+  ].join("");
+}
+
+function renderSearchContent(query: string, results: SearchResult[], locale: Locale) {
+  const copy = searchCopy[locale];
+  const trimmedQuery = query.trim();
+  const hasQuery = Boolean(trimmedQuery);
+  const action = searchPublicPath(locale);
+
+  return [
+    '<div class="mirror-search-page">',
+    '<section class="mirror-search-hero" aria-labelledby="mirror-search-title">',
+    '<div class="mirror-search-hero__inner">',
+    `<p class="mirror-search-eyebrow">${copy.eyebrow}</p>`,
+    `<h1 id="mirror-search-title">${copy.title}</h1>`,
+    `<p class="mirror-search-intro">${copy.intro}</p>`,
+    '<form class="mirror-search-page-form" action="' + action + '" method="get" role="search">',
+    '<label class="mirror-search-page-label">',
+    `<span class="mirror-search-page-icon">${searchIconSvg()}</span>`,
+    `<input name="q" type="search" value="${escapeHtml(trimmedQuery)}" placeholder="${copy.placeholder}" autoComplete="off" autofocus/>`,
+    "</label>",
+    `<button type="submit">${copy.button}</button>`,
+    "</form>",
+    '<div class="mirror-search-suggestions" aria-label="' + copy.suggestions + '">',
+    `<span>${copy.suggestions}</span>`,
+    renderSuggestionLinks(locale),
+    "</div>",
+    "</div>",
+    "</section>",
+    '<section class="mirror-search-results" aria-live="polite">',
+    hasQuery
+      ? `<div class="mirror-search-results__head"><p>${escapeHtml(resultCountLabel(results.length, locale))}</p><h2>${escapeHtml(trimmedQuery)}</h2></div>`
+      : `<div class="mirror-search-empty"><h2>${copy.emptyTitle}</h2><p>${copy.emptyText}</p></div>`,
+    hasQuery && results.length
+      ? `<div class="mirror-search-grid">${results.map((result) => renderSearchResult(result, locale)).join("")}</div>`
+      : "",
+    hasQuery && !results.length
+      ? `<div class="mirror-search-empty"><h2>${copy.noResultsTitle}</h2><p>${copy.noResultsText}</p></div>`
+      : "",
+    "</section>",
+    "</div>",
+  ].join("");
+}
+
+async function renderSearchPage(request: Request, pathname: string, pages: Record<string, string>) {
+  const requestUrl = new URL(request.url);
+  const locale = searchLocaleForPathname(pathname);
+  const canonicalPathname = searchPublicPath(locale);
+
+  if (pathname !== canonicalPathname) {
+    const redirectUrl = new URL(request.url);
+    redirectUrl.pathname = canonicalPathname;
+    return Response.redirect(redirectUrl, 308);
+  }
+
+  const query = requestUrl.searchParams.get("q")?.trim() || "";
+  const shell = await readSearchShellHtml(locale, pages);
+  if (!shell) return notFoundResponse();
+
+  const results = query ? await searchLiveMirror(query, locale) : [];
+  const shellWithMetadata = rewriteSearchMetadata(shell.html, locale, query);
+  const html = replaceMainContent(shellWithMetadata, renderSearchContent(query, results, locale));
+
+  return new Response(applyMirrorTransforms(html, canonicalPathname, locale), {
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "public, max-age=0, must-revalidate",
+      "x-mirror-source": "local",
+      "x-mirror-locale": locale,
+      "x-mirror-content-path": "search-index",
+    },
+  });
 }
 
 function mergeInlineStyle(tag: string, cssVars: string) {
@@ -408,12 +673,15 @@ function applyMirrorTransforms(html: string, pathname: string, locale: Locale) {
       rewriteHtmlLang(
         rewriteCanonicalUrls(
           injectMobileNav(
-            rewriteLanguageSwitcher(
-              rewriteLocalizedInternalLinks(
-                addCardImageVars(
-                  rewriteBrandAssets(rewriteLocalImageUrls(html))
+            injectHeaderSearch(
+              rewriteLanguageSwitcher(
+                rewriteLocalizedInternalLinks(
+                  addCardImageVars(
+                    rewriteBrandAssets(rewriteLocalImageUrls(html))
+                  ),
+                  locale
                 ),
-                locale
+                pathname
               ),
               pathname
             ),
@@ -463,11 +731,16 @@ async function readResolvedMirrorHtml(
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   props: { params: Promise<{ path?: string[] }> }
 ) {
   const { path: routeParts } = await props.params;
   const pathname = normalizePathname(routeParts);
+
+  if (isSearchPathname(pathname)) {
+    return renderSearchPage(request, pathname, (manifest as MirrorManifest).pages);
+  }
+
   const resolved = await readResolvedMirrorHtml(pathname, (manifest as MirrorManifest).pages);
 
   if (!resolved) {

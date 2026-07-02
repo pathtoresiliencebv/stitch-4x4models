@@ -1,6 +1,11 @@
 import type { Config, CustomField } from "@puckeditor/core";
 import type React from "react";
 import {
+  DEFAULT_CMS_IMAGE,
+  normalizeCmsImageUrl,
+  imageWithFallback,
+} from "@/lib/cms-images";
+import {
   BookOpen,
   Camera,
   CarFront,
@@ -319,7 +324,7 @@ const lorem = {
 };
 
 const demoImageUrl =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBn_uZxJ55ZHov8fGYS1Fv_iE4Z8PTeUobJMAjRyMMHF5GTXjl5oGJvByQDO3cDfTsj0LbPACKMiPzT9MAOP0W0inVCtO3pZzF2ZfmIizNJP5tKvy9g_niE3dOUl9vGQKvv26LUL30ISrBBVWuixGJubPE6P2vXalQONKrVbNBWahoaFhcuYaLqWs39f3sJe6ZMNMQMfP0NoCrEikuuOLwaHmVdSIQbN8HmBj3jeyCotEchiJCS9ij6yP1bPkzxN2Qq0wSsna_p0ydQ";
+  DEFAULT_CMS_IMAGE;
 
 const demoCards: EditableCard[] = [
   {
@@ -355,6 +360,7 @@ const mediaImageField = (label: string): CustomField<string> => ({
   render: ({ id, value, onChange, readOnly }) => {
     const statusId = `${id}-status`;
     const libraryId = `${id}-library`;
+    const previewUrl = normalizeCmsImageUrl(value) || "";
 
     const setStatus = (message: string) => {
       const status = document.getElementById(statusId);
@@ -386,14 +392,17 @@ const mediaImageField = (label: string): CustomField<string> => ({
           "relative h-20 overflow-hidden rounded border border-slate-300 bg-slate-100";
         button.title = item.title;
         button.onclick = () => {
-          onChange(item.url);
+          onChange(imageWithFallback(item.url));
           setStatus(`Selected: ${item.title}`);
         };
 
         const img = document.createElement("img");
-        img.src = item.url;
+        img.src = normalizeCmsImageUrl(item.url) || DEFAULT_CMS_IMAGE;
         img.alt = item.alt || item.title;
         img.className = "h-full w-full object-cover";
+        img.onerror = () => {
+          img.src = DEFAULT_CMS_IMAGE;
+        };
         button.appendChild(img);
         container.appendChild(button);
       });
@@ -403,13 +412,24 @@ const mediaImageField = (label: string): CustomField<string> => ({
 
     return (
       <div className="space-y-3">
-        {value ? (
+        {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img alt="" src={value} className="h-32 w-full rounded border border-slate-300 object-cover" />
+          <img
+            alt=""
+            src={previewUrl}
+            className="h-32 w-full rounded border border-slate-300 object-cover"
+            onError={(event) => {
+              event.currentTarget.src = DEFAULT_CMS_IMAGE;
+            }}
+          />
         ) : null}
         <input
           className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
           disabled={readOnly}
+          onBlur={(event) => {
+            const normalized = normalizeCmsImageUrl(event.currentTarget.value);
+            if (normalized && normalized !== event.currentTarget.value) onChange(normalized);
+          }}
           onChange={(event) => onChange(event.currentTarget.value)}
           placeholder="Paste image URL or upload/select below"
           value={value || ""}
@@ -436,7 +456,7 @@ const mediaImageField = (label: string): CustomField<string> => ({
               return;
             }
 
-            onChange(result.url);
+            onChange(imageWithFallback(result.url));
             await fetch("/api/cms/media", {
               method: "POST",
               headers: { "Content-Type": "application/json" },

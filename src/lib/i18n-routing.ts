@@ -18,6 +18,10 @@ export function localeForPublicPathname(pathname: string): Locale {
 export function publicPathForLocale(pathname: string, locale: Locale) {
   const basePath = stripSupportedLocalePrefix(pathname);
 
+  if (basePath === "/search" || basePath === "/zoeken") {
+    return locale === "nl" ? "/nl/zoeken" : "/search";
+  }
+
   if (locale === "nl") {
     return basePath === "/" ? "/nl" : `/nl${basePath}`;
   }

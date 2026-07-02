@@ -56,6 +56,8 @@ describe("live mirror Base44 safety", () => {
     expect(alternateLocalePath("/", "nl")).toBe("/nl");
     expect(alternateLocalePath("/merken/hummer/h1", "nl")).toBe("/nl/merken/hummer/h1");
     expect(alternateLocalePath("/nl/merken/hummer/h1", "en")).toBe("/merken/hummer/h1");
+    expect(alternateLocalePath("/search", "nl")).toBe("/nl/zoeken");
+    expect(alternateLocalePath("/nl/zoeken", "en")).toBe("/search");
     expect(alternateLocalePath("/en/journal/toyota-land-cruiser-250-europa-2026-trims", "en"))
       .toBe("/journal/toyota-land-cruiser-250-europa-2026-trims");
   });
