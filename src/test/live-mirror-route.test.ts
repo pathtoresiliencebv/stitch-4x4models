@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  alternateLocalePath,
   sanitizeBase44MirrorFragment,
   selectBase44MirrorRecord,
 } from "@/app/live-mirror/[[...path]]/route";
@@ -32,5 +33,13 @@ describe("live mirror Base44 safety", () => {
     expect(fragment).not.toContain("<main");
     expect(fragment).not.toContain("<footer");
     expect(fragment).not.toContain("Footer CTA");
+  });
+
+  it("maps language links without changing the current content route", () => {
+    expect(alternateLocalePath("/", "en")).toBe("/en");
+    expect(alternateLocalePath("/merken/hummer/h1", "en")).toBe("/en/merken/hummer/h1");
+    expect(alternateLocalePath("/en", "nl")).toBe("/");
+    expect(alternateLocalePath("/en/journal/toyota-land-cruiser-250-europa-2026-trims", "nl"))
+      .toBe("/journal/toyota-land-cruiser-250-europa-2026-trims");
   });
 });

@@ -9,6 +9,7 @@ const passThroughPrefixes = [
   "/mirror-next-static",
   "/images",
   "/favicons",
+  "/brand-kit",
 ];
 
 const passThroughFiles = [

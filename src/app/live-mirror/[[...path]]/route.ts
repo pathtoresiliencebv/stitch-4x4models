@@ -28,10 +28,37 @@ type Base44MirrorPage = {
   source: Exclude<MirrorSource, "local">;
 };
 
+type Locale = "nl" | "en";
+
 const BASE44_BASE_URL =
   process.env.NEXT_PUBLIC_BASE44_API_URL ||
   "https://stimulating-growth-suite-ai.base44.app/api";
 const SITE_ORIGIN = "https://www.4x4models.com";
+
+const mobileNavItems = {
+  nl: [
+    ["Merken", "/merken"],
+    ["Amerikaans", "/amerikaans"],
+    ["Collecties", "/collecties"],
+    ["Blog", "/blog"],
+    ["Journal", "/journal"],
+    ["Forum", "/forum"],
+    ["Shop", "/shop"],
+    ["Leren", "/leren"],
+    ["Over ons", "/over-ons"],
+  ],
+  en: [
+    ["Brands", "/merken"],
+    ["American", "/amerikaans"],
+    ["Collections", "/collecties"],
+    ["Blog", "/blog"],
+    ["Journal", "/journal"],
+    ["Forum", "/forum"],
+    ["Shop", "/shop"],
+    ["Learn", "/leren"],
+    ["About", "/over-ons"],
+  ],
+} satisfies Record<Locale, [string, string][]>;
 
 function injectMirrorOverrides(html: string) {
   const href = "/mirror-overrides.css";
@@ -60,8 +87,73 @@ function rewriteBrandAssets(html: string) {
     .replace(
       "<span>Gebouwd met Next.js · Statisch gegenereerd</span>",
       '<span>Powered by <a class="powered-by-link" href="https://jasonmohabali.com" target="_blank" rel="noopener noreferrer">jasonmohabali.com</a></span>'
-    )
-    .replaceAll("<span aria-hidden=\"true\">🌐</span>", "<span aria-hidden=\"true\" class=\"nl-flag\">🇳🇱</span>");
+    );
+}
+
+function localeForPathname(pathname: string): Locale {
+  return pathname === "/en" || pathname.startsWith("/en/") ? "en" : "nl";
+}
+
+function pathWithoutLocale(pathname: string) {
+  if (pathname === "/en") return "/";
+  if (pathname.startsWith("/en/")) return pathname.replace(/^\/en/, "") || "/";
+  return pathname;
+}
+
+export function alternateLocalePath(pathname: string, targetLocale: Locale) {
+  const basePath = pathWithoutLocale(pathname);
+
+  if (targetLocale === "nl") {
+    return basePath;
+  }
+
+  return basePath === "/" ? "/en" : `/en${basePath}`;
+}
+
+function localizedPath(pathname: string, locale: Locale) {
+  return locale === "en" ? alternateLocalePath(pathname, "en") : pathname;
+}
+
+function languageSwitcherHtml(pathname: string) {
+  const locale = localeForPathname(pathname);
+  const nlClass = locale === "nl" ? " is-active" : "";
+  const enClass = locale === "en" ? " is-active" : "";
+
+  return [
+    '<div class="language-switcher" aria-label="Taalkeuze">',
+    `<a class="language-switcher__link${nlClass}" href="${alternateLocalePath(pathname, "nl")}" aria-label="Bekijk de Nederlandse versie"><span aria-hidden="true" class="nl-flag">🇳🇱</span><span>NL</span></a>`,
+    '<span class="language-switcher__divider" aria-hidden="true">/</span>',
+    `<a class="language-switcher__link${enClass}" href="${alternateLocalePath(pathname, "en")}" aria-label="View the English version"><span>EN</span></a>`,
+    "</div>",
+  ].join("");
+}
+
+function rewriteLanguageSwitcher(html: string, pathname: string) {
+  return html.replace(
+    /<div class="relative shrink-0">\s*<button\b(?=[^>]*aria-haspopup="listbox")(?=[^>]*aria-label="(?:Taal|Language)")[\s\S]*?<\/button>\s*<\/div>/g,
+    languageSwitcherHtml(pathname)
+  );
+}
+
+function mobileNavHtml(pathname: string) {
+  const locale = localeForPathname(pathname);
+  const currentPath = pathWithoutLocale(pathname);
+  const links = mobileNavItems[locale]
+    .map(([label, href]) => {
+      const localizedHref = localizedPath(href, locale);
+      const isCurrent = currentPath === href || currentPath.startsWith(`${href}/`);
+      const currentAttr = isCurrent ? ' aria-current="page"' : "";
+      const currentClass = isCurrent ? " is-active" : "";
+      return `<a class="mirror-mobile-nav__link${currentClass}" href="${localizedHref}"${currentAttr}>${label}</a>`;
+    })
+    .join("");
+
+  return `<nav class="mirror-mobile-nav" aria-label="${locale === "nl" ? "Mobiele navigatie" : "Mobile navigation"}"><div class="mirror-mobile-nav__inner">${links}</div></nav>`;
+}
+
+function injectMobileNav(html: string, pathname: string) {
+  if (html.includes("mirror-mobile-nav")) return html;
+  return html.replace("</header>", `</header>${mobileNavHtml(pathname)}`);
 }
 
 function rewriteCanonicalUrls(html: string, pathname: string) {
@@ -237,7 +329,16 @@ function applyMirrorTransforms(html: string, pathname: string) {
   return injectMirrorOverrides(
     addPremiumBodyClass(
       addCardImageVars(
-        rewriteCanonicalUrls(rewriteBrandAssets(rewriteLocalImageUrls(html)), pathname)
+        rewriteCanonicalUrls(
+          injectMobileNav(
+            rewriteLanguageSwitcher(
+              rewriteBrandAssets(rewriteLocalImageUrls(html)),
+              pathname
+            ),
+            pathname
+          ),
+          pathname
+        )
       )
     )
   );
