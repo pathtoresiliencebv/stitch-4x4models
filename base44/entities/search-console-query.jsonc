@@ -1,0 +1,69 @@
+{
+  "name": "SearchConsoleQuery",
+  "type": "object",
+  "description": "Search Console zoekopdracht of pagina-prestatie",
+  "properties": {
+    "webshop_id": {
+      "type": "string",
+      "description": "Gekoppelde website"
+    },
+    "site_url": {
+      "type": "string",
+      "description": "Search Console property URL"
+    },
+    "record_type": {
+      "type": "string",
+      "enum": [
+        "query",
+        "page"
+      ],
+      "default": "query",
+      "description": "Type record"
+    },
+    "query": {
+      "type": "string",
+      "description": "Zoekopdracht"
+    },
+    "page_url": {
+      "type": "string",
+      "description": "Pagina URL"
+    },
+    "page_slug": {
+      "type": "string",
+      "description": "Gekoppelde paginaslug"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "clicks": {
+      "type": "number"
+    },
+    "impressions": {
+      "type": "number"
+    },
+    "ctr": {
+      "type": "number"
+    },
+    "position": {
+      "type": "number"
+    },
+    "opportunity_score": {
+      "type": "number",
+      "description": "Prioriteitsscore voor verbetering"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "record_type",
+    "period_start",
+    "period_end"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "name": "SeoAuditIssue",
+  "type": "object",
+  "description": "SEO auditpunt dat door de eigenaar kan worden opgepakt",
+  "properties": {
+    "webshop_id": {
+      "type": "string"
+    },
+    "page_slug": {
+      "type": "string"
+    },
+    "issue_type": {
+      "type": "string",
+      "enum": [
+        "missing_meta",
+        "short_meta",
+        "long_meta",
+        "missing_keyword",
+        "low_word_count",
+        "missing_image",
+        "missing_internal_link",
+        "low_search_ctr",
+        "translation_missing"
+      ],
+      "default": "missing_meta"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "title": {
+      "type": "string"
+    },
+    "recommendation": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "fixed",
+        "ignored"
+      ],
+      "default": "open"
+    },
+    "created_for_score": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

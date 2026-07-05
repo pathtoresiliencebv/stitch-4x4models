@@ -15,12 +15,16 @@ const apiKey = process.env.BASE44_API_KEY;
 let activeWebshopId = process.env.NEXT_PUBLIC_WEBSHOP_ID || "";
 const write = process.argv.includes("--write");
 const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL || "https://www.4x4models.com";
+const routePrefix = process.env.CRM_SEED_ROUTE_PREFIX || "";
 const websitePageContentLimitBytes = 15_000;
+let localImagePaths = new Set();
 
 const stats = {
   WebsitePage: 0,
   WebsitePageContentSkipped: 0,
   SiteContent: 0,
+  WebsiteSection: 0,
+  WebsiteCard: 0,
   BlogPost: 0,
   Vehicle: 0,
   WebshopPhoto: 0,
@@ -192,6 +196,194 @@ function toWebsitePage(route, html, document) {
     seo_score: undefined,
     status: "published",
   };
+}
+
+function compactText(value) {
+  return (value || "").replace(/\s+/g, " ").trim();
+}
+
+function firstText(root, selectors) {
+  for (const selector of selectors) {
+    const value = compactText(root.querySelector(selector)?.textContent || "");
+    if (value) return value;
+  }
+
+  return "";
+}
+
+function imageFromRoot(root) {
+  const image = root.querySelector('img[src^="/images/"], img[src^="https://4x4models.com/images/"], img[src^="https://www.4x4models.com/images/"]');
+  const src = image?.getAttribute("src") || "";
+  if (!src) return { image_url: undefined, image_alt: undefined };
+
+  try {
+    const url = new URL(src, siteOrigin);
+    if (url.pathname.startsWith("/images/")) {
+      return {
+        image_url: url.pathname,
+        image_alt: image.getAttribute("alt") || undefined,
+      };
+    }
+  } catch {
+    if (src.startsWith("/images/")) {
+      return {
+        image_url: src,
+        image_alt: image.getAttribute("alt") || undefined,
+      };
+    }
+  }
+
+  return { image_url: undefined, image_alt: undefined };
+}
+
+function sectionTypeFor(route, title, section) {
+  const value = `${route} ${title} ${section.className || ""}`.toLowerCase();
+  if (/hero|intro|kenniscentrum/.test(value)) return "hero";
+  if (/shop|product|prijs|sku/.test(value)) return "product_grid";
+  if (/blog|journal|artikel|story|verhaal/.test(value)) return "article_grid";
+  if (/forum|discussie|reacties/.test(value)) return "forum_grid";
+  if (/merk|model|vehicle|platform/.test(value)) return "brand_grid";
+  if (/collectie|collection/.test(value)) return "card_grid";
+  if (/cta|zoek|contact/.test(value)) return "cta";
+  return "card_grid";
+}
+
+function cardTypeFor(href) {
+  if (/\/merken\//.test(href)) return "model";
+  if (/\/blog\//.test(href)) return "article";
+  if (/\/journal\//.test(href)) return "journal";
+  if (/\/collecties\//.test(href)) return "collection";
+  if (/\/shop\//.test(href)) return "product";
+  if (/\/forum\//.test(href)) return "forum";
+  return "link";
+}
+
+function normalizeInternalHref(href) {
+  if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return "";
+  if (href.startsWith("/")) return href;
+
+  if (/^https?:\/\//i.test(href)) {
+    try {
+      const url = new URL(href);
+      const allowedHosts = new Set(["4x4models.com", "www.4x4models.com"]);
+      if (!allowedHosts.has(url.hostname)) return "";
+      return `${url.pathname}${url.search}${url.hash}`;
+    } catch {
+      return "";
+    }
+  }
+
+  return href;
+}
+
+function firstExistingImage(candidates) {
+  return candidates.find((candidate) => localImagePaths.has(candidate)) || "/images/hero/homepage.jpg";
+}
+
+function fallbackImageForHref(href) {
+  const normalized = normalizeInternalHref(href);
+  const pathname = normalized.split("?")[0].replace(/\/$/, "") || "/";
+  const parts = pathname.split("/").filter(Boolean);
+  const slug = parts.at(-1) || "homepage";
+  const brand = parts[0] === "merken" ? parts[1] : "";
+
+  if (pathname === "/" || pathname === "/en") return "/images/hero/homepage.jpg";
+
+  return firstExistingImage([
+    `/images/blog/${slug}.jpg`,
+    `/images/journal/${slug}.jpg`,
+    `/images/collections/${slug}.jpg`,
+    `/images/shop/${slug}.jpg`,
+    `/images/explainers/${slug}.jpg`,
+    brand ? `/images/brands/${brand === "ineos-fusilier" ? "ineos" : brand}.jpg` : "",
+    /hummer/.test(pathname) ? "/images/brands/hummer.jpg" : "",
+    /bronco|ford|raptor|sema|truck|pre-runner/.test(pathname) ? "/images/brands/ford.jpg" : "",
+    /jeep|wrangler|rock|badge/.test(pathname) ? "/images/brands/jeep.jpg" : "",
+    /toyota|land-cruiser|hilux|4runner|lc70/.test(pathname) ? "/images/brands/toyota.jpg" : "",
+    /defender|land-rover|camel/.test(pathname) ? "/images/brands/land-rover.jpg" : "",
+    /overland|expedition|trail|morocco/.test(pathname) ? "/images/collections/beste-4x4-voor-overlanding.jpg" : "",
+    /snow|ijs|winter|ardennen/.test(pathname) ? "/images/collections/beste-4x4-sneeuw-ijs.jpg" : "",
+    /woestijn|desert|sand|dune|texas|mint/.test(pathname) ? "/images/collections/beste-4x4-woestijn.jpg" : "",
+    /differentieel|locker|awd|4wd|techniek/.test(pathname) ? "/images/blog/differentieelslot-open-limited-slip-locking.jpg" : "",
+    "/images/hero/homepage.jpg",
+  ].filter(Boolean));
+}
+
+function imageWithFallback(image, href, title) {
+  return {
+    image_url: image.image_url || fallbackImageForHref(href),
+    image_alt: image.image_alt || title || undefined,
+  };
+}
+
+function toStructuredContent(route, document) {
+  const pageSlug = routeToSlug(route);
+  const locale = inferLocale(route, document);
+  const main = document.querySelector("main");
+  if (!main) return { sections: [], cards: [] };
+
+  const sections = [];
+  const cards = [];
+  const seenCards = new Set();
+  const sectionNodes = Array.from(main.querySelectorAll("section"));
+  const usableSections = sectionNodes.length ? sectionNodes : [main];
+
+  usableSections.slice(0, 24).forEach((section, sectionIndex) => {
+    const title = firstText(section, ["h1", "h2", "h3"]) || (sectionIndex === 0 ? text(document, "h1") : "");
+    const body = firstText(section, ["p"]);
+    const sectionKey = slugify(section.getAttribute("id") || title || `section-${sectionIndex + 1}`);
+    const image = imageFromRoot(section);
+    const ctaHref = normalizeInternalHref(section.querySelector("a[href]")?.getAttribute("href") || "");
+
+    sections.push({
+      ...(activeWebshopId ? { webshop_id: activeWebshopId } : {}),
+      page_slug: pageSlug,
+      locale,
+      section_key: sectionKey,
+      section_type: sectionTypeFor(route, title, section),
+      eyebrow: firstText(section, ["[class*='eyebrow']", "[class*='badge']", "small"]),
+      title,
+      body,
+      ...imageWithFallback(image, ctaHref || route, title),
+      cta_label: firstText(section, ["a[href]"]),
+      cta_url: ctaHref || undefined,
+      layout: section.className || undefined,
+      status: "published",
+      sort_order: (sectionIndex + 1) * 10,
+    });
+
+    Array.from(section.querySelectorAll("a[href]")).slice(0, 30).forEach((link, cardIndex) => {
+      const href = normalizeInternalHref(link.getAttribute("href") || "");
+      if (!href) return;
+
+      const cardTitle = firstText(link, ["h2", "h3", "h4", "[class*='title']"]) || compactText(link.textContent || "");
+      if (!cardTitle || cardTitle.length < 2) return;
+
+      const dedupeKey = `${sectionKey}:${href}:${cardTitle}`;
+      if (seenCards.has(dedupeKey)) return;
+      seenCards.add(dedupeKey);
+
+      cards.push({
+        ...(activeWebshopId ? { webshop_id: activeWebshopId } : {}),
+        page_slug: pageSlug,
+        section_key: sectionKey,
+        locale,
+        card_type: cardTypeFor(href),
+        title: cardTitle.slice(0, 180),
+        subtitle: firstText(link, ["[class*='meta']", "[class*='subtitle']", "small"]),
+        body: firstText(link, ["p"]).slice(0, 500),
+        badge: firstText(link, ["[class*='badge']", "[class*='eyebrow']"]),
+        meta: firstText(link, ["[class*='price']", "[class*='date']", "[class*='count']"]),
+        ...imageWithFallback(imageFromRoot(link), href, cardTitle),
+        href,
+        cta_label: "Bekijk",
+        status: "published",
+        sort_order: (cardIndex + 1) * 10,
+      });
+    });
+  });
+
+  return { sections, cards };
 }
 
 function toBlogPost(route, document, isProduct) {
@@ -407,6 +599,9 @@ async function listImageFiles(dir, prefix = "/images") {
 async function main() {
   const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
   const pages = manifest.pages || {};
+  const seedGlobals = !routePrefix || routePrefix === "/";
+  const images = await listImageFiles(publicImagesDir);
+  localImagePaths = new Set(images);
 
   if (write && !apiKey) {
     throw new Error("Refusing to write without BASE44_API_KEY");
@@ -415,7 +610,7 @@ async function main() {
   await resolveWebshopId();
 
   const homeFileName = pages["/"];
-  if (homeFileName) {
+  if (seedGlobals && homeFileName) {
     const homeHtml = await readFile(path.join(pagesDir, homeFileName), "utf8");
     const homeDom = new JSDOM(homeHtml);
     for (const entry of toGlobalSiteContent(homeDom.window.document)) {
@@ -430,31 +625,65 @@ async function main() {
     }
   }
 
-  for (const category of productCategories) {
-    await upsert("ProductCategory", { slug: category.slug }, {
-      ...(activeWebshopId ? { webshop_id: activeWebshopId } : {}),
-      ...category,
-      status: "published",
-      featured_image_url: "/images/hero/homepage.jpg",
-    });
+  if (seedGlobals) {
+    for (const category of productCategories) {
+      await upsert("ProductCategory", { slug: category.slug }, {
+        ...(activeWebshopId ? { webshop_id: activeWebshopId } : {}),
+        ...category,
+        status: "published",
+        featured_image_url: "/images/hero/homepage.jpg",
+      });
+    }
+
+    for (const tag of productTags) {
+      await upsert("ProductTag", { slug: slugify(tag) }, {
+        ...(activeWebshopId ? { webshop_id: activeWebshopId } : {}),
+        name: tag,
+        slug: slugify(tag),
+        status: "active",
+      });
+    }
   }
 
-  for (const tag of productTags) {
-    await upsert("ProductTag", { slug: slugify(tag) }, {
-      ...(activeWebshopId ? { webshop_id: activeWebshopId } : {}),
-      name: tag,
-      slug: slugify(tag),
-      status: "active",
-    });
-  }
+  const pageEntries = Object.entries(pages).filter(([route]) => {
+    if (!routePrefix) return true;
+    return route === routePrefix || route.startsWith(`${routePrefix}/`);
+  });
 
-  for (const [route, fileName] of Object.entries(pages)) {
+  for (const [route, fileName] of pageEntries) {
     const html = await readFile(path.join(pagesDir, fileName), "utf8");
     const dom = new JSDOM(html);
     const document = dom.window.document;
     const slug = routeToSlug(route);
 
     await upsert("WebsitePage", { slug }, toWebsitePage(route, html, document));
+
+    const structured = toStructuredContent(route, document);
+    for (const section of structured.sections) {
+      await upsert("WebsiteSection", {
+        page_slug: section.page_slug,
+        section_key: section.section_key,
+        locale: section.locale,
+      }, section);
+    }
+
+    for (const card of structured.cards) {
+      await upsertByQueries("WebsiteCard", [
+        {
+          page_slug: card.page_slug,
+          section_key: card.section_key,
+          title: card.title,
+          href: card.href,
+          locale: card.locale,
+        },
+        {
+          page_slug: card.page_slug,
+          section_key: card.section_key,
+          title: card.title,
+          locale: card.locale,
+        },
+      ], card);
+    }
 
     if (/^\/(?:en\/)?(?:blog|journal)\/[^/]+$/.test(route)) {
       const post = toBlogPost(route, document, false);
@@ -484,15 +713,16 @@ async function main() {
     }
   }
 
-  const images = await listImageFiles(publicImagesDir);
-  for (const url of images) {
-    const title = path.basename(url).replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
-    await upsert("WebshopPhoto", { url }, {
-      webshop_id: activeWebshopId,
-      title,
-      url,
-      alt: title,
-    });
+  if (seedGlobals) {
+    for (const url of images) {
+      const title = path.basename(url).replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ");
+      await upsert("WebshopPhoto", { url }, {
+        webshop_id: activeWebshopId,
+        title,
+        url,
+        alt: title,
+      });
+    }
   }
 
   console.log(JSON.stringify({

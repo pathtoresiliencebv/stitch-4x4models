@@ -1,10 +1,7 @@
 import type { Config, CustomField } from "@puckeditor/core";
-import type React from "react";
-import {
-  DEFAULT_CMS_IMAGE,
-  normalizeCmsImageUrl,
-  imageWithFallback,
-} from "@/lib/cms-images";
+import type { MouseEvent, ReactElement } from "react";
+import { DEFAULT_CMS_IMAGE } from "@/lib/cms-images";
+import MediaImagePicker from "@/components/puck/MediaImagePicker";
 import {
   BookOpen,
   Camera,
@@ -12,6 +9,7 @@ import {
   Compass,
   Grid3X3,
   Image as ImageIcon,
+  Link2,
   Mail,
   Mountain,
   Newspaper,
@@ -233,6 +231,19 @@ const backgroundOptions = [
   { label: "Primary accent", value: "primary" },
 ] as const;
 
+const linkPresets = [
+  { label: "Home", value: "/" },
+  { label: "Merken", value: "/merken" },
+  { label: "Amerikaans", value: "/amerikaans" },
+  { label: "Collecties", value: "/collecties" },
+  { label: "Blog", value: "/blog" },
+  { label: "Journal", value: "/journal" },
+  { label: "Forum", value: "/forum" },
+  { label: "Shop", value: "/shop" },
+  { label: "Leren", value: "/leren" },
+  { label: "Over ons", value: "/over-ons" },
+] as const;
+
 const Icon = ({ name, className = "h-5 w-5" }: { name?: IconName; className?: string }) => {
   const props = { className, "aria-hidden": true };
   switch (name) {
@@ -261,7 +272,7 @@ const Icon = ({ name, className = "h-5 w-5" }: { name?: IconName; className?: st
   }
 };
 
-const iconPickerField = (label = "Icon", labelIcon: React.ReactElement = <Sparkles className="h-4 w-4" />): CustomField<IconName> => ({
+const iconPickerField = (label = "Icon", labelIcon: ReactElement = <Sparkles className="h-4 w-4" />): CustomField<IconName> => ({
   type: "custom",
   label,
   labelIcon,
@@ -357,144 +368,87 @@ const mediaImageField = (label: string): CustomField<string> => ({
   type: "custom",
   label,
   labelIcon: <ImageIcon className="h-4 w-4" />,
-  render: ({ id, value, onChange, readOnly }) => {
-    const statusId = `${id}-status`;
-    const libraryId = `${id}-library`;
-    const previewUrl = normalizeCmsImageUrl(value) || "";
+  render: ({ id, value, onChange, readOnly }) => (
+    <MediaImagePicker
+      id={id}
+      value={value}
+      onChange={onChange}
+      readOnly={readOnly}
+    />
+  ),
+});
 
-    const setStatus = (message: string) => {
-      const status = document.getElementById(statusId);
-      if (status) status.textContent = message;
-    };
-
-    const loadLibrary = async () => {
-      setStatus("Loading media...");
-      const container = document.getElementById(libraryId);
-      if (!container) return;
-
-      const response = await fetch("/api/cms/media");
-      const payload = (await response.json()) as {
-        items?: { id: string; title: string; url: string; alt?: string | null }[];
-      };
-      const items = payload.items || [];
-      container.innerHTML = "";
-
-      if (items.length === 0) {
-        container.textContent = "No images in the media library yet.";
-        setStatus("");
-        return;
-      }
-
-      items.forEach((item) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className =
-          "relative h-20 overflow-hidden rounded border border-slate-300 bg-slate-100";
-        button.title = item.title;
-        button.onclick = () => {
-          onChange(imageWithFallback(item.url));
-          setStatus(`Selected: ${item.title}`);
-        };
-
-        const img = document.createElement("img");
-        img.src = normalizeCmsImageUrl(item.url) || DEFAULT_CMS_IMAGE;
-        img.alt = item.alt || item.title;
-        img.className = "h-full w-full object-cover";
-        img.onerror = () => {
-          img.src = DEFAULT_CMS_IMAGE;
-        };
-        button.appendChild(img);
-        container.appendChild(button);
-      });
-
-      setStatus("");
-    };
+const linkUrlField = (label: string): CustomField<string> => ({
+  type: "custom",
+  label,
+  labelIcon: <Link2 className="h-4 w-4" />,
+  render: ({ value, onChange, readOnly }) => {
+    const current = value || "";
 
     return (
-      <div className="space-y-3">
-        {previewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            alt=""
-            src={previewUrl}
-            className="h-32 w-full rounded border border-slate-300 object-cover"
-            onError={(event) => {
-              event.currentTarget.src = DEFAULT_CMS_IMAGE;
-            }}
-          />
-        ) : null}
-        <input
-          className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
-          disabled={readOnly}
-          onBlur={(event) => {
-            const normalized = normalizeCmsImageUrl(event.currentTarget.value);
-            if (normalized && normalized !== event.currentTarget.value) onChange(normalized);
-          }}
-          onChange={(event) => onChange(event.currentTarget.value)}
-          placeholder="Paste image URL or upload/select below"
-          value={value || ""}
-        />
-        <input
-          accept="image/*"
-          disabled={readOnly}
-          onChange={async (event) => {
-            const file = event.currentTarget.files?.[0];
-            if (!file) return;
+      <div className="space-y-3 rounded border border-slate-200 bg-white p-3 shadow-sm">
+        <label className="block">
+          <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Link URL</span>
+          <span className="flex items-center gap-2 rounded border border-slate-300 bg-slate-50 px-3 py-2 focus-within:border-slate-500">
+            <Link2 className="h-4 w-4 shrink-0 text-slate-400" />
+            <input
+              className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+              disabled={readOnly}
+              onChange={(event) => onChange(event.currentTarget.value)}
+              placeholder="/shop of https://..."
+              value={current}
+            />
+            {current ? (
+              <button
+                className="rounded px-2 py-1 text-xs font-bold uppercase text-slate-500 hover:bg-slate-200 hover:text-slate-900"
+                disabled={readOnly}
+                onClick={() => onChange("")}
+                type="button"
+              >
+                Clear
+              </button>
+            ) : null}
+          </span>
+        </label>
+        <div>
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-slate-500">Snelle links</p>
+          <div className="grid grid-cols-2 gap-2">
+            {linkPresets.map((preset) => {
+              const selected = current === preset.value;
 
-            setStatus("Uploading image...");
-            const formData = new FormData();
-            formData.append("file", file);
-
-            const upload = await fetch("/api/cms/upload", {
-              method: "POST",
-              body: formData,
-            });
-            const result = (await upload.json()) as { url?: string; error?: string };
-
-            if (!upload.ok || !result.url) {
-              setStatus(result.error || "Upload failed. Paste a URL instead.");
-              return;
-            }
-
-            onChange(imageWithFallback(result.url));
-            await fetch("/api/cms/media", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                title: file.name,
-                url: result.url,
-                alt: file.name.replace(/\.[^.]+$/, ""),
-              }),
-            });
-            setStatus("Image uploaded and selected.");
-            await loadLibrary();
-          }}
-          type="file"
-        />
-        <div className="flex gap-2">
-          <button
-            className="rounded bg-slate-900 px-3 py-2 text-xs font-bold uppercase text-white"
-            disabled={readOnly}
-            onClick={loadLibrary}
-            type="button"
-          >
-            Open media library
-          </button>
-          <button
-            className="rounded border border-slate-300 px-3 py-2 text-xs font-bold uppercase text-slate-700"
-            disabled={readOnly}
-            onClick={() => onChange("")}
-            type="button"
-          >
-            Clear
-          </button>
+              return (
+                <button
+                  aria-pressed={selected}
+                  className={[
+                    "rounded border px-3 py-2 text-left text-xs font-semibold transition",
+                    selected
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-800"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50",
+                  ].join(" ")}
+                  disabled={readOnly}
+                  key={preset.value}
+                  onClick={() => onChange(preset.value)}
+                  type="button"
+                >
+                  {preset.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-        <p id={statusId} className="text-xs text-slate-500" />
-        <div id={libraryId} className="grid grid-cols-3 gap-2" />
       </div>
     );
   },
 });
+
+function editorSafeLink(url?: string, isEditing?: boolean) {
+  return {
+    href: url || "#",
+    onClick: (event: MouseEvent<HTMLAnchorElement>) => {
+      if (isEditing || !url || url === "#") event.preventDefault();
+    },
+  };
+}
 
 const splitBlockFields = {
   eyebrow: { type: "text", label: "Eyebrow", contentEditable: true },
@@ -503,7 +457,7 @@ const splitBlockFields = {
   imageUrl: mediaImageField("Image"),
   imageAlt: { type: "text", label: "Image alt text" },
   ctaLabel: { type: "text", label: "Button label", contentEditable: true },
-  ctaUrl: { type: "text", label: "Button URL" },
+  ctaUrl: linkUrlField("Button URL"),
   background: { type: "select", label: "Background", options: backgroundOptions },
   align: {
     type: "radio",
@@ -538,14 +492,15 @@ function SplitBlock({
   background,
   align,
   imageFirst = false,
-}: PuckComponents["TextPhotoBlock"] & { imageFirst?: boolean }) {
+  isEditing = false,
+}: PuckComponents["TextPhotoBlock"] & { imageFirst?: boolean; isEditing?: boolean }) {
   const text = (
     <div className={align === "center" ? "text-center lg:text-left" : ""}>
       <p className="premium-kicker mb-3">{eyebrow}</p>
       <h2 className="premium-heading mb-5 font-headline text-4xl font-bold uppercase leading-tight text-on-surface md:text-5xl">{title}</h2>
       <p className="premium-copy mb-8 text-lg">{body}</p>
       {ctaLabel ? (
-        <a className="premium-link inline-flex rounded-sm border border-primary/50 bg-primary/5 px-6 py-3 font-label text-xs font-bold uppercase text-primary hover:bg-primary hover:text-on-primary" href={ctaUrl || "#"}>
+        <a className="premium-link inline-flex rounded-sm border border-primary/50 bg-primary/5 px-6 py-3 font-label text-xs font-bold uppercase text-primary hover:bg-primary hover:text-on-primary" {...editorSafeLink(ctaUrl, isEditing)}>
           {ctaLabel}
         </a>
       ) : null}
@@ -583,7 +538,8 @@ function DemoCardGrid({
   defaultImageUrl,
   defaultImageAlt,
   background,
-}: PuckComponents["CardGridBlock"]) {
+  isEditing = false,
+}: PuckComponents["CardGridBlock"] & { isEditing?: boolean }) {
   const visibleCards = cards.length > 0 ? cards : demoCards;
 
   return (
@@ -592,7 +548,7 @@ function DemoCardGrid({
         <GridHeader eyebrow={eyebrow} title={title} body={body} />
         <div className={`grid gap-5 md:grid-cols-2 ${columns === 4 ? "xl:grid-cols-4" : columns === 2 ? "xl:grid-cols-2" : "xl:grid-cols-3"}`}>
           {visibleCards.map((card, index) => (
-            <a className="premium-card group" href={card.url || "#"} key={`${card.title}-${index}`}>
+            <a className="premium-card group" {...editorSafeLink(card.url, isEditing)} key={`${card.title}-${index}`}>
               {showImages && (card.imageUrl || defaultImageUrl) ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img alt={card.imageAlt || defaultImageAlt || card.title} src={card.imageUrl || defaultImageUrl} className="premium-card-image h-52 w-full object-cover" />
@@ -621,13 +577,13 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
       label: "Text / Photo",
       fields: splitBlockFields,
       defaultProps: splitBlockDefaultProps,
-      render: (props) => <SplitBlock {...props} />,
+      render: (props) => <SplitBlock {...props} isEditing={props.puck?.isEditing} />,
     },
     PhotoTextBlock: {
       label: "Photo / Text",
       fields: splitBlockFields,
       defaultProps: splitBlockDefaultProps,
-      render: (props) => <SplitBlock {...props} imageFirst />,
+      render: (props) => <SplitBlock {...props} imageFirst isEditing={props.puck?.isEditing} />,
     },
     ImageHeroBlock: {
       label: "Image Hero",
@@ -638,7 +594,7 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
         imageUrl: mediaImageField("Background image"),
         imageAlt: { type: "text", label: "Image alt text" },
         ctaLabel: { type: "text", label: "Button label", contentEditable: true },
-        ctaUrl: { type: "text", label: "Button URL" },
+        ctaUrl: linkUrlField("Button URL"),
         overlay: {
           type: "select",
           label: "Image overlay",
@@ -668,7 +624,7 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
         overlay: "dark",
         align: "left",
       },
-      render: ({ eyebrow, title, body, imageUrl, imageAlt, ctaLabel, ctaUrl, overlay, align }) => (
+      render: ({ eyebrow, title, body, imageUrl, imageAlt, ctaLabel, ctaUrl, overlay, align, puck }) => (
         <section className="relative flex min-h-[620px] items-center overflow-hidden bg-surface">
           {imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -681,7 +637,7 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
             <h1 className={`mb-6 font-headline text-5xl font-bold uppercase leading-none text-on-surface md:text-7xl ${align === "center" ? "mx-auto max-w-5xl" : "max-w-4xl"}`}>{title}</h1>
             <p className={`mb-10 text-xl leading-relaxed text-tertiary-fixed-dim ${align === "center" ? "mx-auto max-w-3xl" : "max-w-2xl"}`}>{body}</p>
             {ctaLabel ? (
-              <a className="btn-primary-glow inline-flex items-center justify-center rounded-sm px-8 py-4 font-label font-bold uppercase tracking-wider text-on-primary" href={ctaUrl || "#"}>
+              <a className="btn-primary-glow inline-flex items-center justify-center rounded-sm px-8 py-4 font-label font-bold uppercase tracking-wider text-on-primary" {...editorSafeLink(ctaUrl, puck?.isEditing)}>
                 {ctaLabel}
               </a>
             ) : null}
@@ -696,7 +652,7 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
         title: { type: "text", label: "Title", contentEditable: true },
         body: { type: "textarea", label: "Body", contentEditable: true },
         ctaLabel: { type: "text", label: "Button label", contentEditable: true },
-        ctaUrl: { type: "text", label: "Button URL" },
+        ctaUrl: linkUrlField("Button URL"),
         background: { type: "select", label: "Background", options: backgroundOptions },
         align: {
           type: "radio",
@@ -718,13 +674,13 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
         align: "center",
         padding: "standard",
       },
-      render: ({ eyebrow, title, body, ctaLabel, ctaUrl, background, align, padding }) => (
+      render: ({ eyebrow, title, body, ctaLabel, ctaUrl, background, align, padding, puck }) => (
         <section className={`${sectionBg[background || "surface"]} ${paddingClass[padding || "standard"]}`}>
           <div className={`mx-auto max-w-4xl px-6 ${align === "center" ? "text-center" : ""}`}>
             <p className="mb-3 font-label text-xs uppercase tracking-widest text-primary">{eyebrow}</p>
             <h2 className="mb-5 font-headline text-4xl font-bold uppercase leading-tight text-on-surface md:text-5xl">{title}</h2>
             <p className="mb-8 text-lg leading-relaxed text-tertiary-fixed-dim">{body}</p>
-            {ctaLabel ? <a className="inline-flex rounded-sm border border-primary/50 px-6 py-3 font-label text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary hover:text-on-primary" href={ctaUrl || "#"}>{ctaLabel}</a> : null}
+            {ctaLabel ? <a className="inline-flex rounded-sm border border-primary/50 px-6 py-3 font-label text-xs font-bold uppercase tracking-wider text-primary hover:bg-primary hover:text-on-primary" {...editorSafeLink(ctaUrl, puck?.isEditing)}>{ctaLabel}</a> : null}
           </div>
         </section>
       ),
@@ -744,7 +700,7 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
             title: { type: "text", label: "Title", contentEditable: true },
             badge: { type: "text", label: "Badge", contentEditable: true },
             body: { type: "textarea", label: "Text", contentEditable: true },
-            url: { type: "text", label: "Link URL" },
+            url: linkUrlField("Link URL"),
             imageUrl: mediaImageField("Image"),
             imageAlt: { type: "text", label: "Image alt text" },
           },
@@ -766,7 +722,7 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
         defaultImageAlt: lorem.imageAlt,
         background: "surface",
       },
-      render: (props) => <DemoCardGrid {...props} />,
+      render: (props) => <DemoCardGrid {...props} isEditing={props.puck?.isEditing} />,
     },
     Hero: {
       fields: {
@@ -803,9 +759,9 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
           ],
         },
         primaryText: { type: "text", label: "Primary button text" },
-        primaryUrl: { type: "text", label: "Primary button URL" },
+        primaryUrl: linkUrlField("Primary button URL"),
         secondaryText: { type: "text", label: "Secondary button text" },
-        secondaryUrl: { type: "text", label: "Secondary button URL" },
+        secondaryUrl: linkUrlField("Secondary button URL"),
       },
       defaultProps: {
         icon: "compass",
@@ -859,12 +815,12 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
               </p>
               <div className={`reveal-up-delay flex flex-col gap-4 sm:flex-row ${centered ? "justify-center" : ""}`}>
                 {props.primaryText ? (
-                  <a className="premium-link btn-primary-glow inline-flex items-center justify-center rounded-sm px-8 py-4 font-label font-bold uppercase text-on-primary" href={props.primaryUrl || "#"}>
+                  <a className="premium-link btn-primary-glow inline-flex items-center justify-center rounded-sm px-8 py-4 font-label font-bold uppercase text-on-primary" {...editorSafeLink(props.primaryUrl, props.puck?.isEditing)}>
                     {props.primaryText}
                   </a>
                 ) : null}
                 {props.secondaryText ? (
-                  <a className="premium-link inline-flex items-center justify-center rounded-sm border border-outline-variant bg-outline/20 px-8 py-4 font-label font-bold uppercase text-on-surface hover:border-primary hover:text-primary" href={props.secondaryUrl || "#"}>
+                  <a className="premium-link inline-flex items-center justify-center rounded-sm border border-outline-variant bg-outline/20 px-8 py-4 font-label font-bold uppercase text-on-surface hover:border-primary hover:text-primary" {...editorSafeLink(props.secondaryUrl, props.puck?.isEditing)}>
                     {props.secondaryText}
                   </a>
                 ) : null}
@@ -914,12 +870,12 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
             icon: iconPickerField(),
             title: { type: "text", label: "Title", contentEditable: true },
             body: { type: "textarea", label: "Body", contentEditable: true },
-            url: { type: "text", label: "Optional URL" },
+            url: linkUrlField("Optional URL"),
           },
         },
       },
       defaultProps: { eyebrow: "", title: "", body: "", background: "surface", columns: 3, items: [] },
-      render: ({ eyebrow, title, body, background, columns, items }) => (
+      render: ({ eyebrow, title, body, background, columns, items, puck }) => (
         <section className={`premium-section ${sectionBg[background || "surface"]} py-16 sm:py-20`}>
           <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
             <GridHeader eyebrow={eyebrow} title={title} body={body} />
@@ -934,7 +890,7 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
                     <p className="premium-copy text-sm">{item.body}</p>
                   </div>
                 );
-                return item.url ? <a href={item.url} key={`${item.title}-${index}`}>{inner}</a> : <div key={`${item.title}-${index}`}>{inner}</div>;
+                return item.url ? <a {...editorSafeLink(item.url, puck?.isEditing)} key={`${item.title}-${index}`}>{inner}</a> : <div key={`${item.title}-${index}`}>{inner}</div>;
               })}
             </div>
           </div>
@@ -963,7 +919,7 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
             title: { type: "text", label: "Title", contentEditable: true },
             badge: { type: "text", label: "Badge", contentEditable: true },
             body: { type: "textarea", label: "Text", contentEditable: true },
-            url: { type: "text", label: "Link URL" },
+            url: linkUrlField("Link URL"),
             imageUrl: mediaImageField("Image"),
             imageAlt: { type: "text", label: "Image alt text" },
           },
@@ -1040,7 +996,7 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
                       <p className="premium-kicker mb-4">{isNl ? "Trending modellen" : "Trending models"}</p>
                       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                         {featuredCards.map((card, index) => (
-                          <a key={`featured-${card.title}-${index}`} href={card.url || "#"} className="premium-card group overflow-hidden">
+                          <a key={`featured-${card.title}-${index}`} {...editorSafeLink(card.url, puck?.isEditing)} className="premium-card group overflow-hidden">
                             {showImages && (card.imageUrl || defaultImageUrl) ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img alt={card.imageAlt || defaultImageAlt || card.title || ""} src={card.imageUrl || defaultImageUrl} className="premium-card-image h-36 w-full object-cover" />
@@ -1067,7 +1023,7 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
                           </div>
                           <div className={layout === "compact" ? "grid gap-2 sm:grid-cols-2 xl:grid-cols-3" : "grid gap-3 sm:grid-cols-2 xl:grid-cols-3"}>
                             {groupedCards[brand].map((card, index) => (
-                              <a key={`${brand}-${card.title}-${index}`} href={card.url || "#"} className="group border border-outline-variant/10 bg-surface-container-low/70 p-3 transition-colors hover:border-primary/50 hover:bg-surface-container-high">
+                              <a key={`${brand}-${card.title}-${index}`} {...editorSafeLink(card.url, puck?.isEditing)} className="group border border-outline-variant/10 bg-surface-container-low/70 p-3 transition-colors hover:border-primary/50 hover:bg-surface-container-high">
                                 <div className="flex items-start justify-between gap-4">
                                   <span>
                                     <span className="block font-headline text-base font-bold uppercase text-on-surface group-hover:text-primary">{card.title}</span>
@@ -1090,8 +1046,8 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
                 </div>
 
                 <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
-                  <SidebarList title={isNl ? "Meest gelezen" : "Most read"} items={articleCards} emptyText={isNl ? "Nog geen artikelen." : "No articles yet."} />
-                  <SidebarList title={isNl ? "Gear picks" : "Gear picks"} items={productCards} emptyText={isNl ? "Nog geen producten." : "No products yet."} />
+                  <SidebarList title={isNl ? "Meest gelezen" : "Most read"} items={articleCards} emptyText={isNl ? "Nog geen artikelen." : "No articles yet."} isEditing={puck?.isEditing} />
+                  <SidebarList title={isNl ? "Gear picks" : "Gear picks"} items={productCards} emptyText={isNl ? "Nog geen producten." : "No products yet."} isEditing={puck?.isEditing} />
                 </aside>
               </div>
             </div>
@@ -1118,7 +1074,7 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
             title: { type: "text", label: "Title", contentEditable: true },
             badge: { type: "text", label: "Badge", contentEditable: true },
             body: { type: "textarea", label: "Text", contentEditable: true },
-            url: { type: "text", label: "Link URL" },
+            url: linkUrlField("Link URL"),
             imageUrl: mediaImageField("Image"),
             imageAlt: { type: "text", label: "Image alt text" },
           },
@@ -1144,10 +1100,10 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
         return (
           <section className={`premium-section ${sectionBg[background || "muted"]} py-16 sm:py-20`}>
             <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
-              <GridHeader eyebrow={eyebrow} title={title} body={body} cta={cta} />
+              <GridHeader eyebrow={eyebrow} title={title} body={body} cta={cta} isEditing={puck?.isEditing} />
               <div className={`grid gap-6 md:grid-cols-2 ${columns === 4 ? "xl:grid-cols-4" : columns === 2 ? "xl:grid-cols-2" : "xl:grid-cols-3"}`}>
                 {visibleCards.map((card, index) => (
-                  <a key={`${card.title}-${index}`} href={card.url || "#"} className="premium-card group">
+                  <a key={`${card.title}-${index}`} {...editorSafeLink(card.url, puck?.isEditing)} className="premium-card group">
                     {showImages && (card.imageUrl || defaultImageUrl) ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img alt={card.imageAlt || defaultImageAlt || card.title || "Product"} src={card.imageUrl || defaultImageUrl} className="premium-card-image h-56 w-full object-cover" />
@@ -1184,7 +1140,7 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
             title: { type: "text", label: "Title", contentEditable: true },
             badge: { type: "text", label: "Badge", contentEditable: true },
             body: { type: "textarea", label: "Text", contentEditable: true },
-            url: { type: "text", label: "Link URL" },
+            url: linkUrlField("Link URL"),
             imageUrl: mediaImageField("Image"),
             imageAlt: { type: "text", label: "Image alt text" },
           },
@@ -1210,10 +1166,10 @@ export const puckConfig: Config<PuckComponents, PuckRootProps> = {
         return (
           <section className={`premium-section ${sectionBg[background || "surface"]} py-16 sm:py-20`}>
             <div className="mx-auto max-w-screen-2xl px-4 sm:px-6">
-              <GridHeader eyebrow={eyebrow} title={title} body={body} cta={cta} />
+              <GridHeader eyebrow={eyebrow} title={title} body={body} cta={cta} isEditing={puck?.isEditing} />
               <div className={`grid gap-6 md:grid-cols-2 ${columns === 4 ? "xl:grid-cols-4" : columns === 2 ? "xl:grid-cols-2" : "xl:grid-cols-3"}`}>
                 {visibleCards.map((card, index) => (
-                  <a key={`${card.title}-${index}`} href={card.url || "#"} className="premium-card group">
+                  <a key={`${card.title}-${index}`} {...editorSafeLink(card.url, puck?.isEditing)} className="premium-card group">
                     {showImages && (card.imageUrl || defaultImageUrl) ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img alt={card.imageAlt || defaultImageAlt || card.title || "Article"} src={card.imageUrl || defaultImageUrl} className="premium-card-image h-52 w-full object-cover" />
@@ -1276,7 +1232,7 @@ function gridFields(label: string, icon: React.ReactElement) {
       label: "Optional button",
       objectFields: {
         label: { type: "text", label: "Button label" },
-        url: { type: "text", label: "Button URL" },
+        url: linkUrlField("Button URL"),
       },
     },
   } as const;
@@ -1288,12 +1244,14 @@ function GridHeader({
   body,
   icon,
   cta,
+  isEditing,
 }: {
   eyebrow?: string;
   title?: string;
   body?: string;
   icon?: IconName;
   cta?: ActionLink;
+  isEditing?: boolean;
 }) {
   return (
     <div className="mb-8 flex flex-col gap-5 border-b border-outline-variant/20 pb-6 md:flex-row md:items-end md:justify-between">
@@ -1310,7 +1268,7 @@ function GridHeader({
         {body ? <p className="premium-copy mt-2 max-w-3xl">{body}</p> : null}
       </div>
       {cta?.label ? (
-        <a className="premium-link inline-flex shrink-0 items-center justify-center rounded-sm border border-outline-variant bg-surface-container-high/60 px-5 py-3 font-label text-xs font-bold uppercase text-on-surface hover:border-primary hover:text-primary" href={cta.url || "#"}>
+        <a className="premium-link inline-flex shrink-0 items-center justify-center rounded-sm border border-outline-variant bg-surface-container-high/60 px-5 py-3 font-label text-xs font-bold uppercase text-on-surface hover:border-primary hover:text-primary" {...editorSafeLink(cta.url, isEditing)}>
           {cta.label}
         </a>
       ) : null}
@@ -1318,7 +1276,17 @@ function GridHeader({
   );
 }
 
-function SidebarList({ title, items, emptyText }: { title: string; items: Array<{ title: string; badge?: string; url: string }>; emptyText: string }) {
+function SidebarList({
+  title,
+  items,
+  emptyText,
+  isEditing,
+}: {
+  title: string;
+  items: Array<{ title: string; badge?: string; url: string }>;
+  emptyText: string;
+  isEditing?: boolean;
+}) {
   return (
     <div className="premium-panel p-5">
       <h3 className="mb-4 font-headline text-xl font-bold uppercase text-on-surface">{title}</h3>
@@ -1326,7 +1294,7 @@ function SidebarList({ title, items, emptyText }: { title: string; items: Array<
         <ol className="space-y-3">
           {items.map((item, index) => (
             <li key={`${title}-${item.url}-${index}`}>
-              <a href={item.url} className="group grid grid-cols-[2rem_1fr] gap-3 border-t border-outline-variant/10 pt-3">
+              <a {...editorSafeLink(item.url, isEditing)} className="group grid grid-cols-[2rem_1fr] gap-3 border-t border-outline-variant/10 pt-3">
                 <span className="font-headline text-2xl font-bold text-primary">{index + 1}</span>
                 <span>
                   {item.badge ? <span className="premium-kicker mb-1">{item.badge}</span> : null}

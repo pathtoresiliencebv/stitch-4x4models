@@ -36,8 +36,17 @@ function decodeNextImageUrl(pathname: string, search: string) {
 
 function isLikelyExpiredDemoImage(value: string) {
   return /lh3\.googleusercontent\.com\/aida-public/i.test(value) ||
+    /base44\.app\/api\/apps\/[^/]+\/files/i.test(value) ||
     /\/placeholders?\//i.test(value) ||
     /(?:^|\/)(?:lorem|demo|sample)-/i.test(value);
+}
+
+function isTrustedRemoteImage(url: URL) {
+  return url.protocol === "https:" && [
+    "media.base44.com",
+    "4x4models.com",
+    "www.4x4models.com",
+  ].includes(url.hostname);
 }
 
 export function normalizeCmsImageUrl(value?: string | null) {
@@ -54,13 +63,15 @@ export function normalizeCmsImageUrl(value?: string | null) {
 
   try {
     const url = new URL(trimmed);
+    if (url.hostname === "media.base44.com") return url.toString();
+
     if (url.hostname === "4x4models.com" || url.hostname === "www.4x4models.com") {
       const decoded = decodeNextImageUrl(url.pathname, url.search);
       if (decoded) return decoded;
       if (url.pathname.startsWith("/images/")) return url.pathname;
     }
 
-    return trimmed;
+    return isTrustedRemoteImage(url) ? url.toString() : "";
   } catch {
     return trimmed;
   }

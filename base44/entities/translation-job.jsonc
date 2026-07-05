@@ -1,0 +1,73 @@
+{
+  "name": "TranslationJob",
+  "type": "object",
+  "description": "Automatische vertaalworkflow voor content die eerst in het Nederlands wordt geschreven",
+  "properties": {
+    "webshop_id": {
+      "type": "string"
+    },
+    "entity_name": {
+      "type": "string",
+      "description": "Bronentiteit"
+    },
+    "record_id": {
+      "type": "string",
+      "description": "Bronrecord"
+    },
+    "source_locale": {
+      "type": "string",
+      "enum": [
+        "nl",
+        "en"
+      ],
+      "default": "nl"
+    },
+    "target_locale": {
+      "type": "string",
+      "enum": [
+        "en",
+        "nl"
+      ],
+      "default": "en"
+    },
+    "source_title": {
+      "type": "string"
+    },
+    "source_slug": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "translated",
+        "review",
+        "published",
+        "failed"
+      ],
+      "default": "queued"
+    },
+    "source_hash": {
+      "type": "string",
+      "description": "Hash om te zien of de bron is gewijzigd"
+    },
+    "translated_record_id": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "queued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "entity_name",
+    "record_id"
+  ]
+}

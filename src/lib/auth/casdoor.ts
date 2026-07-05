@@ -29,8 +29,18 @@ const requiredCasdoorEnv = [
   "CASDOOR_APP_NAME",
 ] as const;
 
+const LOCAL_DEV_ACCESS_TOKEN = "local-dev-admin";
+
 export function isCasdoorConfigured() {
   return requiredCasdoorEnv.every((key) => Boolean(process.env[key]));
+}
+
+export function isLocalDevAuthEnabled() {
+  return process.env.NODE_ENV !== "production" && !isCasdoorConfigured();
+}
+
+export function getLocalDevAccessToken() {
+  return LOCAL_DEV_ACCESS_TOKEN;
 }
 
 export function getSiteOrigin(requestUrl?: string) {
@@ -85,11 +95,24 @@ export function parseAuthToken(accessToken: string) {
 }
 
 export async function getAuthSession(): Promise<AuthSession | null> {
-  if (!isCasdoorConfigured()) return null;
-
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(AUTH_ACCESS_COOKIE)?.value;
   if (!accessToken) return null;
+
+  if (isLocalDevAuthEnabled() && accessToken === LOCAL_DEV_ACCESS_TOKEN) {
+    return {
+      accessToken,
+      user: {
+        id: "local-dev-admin",
+        email: "admin@4x4models.local",
+        full_name: "Local 4x4models admin",
+        role: "admin",
+        name: "local-dev-admin",
+      },
+    };
+  }
+
+  if (!isCasdoorConfigured()) return null;
 
   try {
     return {

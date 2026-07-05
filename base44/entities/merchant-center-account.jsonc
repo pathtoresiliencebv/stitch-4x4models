@@ -1,0 +1,44 @@
+{
+  "name": "MerchantCenterAccount",
+  "type": "object",
+  "description": "Google Merchant Center accountkoppeling voor 4x4models",
+  "properties": {
+    "webshop_id": {
+      "type": "string"
+    },
+    "account_resource": {
+      "type": "string",
+      "description": "Google resource name, bijvoorbeeld accounts/123"
+    },
+    "account_name": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "language_code": {
+      "type": "string"
+    },
+    "time_zone": {
+      "type": "string"
+    },
+    "product_count": {
+      "type": "number"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "needs_review"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "account_resource"
+  ]
+}

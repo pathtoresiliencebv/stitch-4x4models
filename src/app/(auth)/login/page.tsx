@@ -9,6 +9,7 @@ export default async function LoginPage({
   const params = await searchParams;
   const returnTo = params.returnTo || "/";
   const loginHref = `/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`;
+  const localDevAuth = params.auth === "not-configured" && process.env.NODE_ENV !== "production";
 
   return (
     <main className="min-h-screen bg-paper px-4 py-24 text-ink">
@@ -30,7 +31,9 @@ export default async function LoginPage({
 
           {params.auth === "not-configured" ? (
             <p className="mb-6 border border-primary/20 bg-primary/5 p-4 text-sm text-on-surface-variant">
-              Casdoor is nog niet geconfigureerd in de omgeving. Zet de Casdoor env vars in Vercel om login live te activeren.
+              {localDevAuth
+                ? "Casdoor is lokaal niet geconfigureerd. Je kunt in deze development omgeving tijdelijk als admin doorgaan."
+                : "Casdoor is nog niet geconfigureerd in de omgeving. Zet de Casdoor env vars in Vercel om login live te activeren."}
             </p>
           ) : null}
 
@@ -44,7 +47,7 @@ export default async function LoginPage({
             className="inline-flex w-full items-center justify-center gap-3 bg-ink px-6 py-4 font-label text-sm font-bold uppercase tracking-[0.14em] text-white transition-colors hover:bg-primary"
             href={loginHref}
           >
-            Verder met Casdoor
+            {localDevAuth ? "Open lokale admin" : "Verder met Casdoor"}
             <ArrowRight className="h-4 w-4" />
           </a>
 

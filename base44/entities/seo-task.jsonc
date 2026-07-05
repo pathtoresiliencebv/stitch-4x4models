@@ -1,0 +1,74 @@
+{
+  "name": "SeoTask",
+  "type": "object",
+  "description": "SEO planningstaak voor pagina's, content en optimalisatie",
+  "properties": {
+    "webshop_id": {
+      "type": "string",
+      "description": "Gekoppelde website"
+    },
+    "page_slug": {
+      "type": "string",
+      "description": "Gekoppelde pagina"
+    },
+    "title": {
+      "type": "string",
+      "description": "Taaktitel"
+    },
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "seo_fix",
+        "translation",
+        "content_calendar",
+        "internal_link",
+        "metadata",
+        "image_alt"
+      ],
+      "default": "seo_fix"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "todo",
+        "in_progress",
+        "ready",
+        "scheduled",
+        "done"
+      ],
+      "default": "todo"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "recommendation": {
+      "type": "string",
+      "description": "Wat de eigenaar moet verbeteren"
+    },
+    "target_keyword": {
+      "type": "string",
+      "description": "Doelzoekwoord"
+    },
+    "current_score": {
+      "type": "number",
+      "description": "Huidige SEO-score"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

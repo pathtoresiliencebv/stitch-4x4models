@@ -10,11 +10,16 @@
     "audit:images": "node --no-warnings scripts/audit-live-mirror-images.mjs",
     "crawl:images": "node scripts/crawl-4x4models-images.mjs",
     "seed:base44": "node scripts/seed-base44-from-mirror.mjs",
+    "seed:crm-builder": "node scripts/seed-base44-from-mirror.mjs",
     "seed:base44:cli": "base44 --app-id 699871557dfcaafa02868052 exec < scripts/base44-cli-seed.ts",
     "sync:base44-pages": "node scripts/sync-base44-pages.mjs",
     "verify:base44-mirror": "node scripts/verify-base44-mirror.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "fill:crm-media": "base44 --app-id 699871557dfcaafa02868052 exec < scripts/fill-base44-media.ts",
+    "fill:crm-seo": "base44 --app-id 699871557dfcaafa02868052 exec < scripts/fill-base44-seo.ts",
+    "sync:search-console": "base44 --app-id 699871557dfcaafa02868052 exec < scripts/sync-search-console-crm.ts",
+    "sync:merchant-center": "base44 --app-id 699871557dfcaafa02868052 exec < scripts/sync-merchant-center-crm.ts"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.26",

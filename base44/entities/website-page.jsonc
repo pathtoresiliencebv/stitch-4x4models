@@ -23,13 +23,114 @@
       "type": "string",
       "description": "SEO meta description"
     },
+    "seo_title": {
+      "type": "string",
+      "description": "Titel zoals die in Google mag verschijnen"
+    },
+    "google_preview_title": {
+      "type": "string",
+      "description": "Previewtitel voor het Google-resultaat"
+    },
+    "google_preview_url": {
+      "type": "string",
+      "description": "Preview URL voor het Google-resultaat"
+    },
+    "google_preview_description": {
+      "type": "string",
+      "description": "Preview omschrijving voor het Google-resultaat"
+    },
+    "canonical_url": {
+      "type": "string",
+      "description": "Canonieke URL"
+    },
     "focus_keyword": {
       "type": "string",
       "description": "Focus zoekwoord"
     },
+    "secondary_keywords": {
+      "type": "array",
+      "description": "Extra zoekwoorden",
+      "items": {
+        "type": "string"
+      }
+    },
     "seo_score": {
       "type": "number",
       "description": "SEO score 0-100"
+    },
+    "readability_score": {
+      "type": "number",
+      "description": "Leesbaarheidsscore 0-100"
+    },
+    "word_count": {
+      "type": "number",
+      "description": "Aantal woorden in de pagina"
+    },
+    "locale": {
+      "type": "string",
+      "enum": [
+        "nl",
+        "en"
+      ],
+      "default": "nl",
+      "description": "Taal van deze pagina"
+    },
+    "source_locale": {
+      "type": "string",
+      "enum": [
+        "nl",
+        "en"
+      ],
+      "default": "nl",
+      "description": "Brontaal voor vertalingen"
+    },
+    "translation_status": {
+      "type": "string",
+      "enum": [
+        "source",
+        "queued",
+        "translated",
+        "review",
+        "published"
+      ],
+      "default": "source",
+      "description": "Status van automatische vertaling"
+    },
+    "translated_from_id": {
+      "type": "string",
+      "description": "Bronrecord waaruit deze vertaling komt"
+    },
+    "search_console_clicks": {
+      "type": "number",
+      "description": "Klikken uit Search Console over de laatste syncperiode"
+    },
+    "search_console_impressions": {
+      "type": "number",
+      "description": "Vertoningen uit Search Console over de laatste syncperiode"
+    },
+    "search_console_ctr": {
+      "type": "number",
+      "description": "CTR uit Search Console over de laatste syncperiode"
+    },
+    "search_console_position": {
+      "type": "number",
+      "description": "Gemiddelde positie uit Search Console over de laatste syncperiode"
+    },
+    "last_search_console_sync": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Laatste moment waarop Search Console data is gesynchroniseerd"
+    },
+    "seo_status": {
+      "type": "string",
+      "enum": [
+        "needs_work",
+        "ready",
+        "scheduled",
+        "published"
+      ],
+      "default": "needs_work",
+      "description": "Redactionele SEO-status"
     },
     "status": {
       "type": "string",

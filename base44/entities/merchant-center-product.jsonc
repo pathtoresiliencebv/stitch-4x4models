@@ -1,0 +1,70 @@
+{
+  "name": "MerchantCenterProduct",
+  "type": "object",
+  "description": "Google Merchant Center product en performance snapshot",
+  "properties": {
+    "webshop_id": {
+      "type": "string"
+    },
+    "account_resource": {
+      "type": "string"
+    },
+    "product_resource": {
+      "type": "string"
+    },
+    "offer_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "brand": {
+      "type": "string"
+    },
+    "link": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "availability": {
+      "type": "string"
+    },
+    "price": {
+      "type": "string"
+    },
+    "clicks": {
+      "type": "number"
+    },
+    "impressions": {
+      "type": "number"
+    },
+    "ctr": {
+      "type": "number"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive",
+        "needs_review"
+      ],
+      "default": "active"
+    }
+  },
+  "required": [
+    "product_resource"
+  ]
+}

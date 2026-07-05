@@ -1,8 +1,11 @@
 const root = Deno.cwd();
 const write = Deno.env.get("BASE44_WRITE") === "true";
 const siteOrigin = Deno.env.get("NEXT_PUBLIC_SITE_URL") || "https://www.4x4models.com";
+const routePrefix = Deno.env.get("CRM_SEED_ROUTE_PREFIX") || "";
+const useStructuredCache = Deno.env.get("CRM_SEED_USE_CACHE") !== "false";
 let activeWebshopId = Deno.env.get("NEXT_PUBLIC_WEBSHOP_ID") || "";
 const websitePageContentLimitBytes = 15_000;
+let localImagePaths = new Set<string>();
 
 const manifestPath = `${root}/src/data/live-mirror/manifest.json`;
 const pagesDir = `${root}/src/data/live-mirror/pages`;
@@ -12,6 +15,9 @@ const stats: Record<string, number> = {
   WebsitePage: 0,
   WebsitePageContentSkipped: 0,
   SiteContent: 0,
+  WebsiteSection: 0,
+  WebsiteCard: 0,
+  WebsiteCardSkipped: 0,
   BlogPost: 0,
   Vehicle: 0,
   WebshopPhoto: 0,
@@ -64,6 +70,37 @@ function entity(name: string) {
   return base44.entities[name];
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRateLimitError(error: unknown) {
+  const maybe = error as { status?: number; data?: { message?: string }; message?: string };
+  return maybe?.status === 429 ||
+    /rate limit/i.test(maybe?.message || "") ||
+    /rate limit/i.test(maybe?.data?.message || "");
+}
+
+async function withRateLimitRetry<T>(operation: () => Promise<T>, label: string): Promise<T> {
+  const delays = [2500, 6000, 12000, 24000, 45000];
+
+  for (let attempt = 0; attempt <= delays.length; attempt += 1) {
+    await sleep(attempt === 0 ? 250 : delays[attempt - 1]);
+
+    try {
+      return await operation();
+    } catch (error) {
+      if (!isRateLimitError(error) || attempt === delays.length) {
+        throw error;
+      }
+
+      console.warn(`${label} hit rate limit; retrying in ${delays[attempt]}ms`);
+    }
+  }
+
+  throw new Error(`${label} failed after rate limit retries`);
+}
+
 function routeToSlug(route: string) {
   return route === "/" ? "home" : route.replace(/^\/+/, "");
 }
@@ -84,6 +121,10 @@ function stripTags(value = "") {
     .replace(/&eacute;/g, "é")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function compactText(value = "") {
+  return stripTags(value).replace(/\s+/g, " ").trim();
 }
 
 function text(html: string, tagName: string) {
@@ -138,6 +179,219 @@ function websitePageContentPayload(content: string) {
   }
 
   return { content };
+}
+
+function firstText(html: string, selectors: string[]) {
+  for (const selector of selectors) {
+    let value = "";
+    if (selector.startsWith("h")) {
+      value = text(html, selector);
+    } else if (selector === "p") {
+      value = stripTags(html.match(/<p\b[^>]*>([\s\S]*?)<\/p>/i)?.[1] || "");
+    } else if (selector === "small") {
+      value = text(html, "small");
+    } else if (selector.includes("title")) {
+      value = stripTags(html.match(/<[^>]*class=["'][^"']*title[^"']*["'][^>]*>([\s\S]*?)<\/[^>]+>/i)?.[1] || "");
+    } else if (selector.includes("meta") || selector.includes("subtitle") || selector.includes("badge") || selector.includes("eyebrow") || selector.includes("price") || selector.includes("date") || selector.includes("count")) {
+      const token = selector.match(/\*='([^']+)'/)?.[1] || selector.replace(/[^a-z]/g, "");
+      value = stripTags(html.match(new RegExp(`<[^>]*class=["'][^"']*${token}[^"']*["'][^>]*>([\\s\\S]*?)<\\/[^>]+>`, "i"))?.[1] || "");
+    }
+
+    if (value) return value;
+  }
+
+  return "";
+}
+
+function firstHref(html: string) {
+  return html.match(/<a\b[^>]*href=["']([^"']+)["'][^>]*>/i)?.[1] || "";
+}
+
+function imageFromHtml(html: string) {
+  const match = html.match(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/i);
+  const src = match?.[1] || "";
+  if (!src) return { image_url: undefined, image_alt: undefined };
+
+  try {
+    const url = new URL(src, siteOrigin);
+    if (url.pathname.startsWith("/images/")) {
+      return {
+        image_url: url.pathname,
+        image_alt: match?.[0].match(/\balt=["']([^"']*)["']/i)?.[1] || undefined,
+      };
+    }
+  } catch {
+    if (src.startsWith("/images/")) {
+      return {
+        image_url: src,
+        image_alt: match?.[0].match(/\balt=["']([^"']*)["']/i)?.[1] || undefined,
+      };
+    }
+  }
+
+  return { image_url: undefined, image_alt: undefined };
+}
+
+function sectionTypeFor(route: string, sectionTitle: string, sectionHtml: string) {
+  const value = `${route} ${sectionTitle} ${sectionHtml.slice(0, 400)}`.toLowerCase();
+  if (/hero|intro|kenniscentrum/.test(value)) return "hero";
+  if (/shop|product|prijs|sku/.test(value)) return "product_grid";
+  if (/blog|journal|artikel|story|verhaal/.test(value)) return "article_grid";
+  if (/forum|discussie|reacties/.test(value)) return "forum_grid";
+  if (/merk|model|vehicle|platform/.test(value)) return "brand_grid";
+  if (/collectie|collection/.test(value)) return "card_grid";
+  if (/cta|zoek|contact/.test(value)) return "cta";
+  return "card_grid";
+}
+
+function cardTypeFor(href: string) {
+  if (/\/merken\//.test(href)) return "model";
+  if (/\/blog\//.test(href)) return "article";
+  if (/\/journal\//.test(href)) return "journal";
+  if (/\/collecties\//.test(href)) return "collection";
+  if (/\/shop\//.test(href)) return "product";
+  if (/\/forum\//.test(href)) return "forum";
+  return "link";
+}
+
+function normalizeInternalHref(href: string) {
+  if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return "";
+  if (href.startsWith("/")) return href;
+
+  if (/^https?:\/\//i.test(href)) {
+    try {
+      const url = new URL(href);
+      const allowedHosts = new Set(["4x4models.com", "www.4x4models.com"]);
+      if (!allowedHosts.has(url.hostname)) return "";
+      return `${url.pathname}${url.search}${url.hash}`;
+    } catch {
+      return "";
+    }
+  }
+
+  return href;
+}
+
+function firstExistingImage(candidates: string[]) {
+  return candidates.find((candidate) => localImagePaths.has(candidate)) || "/images/hero/homepage.jpg";
+}
+
+function fallbackImageForHref(href: string) {
+  const normalized = normalizeInternalHref(href);
+  const pathname = normalized.split("?")[0].replace(/\/$/, "") || "/";
+  const parts = pathname.split("/").filter(Boolean);
+  const slug = parts.at(-1) || "homepage";
+  const brand = parts[0] === "merken" ? parts[1] : "";
+
+  if (pathname === "/" || pathname === "/en") return "/images/hero/homepage.jpg";
+
+  return firstExistingImage([
+    `/images/blog/${slug}.jpg`,
+    `/images/journal/${slug}.jpg`,
+    `/images/collections/${slug}.jpg`,
+    `/images/shop/${slug}.jpg`,
+    `/images/explainers/${slug}.jpg`,
+    brand ? `/images/brands/${brand === "ineos-fusilier" ? "ineos" : brand}.jpg` : "",
+    /hummer/.test(pathname) ? "/images/brands/hummer.jpg" : "",
+    /bronco|ford|raptor|sema|truck|pre-runner/.test(pathname) ? "/images/brands/ford.jpg" : "",
+    /jeep|wrangler|rock|badge/.test(pathname) ? "/images/brands/jeep.jpg" : "",
+    /toyota|land-cruiser|hilux|4runner|lc70/.test(pathname) ? "/images/brands/toyota.jpg" : "",
+    /defender|land-rover|camel/.test(pathname) ? "/images/brands/land-rover.jpg" : "",
+    /overland|expedition|trail|morocco/.test(pathname) ? "/images/collections/beste-4x4-voor-overlanding.jpg" : "",
+    /snow|ijs|winter|ardennen/.test(pathname) ? "/images/collections/beste-4x4-sneeuw-ijs.jpg" : "",
+    /woestijn|desert|sand|dune|texas|mint/.test(pathname) ? "/images/collections/beste-4x4-woestijn.jpg" : "",
+    /differentieel|locker|awd|4wd|techniek/.test(pathname) ? "/images/blog/differentieelslot-open-limited-slip-locking.jpg" : "",
+    "/images/hero/homepage.jpg",
+  ].filter(Boolean));
+}
+
+function imageWithFallback(
+  image: { image_url?: string; image_alt?: string },
+  href: string,
+  title: string
+) {
+  return {
+    image_url: image.image_url || fallbackImageForHref(href),
+    image_alt: image.image_alt || title || undefined,
+  };
+}
+
+function sectionHtmlBlocks(html: string) {
+  const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)?.[1] || html;
+  const sections = Array.from(main.matchAll(/<section\b([^>]*)>([\s\S]*?)<\/section>/gi));
+  if (!sections.length) return [{ attrs: "", html: main }];
+  return sections.slice(0, 24).map((match) => ({ attrs: match[1] || "", html: match[2] || "" }));
+}
+
+function toStructuredContent(route: string, html: string) {
+  const pageSlug = routeToSlug(route);
+  const locale = inferLocale(route, html);
+  const sections: Record<string, unknown>[] = [];
+  const cards: Record<string, unknown>[] = [];
+  const seenCards = new Set<string>();
+
+  sectionHtmlBlocks(html).forEach((section, sectionIndex) => {
+    const sectionTitle = firstText(section.html, ["h1", "h2", "h3"]) || (sectionIndex === 0 ? text(html, "h1") : "");
+    const sectionKey = slugify(
+      section.attrs.match(/\bid=["']([^"']+)["']/i)?.[1] ||
+      sectionTitle ||
+      `section-${sectionIndex + 1}`
+    );
+    const sectionImage = imageFromHtml(section.html);
+    const ctaHref = normalizeInternalHref(firstHref(section.html));
+
+    sections.push({
+      ...(activeWebshopId ? { webshop_id: activeWebshopId } : {}),
+      page_slug: pageSlug,
+      locale,
+      section_key: sectionKey,
+      section_type: sectionTypeFor(route, sectionTitle, section.html),
+      eyebrow: firstText(section.html, ["[class*='eyebrow']", "[class*='badge']", "small"]),
+      title: sectionTitle,
+      body: firstText(section.html, ["p"]),
+      ...imageWithFallback(sectionImage, ctaHref || route, sectionTitle),
+      cta_label: stripTags(section.html.match(/<a\b[^>]*href=["'][^"']+["'][^>]*>([\s\S]*?)<\/a>/i)?.[1] || ""),
+      cta_url: ctaHref || undefined,
+      layout: section.attrs.match(/\bclass=["']([^"']+)["']/i)?.[1] || undefined,
+      status: "published",
+      sort_order: (sectionIndex + 1) * 10,
+    });
+
+    Array.from(section.html.matchAll(/<a\b([^>]*)href=["']([^"']+)["']([^>]*)>([\s\S]*?)<\/a>/gi))
+      .slice(0, 30)
+      .forEach((match, cardIndex) => {
+        const href = normalizeInternalHref(match[2] || "");
+        if (!href) return;
+
+        const linkHtml = match[4] || "";
+        const cardTitle = firstText(linkHtml, ["h2", "h3", "h4", "[class*='title']"]) || compactText(linkHtml);
+        if (!cardTitle || cardTitle.length < 2) return;
+
+        const dedupeKey = `${sectionKey}:${href}:${cardTitle}`;
+        if (seenCards.has(dedupeKey)) return;
+        seenCards.add(dedupeKey);
+
+        cards.push({
+          ...(activeWebshopId ? { webshop_id: activeWebshopId } : {}),
+          page_slug: pageSlug,
+          section_key: sectionKey,
+          locale,
+          card_type: cardTypeFor(href),
+          title: cardTitle.slice(0, 180),
+          subtitle: firstText(linkHtml, ["[class*='meta']", "[class*='subtitle']", "small"]),
+          body: firstText(linkHtml, ["p"]).slice(0, 500),
+          badge: firstText(linkHtml, ["[class*='badge']", "[class*='eyebrow']"]),
+          meta: firstText(linkHtml, ["[class*='price']", "[class*='date']", "[class*='count']"]),
+          ...imageWithFallback(imageFromHtml(linkHtml), href, cardTitle),
+          href,
+          cta_label: "Bekijk",
+          status: "published",
+          sort_order: (cardIndex + 1) * 10,
+        });
+      });
+  });
+
+  return { sections, cards };
 }
 
 function numberFromText(value: string) {
@@ -333,7 +587,10 @@ function compactQuery(q: Record<string, unknown>) {
 }
 
 async function findExisting(entityName: string, q: Record<string, unknown>) {
-  const records = await entity(entityName).filter(q, undefined, 1);
+  const records = await withRateLimitRetry(
+    () => entity(entityName).filter(q, undefined, 1),
+    `${entityName} lookup`
+  );
   return records[0];
 }
 
@@ -350,7 +607,10 @@ async function upsertByQueries(entityName: string, queries: Record<string, unkno
     const existing = await findExisting(entityName, query);
     if (existing?.id) {
       try {
-        await entity(entityName).update(existing.id, payload);
+        await withRateLimitRetry(
+          () => entity(entityName).update(existing.id, payload),
+          `${entityName} update`
+        );
       } catch (error) {
         throw new Error(`${entityName} update failed for ${label} (${contentBytes} content bytes): ${error?.data?.message || error?.message || "unknown error"}`);
       }
@@ -359,7 +619,10 @@ async function upsertByQueries(entityName: string, queries: Record<string, unkno
   }
 
   try {
-    await entity(entityName).create(payload);
+    await withRateLimitRetry(
+      () => entity(entityName).create(payload),
+      `${entityName} create`
+    );
   } catch (error) {
     throw new Error(`${entityName} create failed for ${label} (${contentBytes} content bytes): ${error?.data?.message || error?.message || "unknown error"}`);
   }
@@ -367,6 +630,89 @@ async function upsertByQueries(entityName: string, queries: Record<string, unkno
 
 async function upsert(entityName: string, q: Record<string, unknown>, payload: Record<string, unknown>) {
   await upsertByQueries(entityName, [q], payload);
+}
+
+function structuredKey(record: Record<string, unknown>, includeHref = false) {
+  return [
+    record.page_slug,
+    record.section_key,
+    record.title,
+    includeHref ? record.href : "",
+    record.locale,
+  ].join("|");
+}
+
+function sectionKey(record: Record<string, unknown>) {
+  return [
+    record.page_slug,
+    record.section_key,
+    record.locale,
+  ].join("|");
+}
+
+async function listExistingForCache(entityName: string) {
+  if (!write) return new Map<string, Record<string, unknown>>();
+
+  const records = await withRateLimitRetry(
+    () => entity(entityName).list(undefined, 5000),
+    `${entityName} cache`
+  );
+  const cache = new Map<string, Record<string, unknown>>();
+
+  for (const record of records as Record<string, unknown>[]) {
+    if (entityName === "WebsiteSection") {
+      cache.set(sectionKey(record), record);
+    } else {
+      cache.set(structuredKey(record, true), record);
+      cache.set(structuredKey(record, false), record);
+    }
+  }
+
+  return cache;
+}
+
+async function upsertCached(
+  entityName: string,
+  cache: Map<string, Record<string, unknown>>,
+  key: string,
+  payload: Record<string, unknown>
+) {
+  stats[entityName] += 1;
+  if (!write) return;
+
+  const existing = cache.get(key);
+  if (existing?.id) {
+    try {
+      await withRateLimitRetry(
+        () => entity(entityName).update(existing.id, payload),
+        `${entityName} update`
+      );
+      cache.set(key, { ...existing, ...payload });
+    } catch (error) {
+      if (entityName === "WebsiteCard") {
+        stats.WebsiteCardSkipped += 1;
+        console.warn(`Skipped WebsiteCard update: ${String(payload.title || "untitled")}`);
+        return;
+      }
+      throw new Error(`${entityName} update failed: ${error?.data?.message || error?.message || "unknown error"}`);
+    }
+    return;
+  }
+
+  try {
+    const created = await withRateLimitRetry(
+      () => entity(entityName).create(payload),
+      `${entityName} create`
+    );
+    cache.set(key, created);
+  } catch (error) {
+    if (entityName === "WebsiteCard") {
+      stats.WebsiteCardSkipped += 1;
+      console.warn(`Skipped WebsiteCard create: ${String(payload.title || "untitled")}`);
+      return;
+    }
+    throw new Error(`${entityName} create failed: ${error?.data?.message || error?.message || "unknown error"}`);
+  }
 }
 
 async function resolveWebshopId() {
@@ -419,11 +765,21 @@ async function listImageFiles(dir: string, prefix = "/images"): Promise<string[]
 
 const manifest = JSON.parse(await Deno.readTextFile(manifestPath));
 const pages = manifest.pages || {};
+const seedGlobals = !routePrefix || routePrefix === "/";
+const images = await listImageFiles(publicImagesDir);
+localImagePaths = new Set(images);
 
 await resolveWebshopId();
 
+const websiteSectionCache = useStructuredCache
+  ? await listExistingForCache("WebsiteSection")
+  : new Map<string, Record<string, unknown>>();
+const websiteCardCache = useStructuredCache
+  ? await listExistingForCache("WebsiteCard")
+  : new Map<string, Record<string, unknown>>();
+
 const homeFileName = pages["/"];
-if (homeFileName) {
+if (seedGlobals && homeFileName) {
   const homeHtml = await Deno.readTextFile(`${pagesDir}/${homeFileName}`);
   for (const entry of toGlobalSiteContent(homeHtml)) {
     await upsert("SiteContent", {
@@ -437,29 +793,81 @@ if (homeFileName) {
   }
 }
 
-for (const category of productCategories) {
-  await upsert("ProductCategory", { slug: category.slug }, {
-    ...(activeWebshopId ? { webshop_id: activeWebshopId } : {}),
-    ...category,
-    status: "published",
-    featured_image_url: "/images/hero/homepage.jpg",
-  });
+if (seedGlobals) {
+  for (const category of productCategories) {
+    await upsert("ProductCategory", { slug: category.slug }, {
+      ...(activeWebshopId ? { webshop_id: activeWebshopId } : {}),
+      ...category,
+      status: "published",
+      featured_image_url: "/images/hero/homepage.jpg",
+    });
+  }
+
+  for (const tag of productTags) {
+    await upsert("ProductTag", { slug: slugify(tag) }, {
+      ...(activeWebshopId ? { webshop_id: activeWebshopId } : {}),
+      name: tag,
+      slug: slugify(tag),
+      status: "active",
+    });
+  }
 }
 
-for (const tag of productTags) {
-  await upsert("ProductTag", { slug: slugify(tag) }, {
-    ...(activeWebshopId ? { webshop_id: activeWebshopId } : {}),
-    name: tag,
-    slug: slugify(tag),
-    status: "active",
-  });
-}
+const pageEntries = Object.entries<string>(pages).filter(([route]) => {
+  if (!routePrefix) return true;
+  return route === routePrefix || route.startsWith(`${routePrefix}/`);
+});
 
-for (const [route, fileName] of Object.entries<string>(pages)) {
+for (const [route, fileName] of pageEntries) {
   const html = await Deno.readTextFile(`${pagesDir}/${fileName}`);
   const slug = routeToSlug(route);
 
   await upsert("WebsitePage", { slug }, toWebsitePage(route, html));
+
+  const structured = toStructuredContent(route, html);
+  for (const section of structured.sections) {
+    if (useStructuredCache) {
+      await upsertCached(
+        "WebsiteSection",
+        websiteSectionCache,
+        sectionKey(section),
+        section
+      );
+    } else {
+      await upsert("WebsiteSection", {
+        page_slug: section.page_slug,
+        section_key: section.section_key,
+        locale: section.locale,
+      }, section);
+    }
+  }
+
+  for (const card of structured.cards) {
+    if (useStructuredCache) {
+      await upsertCached(
+        "WebsiteCard",
+        websiteCardCache,
+        structuredKey(card, Boolean(card.href)),
+        card
+      );
+    } else {
+      await upsertByQueries("WebsiteCard", [
+        {
+          page_slug: card.page_slug,
+          section_key: card.section_key,
+          title: card.title,
+          href: card.href,
+          locale: card.locale,
+        },
+        {
+          page_slug: card.page_slug,
+          section_key: card.section_key,
+          title: card.title,
+          locale: card.locale,
+        },
+      ], card);
+    }
+  }
 
   if (/^\/(?:en\/)?(?:blog|journal)\/[^/]+$/.test(route)) {
     const post = toBlogPost(route, html, false);
@@ -489,15 +897,16 @@ for (const [route, fileName] of Object.entries<string>(pages)) {
   }
 }
 
-const images = await listImageFiles(publicImagesDir);
-for (const url of images) {
-  const imageTitle = url.split("/").pop()?.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ") || url;
-  await upsert("WebshopPhoto", { url }, {
-    webshop_id: activeWebshopId,
-    title: imageTitle,
-    url,
-    alt: imageTitle,
-  });
+if (seedGlobals) {
+  for (const url of images) {
+    const imageTitle = url.split("/").pop()?.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ") || url;
+    await upsert("WebshopPhoto", { url }, {
+      webshop_id: activeWebshopId,
+      title: imageTitle,
+      url,
+      alt: imageTitle,
+    });
+  }
 }
 
 console.log(JSON.stringify({

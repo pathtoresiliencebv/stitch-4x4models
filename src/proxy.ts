@@ -12,6 +12,8 @@ const passThroughPrefixes = [
   "/live-mirror",
   "/api",
   "/admin",
+  "/login",
+  "/register",
   "/_next",
   "/mirror-next-static",
   "/images",
@@ -64,6 +66,12 @@ export const config = {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname === "/nl/login" || pathname === "/en/login" || pathname === "/nl/register" || pathname === "/en/register") {
+    const authUrl = request.nextUrl.clone();
+    authUrl.pathname = pathname.endsWith("/register") ? "/register" : "/login";
+    return NextResponse.redirect(authUrl);
+  }
 
   if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     const hasSession = Boolean(request.cookies.get(AUTH_ACCESS_COOKIE)?.value);

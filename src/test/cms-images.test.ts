@@ -6,6 +6,7 @@ import {
   localCmsMediaItems,
   normalizeCmsImageUrl,
 } from "@/lib/cms-images";
+import { buildDefaultPuckData } from "@/lib/puck/default-data";
 
 describe("CMS image helpers", () => {
   it("normalizes Next image optimizer URLs back to local public images", () => {
@@ -27,5 +28,20 @@ describe("CMS image helpers", () => {
 
   it("exposes local public images to the admin media library", () => {
     expect(localCmsMediaItems().some((item) => item.url === "/images/brands/hummer.jpg")).toBe(true);
+  });
+
+  it("uses local images for default admin editor data", () => {
+    const data = buildDefaultPuckData({
+      page: "home",
+      locale: "nl",
+      content: {},
+      vehicles: [],
+      products: [],
+      articles: [],
+    });
+    const serialized = JSON.stringify(data);
+
+    expect(serialized).toContain("/images/hero/homepage.jpg");
+    expect(serialized).not.toContain("aida-public");
   });
 });

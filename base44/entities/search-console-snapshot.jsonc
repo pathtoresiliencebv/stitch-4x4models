@@ -1,0 +1,70 @@
+{
+  "name": "SearchConsoleSnapshot",
+  "type": "object",
+  "description": "Search Console samenvatting per domein en periode",
+  "properties": {
+    "webshop_id": {
+      "type": "string",
+      "description": "Gekoppelde website"
+    },
+    "site_url": {
+      "type": "string",
+      "description": "Search Console property URL"
+    },
+    "domain": {
+      "type": "string",
+      "description": "Domeinnaam"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Startdatum van de rapportageperiode"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Einddatum van de rapportageperiode"
+    },
+    "clicks": {
+      "type": "number",
+      "description": "Aantal klikken"
+    },
+    "impressions": {
+      "type": "number",
+      "description": "Aantal vertoningen"
+    },
+    "ctr": {
+      "type": "number",
+      "description": "Gemiddelde CTR"
+    },
+    "position": {
+      "type": "number",
+      "description": "Gemiddelde positie"
+    },
+    "sitemap_url": {
+      "type": "string",
+      "description": "Gekoppelde sitemap"
+    },
+    "sitemap_status": {
+      "type": "string",
+      "description": "Status van de sitemap"
+    },
+    "verified_sites": {
+      "type": "array",
+      "description": "Properties die via de koppeling zichtbaar zijn",
+      "items": {
+        "type": "string"
+      }
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Moment van synchronisatie"
+    }
+  },
+  "required": [
+    "site_url",
+    "period_start",
+    "period_end"
+  ]
+}

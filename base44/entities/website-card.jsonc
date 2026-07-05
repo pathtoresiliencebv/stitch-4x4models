@@ -1,0 +1,102 @@
+{
+  "name": "WebsiteCard",
+  "type": "object",
+  "description": "Beheerbare kaart binnen een website-sectie",
+  "properties": {
+    "webshop_id": {
+      "type": "string",
+      "description": "Gekoppelde webshop ID"
+    },
+    "page_slug": {
+      "type": "string",
+      "description": "Publieke route zonder slash, bijvoorbeeld home, merken of shop"
+    },
+    "section_key": {
+      "type": "string",
+      "description": "Bijbehorende sectiesleutel"
+    },
+    "section_id": {
+      "type": "string",
+      "description": "Optionele koppeling naar WebsiteSection record"
+    },
+    "locale": {
+      "type": "string",
+      "description": "Taal (en, nl)",
+      "enum": [
+        "en",
+        "nl"
+      ],
+      "default": "en"
+    },
+    "card_type": {
+      "type": "string",
+      "description": "Soort kaart",
+      "enum": [
+        "brand",
+        "model",
+        "article",
+        "journal",
+        "collection",
+        "product",
+        "forum",
+        "link",
+        "feature"
+      ],
+      "default": "link"
+    },
+    "title": {
+      "type": "string",
+      "description": "Kaarttitel"
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Korte subtitel of metadata"
+    },
+    "body": {
+      "type": "string",
+      "description": "Kaarttekst"
+    },
+    "badge": {
+      "type": "string",
+      "description": "Badge/label boven de titel"
+    },
+    "meta": {
+      "type": "string",
+      "description": "Extra metadata, bijvoorbeeld prijs, datum, reacties of aantal modellen"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Afbeelding op de kaart"
+    },
+    "image_alt": {
+      "type": "string",
+      "description": "Alt-tekst voor de kaartafbeelding"
+    },
+    "href": {
+      "type": "string",
+      "description": "Publieke link voor de kaart"
+    },
+    "cta_label": {
+      "type": "string",
+      "description": "Optionele knoptekst"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "archived"
+      ],
+      "default": "published"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "page_slug",
+    "section_key",
+    "title"
+  ]
+}

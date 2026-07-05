@@ -41,6 +41,10 @@
     "node_modules",
     "base44/scripts",
     "scripts/base44-cli-seed.ts",
+    "scripts/fill-base44-media.ts",
+    "scripts/fill-base44-seo.ts",
+    "scripts/sync-merchant-center-crm.ts",
+    "scripts/sync-search-console-crm.ts",
     "zero"
   ]
 }

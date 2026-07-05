@@ -1,0 +1,102 @@
+{
+  "name": "WebsiteSection",
+  "type": "object",
+  "description": "Beheerbare website-sectie voor de 4x4models pagina-builder",
+  "properties": {
+    "webshop_id": {
+      "type": "string",
+      "description": "Gekoppelde webshop ID"
+    },
+    "page_slug": {
+      "type": "string",
+      "description": "Publieke route zonder slash, bijvoorbeeld home, merken of blog/slug"
+    },
+    "locale": {
+      "type": "string",
+      "description": "Taal (en, nl)",
+      "enum": [
+        "en",
+        "nl"
+      ],
+      "default": "en"
+    },
+    "section_key": {
+      "type": "string",
+      "description": "Unieke sleutel binnen de pagina, bijvoorbeeld hero, brands-grid of shop-products"
+    },
+    "section_type": {
+      "type": "string",
+      "description": "Soort blok in de pagina-builder",
+      "enum": [
+        "hero",
+        "card_grid",
+        "brand_grid",
+        "article_grid",
+        "product_grid",
+        "feature",
+        "text",
+        "media",
+        "cta",
+        "forum_grid"
+      ],
+      "default": "card_grid"
+    },
+    "eyebrow": {
+      "type": "string",
+      "description": "Klein label boven de titel"
+    },
+    "title": {
+      "type": "string",
+      "description": "Sectietitel"
+    },
+    "body": {
+      "type": "string",
+      "description": "Intro/bodytekst voor de sectie"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Hoofdafbeelding voor hero of feature"
+    },
+    "image_alt": {
+      "type": "string",
+      "description": "Alt-tekst voor de hoofdafbeelding"
+    },
+    "cta_label": {
+      "type": "string",
+      "description": "Knoptekst"
+    },
+    "cta_url": {
+      "type": "string",
+      "description": "Knoplink"
+    },
+    "layout": {
+      "type": "string",
+      "description": "Layoutstijl, bijvoorbeeld editorial, compact, split of featured"
+    },
+    "background": {
+      "type": "string",
+      "description": "Achtergrondstijl, bijvoorbeeld ivory, graphite of white"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "published",
+        "archived"
+      ],
+      "default": "published"
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0
+    },
+    "notes": {
+      "type": "string",
+      "description": "Interne beheernotitie"
+    }
+  },
+  "required": [
+    "page_slug",
+    "section_key"
+  ]
+}
