@@ -6,7 +6,7 @@ import {
   resolveMirrorContentPathname,
   sanitizeBase44MirrorFragment,
   selectBase44MirrorRecord,
-} from "@/app/live-mirror/[[...path]]/route";
+} from "@/lib/live-mirror-route-utils";
 
 describe("live mirror Base44 safety", () => {
   it("uses only the exact WebsitePage slug returned by Base44", () => {

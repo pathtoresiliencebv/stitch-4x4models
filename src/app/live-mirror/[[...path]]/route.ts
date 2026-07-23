@@ -8,7 +8,21 @@ import {
   stripSupportedLocalePrefix,
   type Locale,
 } from "@/lib/i18n-routing";
+import {
+  alternateLocalePath,
+  isUsableBase44MirrorContent,
+  resolveMirrorContentPathname,
+  sanitizeBase44MirrorFragment,
+  selectBase44MirrorRecord,
+} from "@/lib/live-mirror-route-utils";
 import { searchLiveMirror, type SearchResult } from "@/lib/live-mirror-search";
+import {
+  applyMirrorCmsContent,
+  mirrorCmsFallbackBundle,
+  type MirrorCmsBundle,
+} from "@/lib/mirror-cms";
+import type { WebsiteCard, WebsitePage, WebsiteSection } from "@/types/base44";
+import type { SiteContent } from "@/types/common";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,22 +31,22 @@ type MirrorManifest = {
   pages: Record<string, string>;
 };
 
-type Base44WebsitePage = {
-  id: string;
-  slug?: string;
-  status?: string;
-  content?: string;
-};
+type Base44WebsitePage = WebsitePage;
 
 type Base44ListResponse<T> = {
   records?: T[];
 };
 
-type MirrorSource = "base44-full" | "base44-fragment" | "local";
+type MirrorSource =
+  | "base44-full"
+  | "base44-fragment"
+  | "base44-structured"
+  | "local";
 
 type Base44MirrorPage = {
   html: string;
   source: Exclude<MirrorSource, "local">;
+  cms: MirrorCmsBundle;
 };
 
 const BASE44_BASE_URL =
@@ -159,10 +173,6 @@ function rewriteBrandAssets(html: string) {
       "<span>Built with Next.js · Statically generated</span>",
       '<span>Powered by <a class="powered-by-link" href="https://jasonmohabali.com" target="_blank" rel="noopener noreferrer">jasonmohabali.com</a></span>'
     );
-}
-
-export function alternateLocalePath(pathname: string, targetLocale: Locale) {
-  return publicPathForLocale(pathname, targetLocale);
 }
 
 function localizedPath(pathname: string, locale: Locale) {
@@ -523,69 +533,8 @@ function pathnameToSlug(pathname: string) {
   return pathname === "/" ? "home" : pathname.replace(/^\/+/, "");
 }
 
-export function resolveMirrorContentPathname(
-  publicPathname: string,
-  pages: Record<string, string>
-) {
-  const locale = localeForPublicPathname(publicPathname);
-  const basePathname = stripSupportedLocalePrefix(publicPathname);
-  const englishPathname = basePathname === "/" ? "/en" : `/en${basePathname}`;
-  const contentPathname =
-    locale === "en" && pages[englishPathname] ? englishPathname : basePathname;
-
-  return {
-    locale,
-    publicPathname: publicPathForLocale(publicPathname, locale),
-    contentPathname,
-  };
-}
-
 function hasFullHtmlDocument(html: string) {
   return /<html(?:\s|>)/i.test(html) && /<\/html>/i.test(html);
-}
-
-function hasRenderableHtml(html: string) {
-  return /<(?:main|section|article|div|header|footer|h1|p)(?:\s|>)/i.test(html);
-}
-
-export function hasIncompleteHtmlTag(html: string) {
-  const trimmed = html.trim();
-  const lastLt = trimmed.lastIndexOf("<");
-  const lastGt = trimmed.lastIndexOf(">");
-
-  if (lastLt <= lastGt) return false;
-
-  return /^<\/?[A-Za-z][A-Za-z0-9:-]*(?:\s|$)/.test(trimmed.slice(lastLt));
-}
-
-export function isUsableBase44MirrorContent(html: string) {
-  return hasRenderableHtml(html) && !hasIncompleteHtmlTag(html);
-}
-
-export function selectBase44MirrorRecord(
-  records: Base44WebsitePage[],
-  expectedSlug: string
-) {
-  return records.find((record) => (
-    record.slug === expectedSlug &&
-    (!record.status || record.status === "published")
-  ));
-}
-
-export function sanitizeBase44MirrorFragment(content: string) {
-  let fragment = content.trim();
-  const mainMatch = fragment.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i);
-
-  if (mainMatch?.[1]) {
-    fragment = mainMatch[1].trim();
-  }
-
-  return fragment
-    .replace(/<head\b[^>]*>[\s\S]*?<\/head>/gi, "")
-    .replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/gi, "")
-    .replace(/<\/?html\b[^>]*>/gi, "")
-    .replace(/<\/?body\b[^>]*>/gi, "")
-    .trim();
 }
 
 function replaceMainContent(shellHtml: string, content: string) {
@@ -612,24 +561,19 @@ async function readLocalMirrorHtml(fileName: string) {
   );
 }
 
-async function readBase44MirrorPage(pathname: string, localHtml: string): Promise<Base44MirrorPage | undefined> {
-  if (!shouldReadBase44Mirror()) return undefined;
-
-  const queryFilter: Record<string, string> = {
-    slug: pathnameToSlug(pathname),
-    status: "published",
-  };
-  if (process.env.NEXT_PUBLIC_WEBSHOP_ID) {
-    queryFilter.webshop_id = process.env.NEXT_PUBLIC_WEBSHOP_ID;
-  }
-
+async function readBase44Entity<T>(
+  entity: string,
+  filter: Record<string, string>,
+  options: { limit?: number; sortBy?: string } = {},
+) {
   const query = new URLSearchParams({
-    q: JSON.stringify(queryFilter),
-    limit: "250",
+    q: JSON.stringify(filter),
+    limit: String(options.limit || 250),
   });
+  if (options.sortBy) query.set("sort_by", options.sortBy);
 
   try {
-    const response = await fetch(`${BASE44_BASE_URL}/entities/WebsitePage?${query}`, {
+    const response = await fetch(`${BASE44_BASE_URL}/entities/${entity}?${query}`, {
       headers: {
         "Content-Type": "application/json",
         api_key: process.env.BASE44_API_KEY || "",
@@ -638,29 +582,112 @@ async function readBase44MirrorPage(pathname: string, localHtml: string): Promis
     });
 
     if (!response.ok) {
-      console.warn(`Base44 mirror read failed for ${pathname}: ${response.status}`);
-      return undefined;
+      console.warn(`Base44 ${entity} read failed: ${response.status}`);
+      return [] as T[];
     }
 
-    const payload = (await response.json()) as Base44ListResponse<Base44WebsitePage> | Base44WebsitePage[];
-    const records = Array.isArray(payload) ? payload : payload.records || [];
-    const record = selectBase44MirrorRecord(records, pathnameToSlug(pathname));
+    const payload = (await response.json()) as Base44ListResponse<T> | T[];
+    return Array.isArray(payload) ? payload : payload.records || [];
+  } catch (error) {
+    console.warn(`Base44 ${entity} read failed`, error);
+    return [] as T[];
+  }
+}
+
+function recordsForLocale<T extends { locale?: string | null }>(
+  records: T[],
+  locale: Locale,
+) {
+  const localized = records.filter((record) => record.locale === locale);
+  if (localized.length) return localized;
+  return records.filter((record) => !record.locale || record.locale === "nl");
+}
+
+async function readBase44MirrorPage(
+  pathname: string,
+  localHtml: string,
+  locale: Locale,
+): Promise<Base44MirrorPage | undefined> {
+  if (!shouldReadBase44Mirror()) return undefined;
+
+  const slug = pathnameToSlug(pathname);
+  const queryFilter: Record<string, string> = {
+    slug,
+    status: "published",
+  };
+  if (process.env.NEXT_PUBLIC_WEBSHOP_ID) {
+    queryFilter.webshop_id = process.env.NEXT_PUBLIC_WEBSHOP_ID;
+  }
+
+  try {
+    const structuredFilter: Record<string, string> = {
+      page_slug: slug,
+      status: "published",
+    };
+    if (process.env.NEXT_PUBLIC_WEBSHOP_ID) {
+      structuredFilter.webshop_id = process.env.NEXT_PUBLIC_WEBSHOP_ID;
+    }
+
+    const [pageRecords, sectionRecords, cardRecords, globalRecords, pageContentRecords] =
+      await Promise.all([
+        readBase44Entity<Base44WebsitePage>("WebsitePage", queryFilter, { limit: 10 }),
+        readBase44Entity<WebsiteSection>("WebsiteSection", structuredFilter, {
+          limit: 250,
+          sortBy: "sort_order",
+        }),
+        readBase44Entity<WebsiteCard>("WebsiteCard", structuredFilter, {
+          limit: 500,
+          sortBy: "sort_order",
+        }),
+        readBase44Entity<SiteContent>("SiteContent", { page: "global" }, {
+          limit: 100,
+          sortBy: "sort_order",
+        }),
+        readBase44Entity<SiteContent>("SiteContent", { page: slug }, {
+          limit: 250,
+          sortBy: "sort_order",
+        }),
+      ]);
+
+    const record = selectBase44MirrorRecord(pageRecords, slug);
+    const cms: MirrorCmsBundle = {
+      page: record,
+      sections: recordsForLocale(sectionRecords, locale),
+      cards: recordsForLocale(cardRecords, locale),
+      globalContent: recordsForLocale(globalRecords, locale),
+      pageContent: recordsForLocale(pageContentRecords, locale),
+    };
     const content = record?.content?.trim();
+    const hasStructuredContent = Boolean(
+      record ||
+      cms.sections.length ||
+      cms.cards.length ||
+      cms.globalContent.length ||
+      cms.pageContent.length
+    );
 
     if (!content || !isUsableBase44MirrorContent(content)) {
-      return undefined;
+      return hasStructuredContent
+        ? { html: localHtml, source: "base44-structured", cms }
+        : undefined;
     }
 
     if (hasFullHtmlDocument(content)) {
-      return { html: content, source: "base44-full" };
+      return { html: content, source: "base44-full", cms };
     }
 
     const sanitizedContent = sanitizeBase44MirrorFragment(content);
     if (!isUsableBase44MirrorContent(sanitizedContent)) {
-      return undefined;
+      return hasStructuredContent
+        ? { html: localHtml, source: "base44-structured", cms }
+        : undefined;
     }
 
-    return { html: replaceMainContent(localHtml, sanitizedContent), source: "base44-fragment" };
+    return {
+      html: replaceMainContent(localHtml, sanitizedContent),
+      source: "base44-fragment",
+      cms,
+    };
   } catch (error) {
     console.warn(`Base44 mirror read failed for ${pathname}`, error);
     return undefined;
@@ -747,17 +774,36 @@ export async function GET(
     return notFoundResponse();
   }
 
-  const base44Page = await readBase44MirrorPage(resolved.contentPathname, resolved.html);
+  const base44Page = await readBase44MirrorPage(
+    resolved.contentPathname,
+    resolved.html,
+    resolved.locale,
+  );
   const html = base44Page?.html || resolved.html;
   const source: MirrorSource = base44Page?.source || "local";
+  const transformedHtml = applyMirrorTransforms(
+    html,
+    resolved.publicPathname,
+    resolved.locale,
+  );
+  const cmsResult = applyMirrorCmsContent(
+    transformedHtml,
+    base44Page?.cms || mirrorCmsFallbackBundle(),
+    resolved.publicPathname,
+  );
+  const localizedHtml = rewriteLocalizedInternalLinks(cmsResult.html, resolved.locale);
 
-  return new Response(applyMirrorTransforms(html, resolved.publicPathname, resolved.locale), {
+  return new Response(localizedHtml, {
     headers: {
       "content-type": "text/html; charset=utf-8",
       "cache-control": "public, max-age=0, must-revalidate",
       "x-mirror-source": source,
       "x-mirror-locale": resolved.locale,
       "x-mirror-content-path": resolved.contentPathname,
+      "x-cms-page": cmsResult.applied.page ? "1" : "0",
+      "x-cms-sections": String(cmsResult.applied.sections),
+      "x-cms-cards": String(cmsResult.applied.cards),
+      "x-cms-globals": String(cmsResult.applied.globals),
     },
   });
 }

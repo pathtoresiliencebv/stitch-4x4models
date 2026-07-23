@@ -464,6 +464,8 @@ function inferProductMeta(route: string, itemTitle: string) {
 function toWebsitePage(route: string, html: string) {
   const itemTitle = title(html) || text(html, "h1") || routeToSlug(route);
   const content = mirrorContentForBase44(html);
+  const locale = inferLocale(route, html);
+  const canonicalUrl = canonicalUrlForRoute(route, html);
 
   return {
     webshop_id: activeWebshopId,
@@ -471,7 +473,15 @@ function toWebsitePage(route: string, html: string) {
     slug: routeToSlug(route),
     ...websitePageContentPayload(content),
     meta_description: meta(html, "description"),
+    seo_title: itemTitle.slice(0, 70),
+    google_preview_title: itemTitle.slice(0, 70),
+    google_preview_url: canonicalUrl,
+    google_preview_description: meta(html, "description"),
+    canonical_url: canonicalUrl,
     focus_keyword: text(html, "h1"),
+    locale,
+    source_locale: locale,
+    translation_status: locale === "nl" ? "source" : "published",
     status: "published",
   };
 }

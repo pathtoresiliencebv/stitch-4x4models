@@ -43,8 +43,10 @@
     "scripts/base44-cli-seed.ts",
     "scripts/fill-base44-media.ts",
     "scripts/fill-base44-seo.ts",
+    "scripts/fix-base44-event-sections.ts",
     "scripts/sync-merchant-center-crm.ts",
     "scripts/sync-search-console-crm.ts",
+    "scripts/audit-base44-cms.ts",
     "zero"
   ]
 }

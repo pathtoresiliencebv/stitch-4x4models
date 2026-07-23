@@ -60,6 +60,7 @@ type AdminWebshopPhoto = WebshopPhoto & {
 const editorPages = [
   {
     page: "home",
+    cmsSlug: "home",
     title: "Homepage",
     body: "Hero, uitgelichte modellen, shopblokken en journal-inhoud.",
     livePath: "/",
@@ -67,6 +68,7 @@ const editorPages = [
   },
   {
     page: "vehicles",
+    cmsSlug: "merken",
     title: "Model hub",
     body: "Visuele modelblokken, indexkaarten en algemene catalogustekst.",
     livePath: "/merken",
@@ -74,6 +76,7 @@ const editorPages = [
   },
   {
     page: "journal",
+    cmsSlug: "journal",
     title: "Journal",
     body: "Artikeloverzichten, editorial hero en contentblokken.",
     livePath: "/journal",
@@ -81,6 +84,7 @@ const editorPages = [
   },
   {
     page: "gear",
+    cmsSlug: "shop",
     title: "Shop / gear",
     body: "Productkaarten, gear hero en merchandising modules.",
     livePath: "/shop",
@@ -579,8 +583,11 @@ export default async function AdminDashboardPage() {
               </p>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight">Foto&apos;s klaar voor pagina&apos;s, cards en producten</h2>
             </div>
-            <DashboardButton href="/admin/puck?page=home&locale=nl">
-              Open visuele editor
+            <DashboardButton href="/admin/content?slug=home">
+              Open paginabeheer
+            </DashboardButton>
+            <DashboardButton href="/admin/seo">
+              Open SEO tools
             </DashboardButton>
           </div>
 
@@ -639,13 +646,13 @@ export default async function AdminDashboardPage() {
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Link
                       className="rounded-md bg-[#171411] px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-[#a3681a]"
-                      href={`/admin/puck?page=${item.page}&locale=nl`}
+                      href={`/admin/content?slug=${encodeURIComponent(item.cmsSlug)}`}
                     >
                       NL bewerken
                     </Link>
                     <Link
                       className="rounded-md border border-[#d8cfc0] bg-white px-3 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#171411] transition hover:border-[#a3681a] hover:text-[#a3681a]"
-                      href={`/admin/puck?page=${item.page}&locale=en`}
+                      href={`/admin/content?slug=${encodeURIComponent(`en/${item.cmsSlug === "home" ? "" : item.cmsSlug}`.replace(/\/$/, ""))}`}
                     >
                       EN bewerken
                     </Link>
@@ -718,6 +725,12 @@ export default async function AdminDashboardPage() {
                           >
                             Bekijk
                           </a>
+                          <Link
+                            className="rounded border border-[#d8cfc0] px-2.5 py-1.5 text-xs font-semibold text-[#171411] hover:border-[#a3681a] hover:text-[#a3681a]"
+                            href={`/admin/content?slug=${encodeURIComponent(routeToSlug(page.path))}`}
+                          >
+                            Bewerk
+                          </Link>
                           <a
                             className="rounded border border-[#d8cfc0] px-2.5 py-1.5 text-xs font-semibold text-[#171411] hover:border-[#a3681a] hover:text-[#a3681a]"
                             href={base44EditorUrl}

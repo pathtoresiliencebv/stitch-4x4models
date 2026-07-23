@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdminApiSession } from "@/lib/auth/admin-api";
 import { isLocale } from "@/lib/locale";
 import { getPuckPageData, savePuckPageData } from "@/lib/services/puck-page";
 import type { Locale } from "@/types/common";
@@ -26,6 +27,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const auth = await requireAdminApiSession();
+  if (auth.response) return auth.response;
+
   const params = readParams(request);
   if ("error" in params) {
     return NextResponse.json({ error: params.error }, { status: 400 });

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdminApiSession } from "@/lib/auth/admin-api";
 import { base44Fetch, base44List } from "@/lib/base44-api";
 import { localCmsMediaItems, normalizeCmsImageUrl } from "@/lib/cms-images";
 import type { WebshopPhoto } from "@/types/base44";
@@ -79,6 +80,9 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAdminApiSession();
+  if (auth.response) return auth.response;
+
   const body = (await request.json()) as {
     title?: string;
     url?: string;
