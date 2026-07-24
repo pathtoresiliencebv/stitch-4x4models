@@ -820,7 +820,13 @@ export async function GET(
     resolved.html,
     resolved.locale,
   );
-  if ("dynamic" in resolved && resolved.dynamic && !base44Page) {
+  const hasDynamicCmsContent = Boolean(
+    base44Page?.cms.page ||
+    base44Page?.cms.sections.length ||
+    base44Page?.cms.cards.length ||
+    base44Page?.cms.pageContent.length
+  );
+  if ("dynamic" in resolved && resolved.dynamic && !hasDynamicCmsContent) {
     return notFoundResponse();
   }
   const html = base44Page?.html || resolved.html;
