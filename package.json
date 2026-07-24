@@ -20,6 +20,7 @@
     "fill:crm-media": "base44 --app-id 699871557dfcaafa02868052 exec < scripts/fill-base44-media.ts",
     "fill:crm-seo": "base44 --app-id 699871557dfcaafa02868052 exec < scripts/fill-base44-seo.ts",
     "fix:crm-event-sections": "base44 --app-id 699871557dfcaafa02868052 exec < scripts/fix-base44-event-sections.ts",
+    "translate:base44": "base44 --app-id 699871557dfcaafa02868052 exec < scripts/translate-base44-pages.ts",
     "sync:search-console": "base44 --app-id 699871557dfcaafa02868052 exec < scripts/sync-search-console-crm.ts",
     "sync:merchant-center": "base44 --app-id 699871557dfcaafa02868052 exec < scripts/sync-merchant-center-crm.ts"
   },
