@@ -1444,6 +1444,31 @@ main a[class~="group"][class~="no-underline"] {
   text-underline-offset: 3px;
 }
 
+.mirror-premium .cms-managed-richtext a[data-cms-button] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin: 10px 8px 10px 0;
+  padding: 0 20px;
+  border: 1px solid var(--mirror-graphite);
+  border-radius: 2px;
+  background: var(--mirror-graphite);
+  color: #ffffff !important;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.mirror-premium .cms-managed-richtext a[data-cms-button]:hover {
+  border-color: var(--mirror-accent);
+  background: var(--mirror-accent);
+  color: #ffffff !important;
+}
+
 .mirror-premium .cms-managed-richtext img {
   display: block;
   width: 100%;
