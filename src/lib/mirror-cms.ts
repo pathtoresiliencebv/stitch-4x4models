@@ -340,22 +340,32 @@ function applySection(
   if (section.title && heading.length) heading.text(plainText(section.title));
 
   const body = directTextParagraph($, target);
-  if (section.body && body.length) {
+  if (section.body) {
+    let managedBody: cheerio.Cheerio<Element>;
     if (
       ["text", "media", "feature"].includes(section.section_type || "") &&
       hasManagedMarkup(section.body)
     ) {
-      const richText = $("<div>")
+      managedBody = ($("<div>")
         .addClass("cms-managed-richtext")
-        .html(sanitizeManagedHtml(section.body));
-      body.replaceWith(richText);
+        .html(sanitizeManagedHtml(section.body))) as cheerio.Cheerio<Element>;
     } else {
-      body.text(plainText(section.body));
+      managedBody = ($("<p>")
+        .addClass("cms-managed-section__body")
+        .text(plainText(section.body))) as cheerio.Cheerio<Element>;
+    }
+
+    if (body.length) {
+      body.replaceWith(managedBody);
+    } else if (heading.length) {
+      managedBody.insertAfter(heading);
+    } else {
+      target.prepend(managedBody);
     }
   }
 
   if (section.eyebrow) {
-    const eyebrow = target
+    let eyebrow = target
       .find("p, span, small")
       .filter((_index, item) => (
         $(item).closest("a").length === 0 &&
@@ -365,18 +375,28 @@ function applySection(
         )
       ))
       .first();
-    if (eyebrow.length) eyebrow.text(plainText(section.eyebrow));
+    if (!eyebrow.length) {
+      eyebrow = ($("<p>")
+        .addClass("cms-managed-section__eyebrow uppercase")) as cheerio.Cheerio<Element>;
+      if (heading.length) eyebrow.insertBefore(heading);
+      else target.prepend(eyebrow);
+    }
+    eyebrow.text(plainText(section.eyebrow));
   }
 
   const normalizedImage = normalizeCmsImageUrl(section.image_url);
   if (normalizedImage) {
-    const image = target.find("img").filter((_index, item) => $(item).closest("a").length === 0).first();
-    if (image.length) {
-      image.attr("src", normalizedImage);
-      image.removeAttr("srcset");
-      if (section.image_alt || section.title) {
-        image.attr("alt", plainText(section.image_alt || section.title));
-      }
+    let image = target.find("img").filter((_index, item) => $(item).closest("a").length === 0).first();
+    if (!image.length) {
+      image = ($("<img>")
+        .addClass("cms-managed-section__image")
+        .attr({ loading: "lazy", decoding: "async" })) as cheerio.Cheerio<Element>;
+      target.append(image);
+    }
+    image.attr("src", normalizedImage);
+    image.removeAttr("srcset");
+    if (section.image_alt || section.title) {
+      image.attr("alt", plainText(section.image_alt || section.title));
     }
     target.attr("data-cms-image", normalizedImage);
     target.css("--cms-section-photo", `url('${normalizedImage.replace(/['"\\]/g, "")}')`);

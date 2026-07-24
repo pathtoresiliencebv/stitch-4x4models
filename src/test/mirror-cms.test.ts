@@ -221,4 +221,53 @@ describe("mirror CMS structured rendering", () => {
     expect(result.html).not.toContain("<script>");
     expect(result.html).not.toContain("alert(");
   });
+
+  it("creates missing rich text, image, and button markup on dynamic CMS pages", () => {
+    const dynamicShell = `<!doctype html>
+      <html><head><title>4x4models</title></head><body><main>
+        <section id="cms-dynamic-placeholder"><h1>4x4models</h1></section>
+      </main></body></html>`;
+    const result = applyMirrorCmsContent(dynamicShell, {
+      page: {
+        id: "dynamic-page",
+        slug: "en/cms-check",
+        title: "CMS acceptance",
+      },
+      sections: [
+        {
+          id: "dynamic-section",
+          page_slug: "en/cms-check",
+          section_key: "cms-dynamic-placeholder",
+          section_type: "text",
+          eyebrow: "CMS",
+          title: "Rich text and media",
+          body: '<p>Formatted <strong>content</strong>.</p><p><a href="/merken/hummer/h2" data-cms-button="true">Explore Hummer H2</a></p>',
+          image_url: "/images/journal/defender-octa-2026-update.jpg",
+          image_alt: "Land Rover Defender OCTA",
+          status: "published",
+          sort_order: 0,
+        },
+      ],
+      cards: [
+        {
+          id: "dynamic-card",
+          page_slug: "en/cms-check",
+          section_key: "cms-dynamic-placeholder",
+          title: "Managed card",
+          href: "/journal/defender-octa-2026-update",
+          status: "published",
+          sort_order: 0,
+        },
+      ],
+      globalContent: [],
+      pageContent: [],
+    }, "/cms-check");
+
+    expect(result.html).toContain("Formatted <strong>content</strong>");
+    expect(result.html).toContain('data-cms-button="true"');
+    expect(result.html).toContain(">Explore Hummer H2</a>");
+    expect(result.html).toContain('src="/images/journal/defender-octa-2026-update.jpg"');
+    expect(result.html).toContain('alt="Land Rover Defender OCTA"');
+    expect(result.html).toContain("Managed card");
+  });
 });
