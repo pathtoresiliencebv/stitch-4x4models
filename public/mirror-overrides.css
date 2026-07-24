@@ -73,6 +73,7 @@
     radial-gradient(circle at 22% 0%, rgba(198, 145, 77, 0.11), transparent 31rem),
     linear-gradient(180deg, var(--mirror-ivory), #f7f3ec 58%, var(--mirror-ivory));
   color: var(--mirror-graphite);
+  overflow-x: clip;
   text-rendering: geometricPrecision;
 }
 

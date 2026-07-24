@@ -10,6 +10,7 @@ import {
 } from "@/lib/i18n-routing";
 import {
   alternateLocalePath,
+  base44ContentPathname,
   isUsableBase44MirrorContent,
   resolveMirrorContentPathname,
   sanitizeBase44MirrorFragment,
@@ -815,8 +816,12 @@ export async function GET(
     return notFoundResponse();
   }
 
+  const cmsContentPathname = base44ContentPathname(
+    resolved.publicPathname,
+    resolved.locale,
+  );
   const base44Page = await readBase44MirrorPage(
-    resolved.contentPathname,
+    cmsContentPathname,
     resolved.html,
     resolved.locale,
   );
@@ -849,7 +854,8 @@ export async function GET(
       "cache-control": "public, max-age=0, must-revalidate",
       "x-mirror-source": source,
       "x-mirror-locale": resolved.locale,
-      "x-mirror-content-path": resolved.contentPathname,
+      "x-mirror-content-path": cmsContentPathname,
+      "x-mirror-shell-path": resolved.contentPathname,
       "x-cms-page": cmsResult.applied.page ? "1" : "0",
       "x-cms-sections": String(cmsResult.applied.sections),
       "x-cms-cards": String(cmsResult.applied.cards),

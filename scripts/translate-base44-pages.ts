@@ -7,6 +7,18 @@ type WebsitePage = {
   translated_from_id?: string;
 };
 
+type WebsiteContent = {
+  page_slug?: string;
+  status?: string;
+};
+
+type TranslationJob = {
+  id: string;
+  record_id?: string;
+  translated_record_id?: string;
+  target_locale?: string;
+};
+
 type TranslationResult = {
   errors?: Array<{ error?: string }>;
 };
@@ -24,6 +36,16 @@ declare const base44: {
   entities: {
     WebsitePage: {
       list(sort?: string, limit?: number): Promise<WebsitePage[]>;
+    };
+    WebsiteSection: {
+      list(sort?: string, limit?: number): Promise<WebsiteContent[]>;
+    };
+    WebsiteCard: {
+      list(sort?: string, limit?: number): Promise<WebsiteContent[]>;
+    };
+    TranslationJob: {
+      list(sort?: string, limit?: number): Promise<TranslationJob[]>;
+      update(id: string, payload: Record<string, unknown>): Promise<TranslationJob>;
     };
   };
   functions: {
@@ -53,17 +75,31 @@ const concurrency = Math.min(
 const limit = positiveInteger(Deno.env.get("BASE44_TRANSLATION_LIMIT"), Number.MAX_SAFE_INTEGER);
 
 const pages = await base44.entities.WebsitePage.list("slug", 500) as WebsitePage[];
+const sections = await base44.entities.WebsiteSection.list("page_slug", 5000) as WebsiteContent[];
+const cards = await base44.entities.WebsiteCard.list("page_slug", 5000) as WebsiteContent[];
+const jobs = await base44.entities.TranslationJob.list("record_id", 5000) as TranslationJob[];
 const sources = pages.filter((page) => (
   (page.locale || "nl") === "nl"
   && !/^en(?:\/|$)/.test(page.slug || "")
   && page.status !== "archived"
 ));
+
+function activeCount(records: WebsiteContent[], pageSlug: string | undefined) {
+  return records.filter((record) => (
+    record.page_slug === pageSlug && record.status !== "archived"
+  )).length;
+}
+
 const pending = sources.filter((source) => {
   const targetSlug = englishSlug(source.slug);
   const target = pages.find((page) => (
     page.slug === targetSlug || page.translated_from_id === source.id
   ));
-  return !target || target.locale !== "en" || target.translation_status !== "published";
+  return !target
+    || target.locale !== "en"
+    || target.translation_status !== "published"
+    || activeCount(sections, source.slug) !== activeCount(sections, targetSlug)
+    || activeCount(cards, source.slug) !== activeCount(cards, targetSlug);
 }).slice(0, limit);
 
 console.log(JSON.stringify({
@@ -111,9 +147,36 @@ await Promise.all(
   Array.from({ length: Math.min(concurrency, pending.length) }, (_, index) => worker(index + 1)),
 );
 
+const refreshedPages = await base44.entities.WebsitePage.list("slug", 500) as WebsitePage[];
+let jobsBackfilled = 0;
+const jobUpdates = sources.flatMap((source) => {
+  const target = refreshedPages.find((page) => (
+    page.slug === englishSlug(source.slug) || page.translated_from_id === source.id
+  ));
+  const job = jobs.find((item) => (
+    item.record_id === source.id && item.target_locale === "en"
+  ));
+  if (!target?.id || !job?.id || job.translated_record_id === target.id) {
+    return [];
+  }
+
+  return [{ jobId: job.id, targetId: target.id }];
+});
+
+for (let index = 0; index < jobUpdates.length; index += 8) {
+  const batch = jobUpdates.slice(index, index + 8);
+  await Promise.all(batch.map(({ jobId, targetId }) => (
+    base44.entities.TranslationJob.update(jobId, {
+      translated_record_id: targetId,
+    })
+  )));
+  jobsBackfilled += batch.length;
+}
+
 console.log(JSON.stringify({
   completed,
   failed: failures.length,
+  jobs_backfilled: jobsBackfilled,
   failures,
 }, null, 2));
 

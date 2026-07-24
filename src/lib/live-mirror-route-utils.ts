@@ -33,6 +33,15 @@ export function resolveMirrorContentPathname(
   };
 }
 
+export function base44ContentPathname(
+  publicPathname: string,
+  locale = localeForPublicPathname(publicPathname),
+) {
+  const basePathname = stripSupportedLocalePrefix(publicPathname);
+  if (locale === "nl") return basePathname;
+  return basePathname === "/" ? "/en" : `/en${basePathname}`;
+}
+
 function hasRenderableHtml(html: string) {
   return /<(?:main|section|article|div|header|footer|h1|p)(?:\s|>)/i.test(html);
 }

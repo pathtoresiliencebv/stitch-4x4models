@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   alternateLocalePath,
+  base44ContentPathname,
   hasIncompleteHtmlTag,
   isUsableBase44MirrorContent,
   resolveMirrorContentPathname,
@@ -90,5 +91,16 @@ describe("live mirror Base44 safety", () => {
       publicPathname: "/merken/hummer/h2",
       contentPathname: "/merken/hummer/h2",
     });
+  });
+
+  it("always addresses English Base44 records for unprefixed detail routes", () => {
+    expect(base44ContentPathname("/journal/toyota-land-cruiser-250-europa-2026-trims"))
+      .toBe("/en/journal/toyota-land-cruiser-250-europa-2026-trims");
+    expect(base44ContentPathname("/merken/hummer/h2"))
+      .toBe("/en/merken/hummer/h2");
+    expect(base44ContentPathname("/nl/merken/hummer/h2"))
+      .toBe("/merken/hummer/h2");
+    expect(base44ContentPathname("/")).toBe("/en");
+    expect(base44ContentPathname("/nl")).toBe("/");
   });
 });
