@@ -1,4 +1,5 @@
 const write = Deno.env.get("BASE44_WRITE") === "true";
+const pagesOnly = Deno.env.get("BASE44_PAGES_ONLY") === "true";
 const canonicalOrigin = "https://www.4x4models.com";
 const webshopName = "4x4models";
 
@@ -6,6 +7,7 @@ type EntityRecord = Record<string, unknown> & { id?: string };
 
 const stats: Record<string, number | string> = {
   write: write ? "true" : "false",
+  pagesOnly: pagesOnly ? "true" : "false",
   WebsitePageScanned: 0,
   WebsitePageUpdated: 0,
   SeoTaskUpserted: 0,
@@ -213,6 +215,7 @@ async function main() {
       seo_status: seoStatus,
     });
     stats.WebsitePageUpdated = Number(stats.WebsitePageUpdated) + 1;
+    if (pagesOnly) continue;
 
     const recommendations: Array<{ type: string; severity: string; title: string; body: string }> = [];
     if (description.length < 120) {
