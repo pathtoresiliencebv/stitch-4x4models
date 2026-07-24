@@ -129,4 +129,96 @@ describe("mirror CMS structured rendering", () => {
       globals: 0,
     });
   });
+
+  it("adds, removes, and reorders managed sections and cards", () => {
+    const result = applyMirrorCmsContent(shell, {
+      page: {
+        id: "page-1",
+        slug: "merken",
+        title: "Beheerbare merken",
+        featured_image_url: "/images/brands/ford.jpg",
+      },
+      sections: [
+        {
+          id: "new-section",
+          page_slug: "merken",
+          section_key: "nieuw",
+          section_type: "card_grid",
+          eyebrow: "Nieuw",
+          title: "Toegevoegd in Base44",
+          body: "Deze sectie bestond niet in de lokale mirror.",
+          cta_label: "Alle modellen",
+          cta_url: "/merken",
+          status: "published",
+          sort_order: 10,
+        },
+        {
+          id: "section-1",
+          page_slug: "merken",
+          section_key: "brand-grid",
+          section_type: "brand_grid",
+          title: "Bestaande sectie",
+          status: "published",
+          sort_order: 20,
+        },
+      ],
+      cards: [
+        {
+          id: "new-card",
+          page_slug: "merken",
+          section_key: "nieuw",
+          section_id: "new-section",
+          card_type: "model",
+          title: "Nieuwe Ford-kaart",
+          body: "Volledig toegevoegd vanuit het CMS.",
+          image_url: "/images/brands/ford.jpg",
+          href: "/merken/ford",
+          cta_label: "Open Ford",
+          status: "published",
+          sort_order: 10,
+        },
+      ],
+      globalContent: [],
+      pageContent: [],
+    }, "/merken");
+
+    expect(result.html.indexOf("Toegevoegd in Base44")).toBeLessThan(
+      result.html.indexOf("Bestaande sectie"),
+    );
+    expect(result.html).toContain("Nieuwe Ford-kaart");
+    expect(result.html).toContain("Volledig toegevoegd vanuit het CMS.");
+    expect(result.html).toContain('href="/merken/ford"');
+    expect(result.html).toContain("Open Ford →");
+    expect(result.html).not.toContain("Toyota</h3>");
+    expect(result.html).not.toContain("Alle merken.</h1>");
+    expect(result.applied.sections).toBe(2);
+    expect(result.applied.cards).toBe(1);
+  });
+
+  it("renders safe rich text from the WYSIWYG editor", () => {
+    const result = applyMirrorCmsContent(shell, {
+      page: { id: "page-1", slug: "merken", title: "Merken" },
+      sections: [
+        {
+          id: "text-section",
+          page_slug: "merken",
+          section_key: "brand-grid",
+          section_type: "text",
+          title: "Beheerbare tekst",
+          body: '<h3>Subkop</h3><p>Tekst met <strong>opmaak</strong> en <a href="/merken/ford">een link</a>.</p><script>alert("no")</script>',
+          status: "published",
+          sort_order: 10,
+        },
+      ],
+      cards: [],
+      globalContent: [],
+      pageContent: [],
+    }, "/merken");
+
+    expect(result.html).toContain("<h3>Subkop</h3>");
+    expect(result.html).toContain("<strong>opmaak</strong>");
+    expect(result.html).toContain('href="/merken/ford"');
+    expect(result.html).not.toContain("<script>");
+    expect(result.html).not.toContain("alert(");
+  });
 });

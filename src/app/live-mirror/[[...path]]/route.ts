@@ -658,13 +658,20 @@ async function readBase44MirrorPage(
       pageContent: recordsForLocale(pageContentRecords, locale),
     };
     const content = record?.content?.trim();
-    const hasStructuredContent = Boolean(
-      record ||
+    const hasStructuredRecords = Boolean(
       cms.sections.length ||
       cms.cards.length ||
       cms.globalContent.length ||
       cms.pageContent.length
     );
+    const hasStructuredContent = Boolean(
+      record ||
+      hasStructuredRecords
+    );
+
+    if (hasStructuredRecords) {
+      return { html: localHtml, source: "base44-structured", cms };
+    }
 
     if (!content || !isUsableBase44MirrorContent(content)) {
       return hasStructuredContent
@@ -757,6 +764,37 @@ async function readResolvedMirrorHtml(
   return undefined;
 }
 
+async function readDynamicMirrorHtml(
+  publicPathname: string,
+  pages: Record<string, string>,
+) {
+  const locale = localeForPublicPathname(publicPathname);
+  const basePathname = stripSupportedLocalePrefix(publicPathname);
+  const contentPathname = locale === "en"
+    ? basePathname === "/" ? "/en" : `/en${basePathname}`
+    : basePathname;
+  const templatePathname = locale === "en" && pages["/en"] ? "/en" : "/";
+  const templateFile = pages[templatePathname];
+  if (!templateFile) return undefined;
+
+  const templateHtml = await readLocalMirrorHtml(templateFile);
+  const dynamicMain = [
+    '<div class="cms-dynamic-page-shell">',
+    '<section id="cms-dynamic-placeholder" class="cms-dynamic-placeholder">',
+    "<h1>4x4models</h1>",
+    "</section>",
+    "</div>",
+  ].join("");
+
+  return {
+    locale,
+    publicPathname: publicPathForLocale(publicPathname, locale),
+    contentPathname,
+    html: replaceMainContent(templateHtml, dynamicMain),
+    dynamic: true,
+  };
+}
+
 export async function GET(
   request: Request,
   props: { params: Promise<{ path?: string[] }> }
@@ -768,7 +806,10 @@ export async function GET(
     return renderSearchPage(request, pathname, (manifest as MirrorManifest).pages);
   }
 
-  const resolved = await readResolvedMirrorHtml(pathname, (manifest as MirrorManifest).pages);
+  const pages = (manifest as MirrorManifest).pages;
+  const resolved =
+    await readResolvedMirrorHtml(pathname, pages) ||
+    await readDynamicMirrorHtml(pathname, pages);
 
   if (!resolved) {
     return notFoundResponse();
@@ -779,6 +820,9 @@ export async function GET(
     resolved.html,
     resolved.locale,
   );
+  if ("dynamic" in resolved && resolved.dynamic && !base44Page) {
+    return notFoundResponse();
+  }
   const html = base44Page?.html || resolved.html;
   const source: MirrorSource = base44Page?.source || "local";
   const transformedHtml = applyMirrorTransforms(

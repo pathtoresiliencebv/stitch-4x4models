@@ -1373,6 +1373,145 @@ main a[class~="group"][class~="no-underline"] {
   line-height: 1.6;
 }
 
+.mirror-premium .cms-managed-section {
+  width: min(100% - 48px, 1360px);
+  margin: 0 auto;
+  padding: clamp(54px, 7vw, 104px) 0;
+  background: transparent;
+}
+
+.mirror-premium .cms-managed-section + .cms-managed-section {
+  border-top: 1px solid rgba(36, 31, 26, 0.12);
+}
+
+.mirror-premium .cms-managed-section__inner {
+  max-width: 780px;
+  margin-bottom: clamp(28px, 4vw, 48px);
+}
+
+.mirror-premium .cms-managed-section__eyebrow {
+  margin: 0 0 12px;
+  color: var(--mirror-accent) !important;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.mirror-premium .cms-managed-section__title {
+  max-width: 18ch;
+  margin: 0;
+  color: var(--mirror-graphite) !important;
+  font-size: clamp(34px, 5vw, 64px);
+  line-height: 1.02 !important;
+}
+
+.mirror-premium .cms-managed-section__body {
+  max-width: 68ch;
+  margin: 18px 0 0;
+  color: rgba(23, 21, 19, 0.7) !important;
+  font-size: clamp(16px, 1.5vw, 19px);
+  line-height: 1.65;
+}
+
+.mirror-premium .cms-managed-richtext {
+  max-width: 76ch;
+  color: rgba(23, 21, 19, 0.76) !important;
+  font-size: clamp(16px, 1.4vw, 18px);
+  line-height: 1.75;
+}
+
+.mirror-premium .cms-managed-richtext > * {
+  margin: 0 0 1.1em;
+}
+
+.mirror-premium .cms-managed-richtext h2,
+.mirror-premium .cms-managed-richtext h3,
+.mirror-premium .cms-managed-richtext h4 {
+  max-width: 24ch;
+  margin-top: 1.6em;
+  color: var(--mirror-graphite) !important;
+  line-height: 1.08 !important;
+}
+
+.mirror-premium .cms-managed-richtext ul,
+.mirror-premium .cms-managed-richtext ol {
+  padding-left: 1.35em;
+}
+
+.mirror-premium .cms-managed-richtext a {
+  color: var(--mirror-accent) !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.mirror-premium .cms-managed-richtext img {
+  display: block;
+  width: 100%;
+  margin: 28px 0;
+  border-radius: 4px;
+}
+
+.mirror-premium .cms-managed-section__image {
+  display: block;
+  width: 100%;
+  margin-top: 28px;
+  aspect-ratio: 16 / 8;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.mirror-premium .cms-managed-section__cta,
+.mirror-premium .cms-managed-card__cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  margin-top: 22px;
+  border-bottom: 1px solid var(--mirror-accent);
+  color: var(--mirror-graphite) !important;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.mirror-premium .cms-managed-section__cta:hover,
+.mirror-premium .cms-managed-card__cta:hover {
+  color: var(--mirror-accent) !important;
+}
+
+.mirror-premium .cms-managed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(20px, 2.4vw, 34px);
+}
+
+.mirror-premium .cms-managed-card {
+  min-width: 0;
+}
+
+.mirror-premium .cms-managed-card__media {
+  min-height: 300px;
+}
+
+.mirror-premium .cms-managed-card__overlay {
+  background: linear-gradient(to top, rgba(12, 11, 10, 0.88), rgba(12, 11, 10, 0.08) 72%);
+}
+
+.mirror-premium .cms-managed-card__headline {
+  z-index: 2;
+}
+
+.mirror-premium .cms-managed-card__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.mirror-premium .cms-managed-card__body p {
+  margin: 0;
+}
+
 @media (max-width: 1500px) {
   .mirror-premium .mirror-search-form {
     display: none;
@@ -1386,6 +1525,10 @@ main a[class~="group"][class~="no-underline"] {
 @media (max-width: 980px) {
   .mirror-premium .mirror-search-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mirror-premium .cms-managed-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1564,5 +1707,24 @@ main a[class~="group"][class~="no-underline"] {
 
   .mirror-premium .mirror-search-card__title {
     font-size: 23px;
+  }
+
+  .mirror-premium .cms-managed-section {
+    width: min(100% - 32px, 1360px);
+    padding: 44px 0;
+  }
+
+  .mirror-premium .cms-managed-section__title {
+    max-width: 100%;
+    font-size: 38px;
+  }
+
+  .mirror-premium .cms-managed-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .mirror-premium .cms-managed-card__media {
+    min-height: 260px;
   }
 }

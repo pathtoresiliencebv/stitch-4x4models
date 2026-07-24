@@ -1,6 +1,5 @@
 {
   "framework": "nextjs",
-  "public": true,
   "headers": [
     {
       "source": "/(.*)",

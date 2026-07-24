@@ -323,6 +323,8 @@ export interface WebsiteCard {
   page_slug: string;
   section_key: string;
   section_id?: string;
+  source_entity?: string;
+  source_record_id?: string;
   locale?: "en" | "nl" | string;
   card_type?:
     | "brand"

@@ -27,6 +27,30 @@ function plainText(value?: string | null) {
   return cheerio.load(value, null, false).text().replace(/\s+/g, " ").trim();
 }
 
+function sanitizeManagedHtml(value?: string | null) {
+  if (!value) return "";
+  const fragment = cheerio.load(value, null, false);
+  fragment("script, style, iframe, object, embed, form, link, meta").remove();
+  fragment("*").each((_index, element) => {
+    const htmlElement = element as Element;
+    const node = fragment(element);
+    for (const attribute of Object.keys(htmlElement.attribs || {})) {
+      if (/^on/i.test(attribute)) node.removeAttr(attribute);
+    }
+    for (const attribute of ["href", "src"]) {
+      const attributeValue = node.attr(attribute);
+      if (attributeValue && /^\s*(?:javascript|data:text\/html):/i.test(attributeValue)) {
+        node.removeAttr(attribute);
+      }
+    }
+  });
+  return fragment.root().html() || "";
+}
+
+function hasManagedMarkup(value?: string | null) {
+  return /<(?:p|h[1-6]|ul|ol|li|blockquote|strong|em|a|figure|img|table)\b/i.test(value || "");
+}
+
 function slugify(value?: string | null) {
   return plainText(value)
     .toLowerCase()
@@ -169,6 +193,84 @@ function findCardAnchor(
   return candidates.eq(fallbackIndex);
 }
 
+function createManagedCard(
+  $: cheerio.CheerioAPI,
+  card: WebsiteCard,
+): cheerio.Cheerio<Element> {
+  const anchor = ($("<a>")
+    .addClass(
+      "group block no-underline cms-managed-card rounded-[2px] transition-transform duration-200 ease-out-soft will-change-transform",
+    )
+    .attr("href", plainText(card.href) || "#")) as cheerio.Cheerio<Element>;
+  const media = $("<div>").addClass(
+    "relative w-full overflow-hidden bg-ink aspect-[4/3] cms-managed-card__media",
+  );
+  const normalizedImage = imageWithFallback(card.image_url, card.href);
+  const image = $("<img>")
+    .attr({
+      src: normalizedImage,
+      alt: plainText(card.image_alt || card.title) || "4x4models",
+      loading: "lazy",
+      decoding: "async",
+    })
+    .addClass("object-cover");
+  const overlay = $("<div>")
+    .attr("aria-hidden", "true")
+    .addClass("absolute inset-0 cms-managed-card__overlay");
+  const headline = $("<div>").addClass(
+    "absolute inset-x-0 bottom-0 p-5 sm:p-6 cms-managed-card__headline",
+  );
+  const meta = plainText(card.badge || card.meta || card.subtitle);
+  if (meta) {
+    $("<div>")
+      .addClass("text-[11px] uppercase text-white/75 mb-1.5")
+      .text(meta)
+      .appendTo(headline);
+  }
+  $("<h3>")
+    .addClass("text-white text-xl sm:text-2xl font-medium leading-tight")
+    .text(plainText(card.title) || "Bekijk")
+    .appendTo(headline);
+  media.append(image, overlay, headline);
+  anchor.append(media);
+
+  const body = $("<div>").addClass("pt-4 sm:pt-5 cms-managed-card__body");
+  if (card.body) {
+    $("<p>")
+      .addClass("text-sm sm:text-[15px] text-ink-soft leading-relaxed")
+      .text(plainText(card.body))
+      .appendTo(body);
+  }
+  if (card.cta_label) {
+    $("<span>")
+      .addClass("cms-managed-card__cta")
+      .text(`${plainText(card.cta_label)} →`)
+      .appendTo(body);
+  }
+  if (body.children().length) anchor.append(body);
+
+  applyCard($, anchor, card);
+  return anchor;
+}
+
+function cardContainer(
+  $: cheerio.CheerioAPI,
+  section: cheerio.Cheerio<Element>,
+  candidates: cheerio.Cheerio<Element>,
+) {
+  const candidateParent = candidates.first().parent();
+  if (candidateParent.length) return candidateParent;
+
+  const existingGrid = section.find("div").filter((_index, element) => (
+    /(?:^|\s)(?:grid|cms-managed-grid)(?:\s|$)/.test(String($(element).attr("class") || ""))
+  )).last();
+  if (existingGrid.length) return existingGrid;
+
+  return $("<div>")
+    .addClass("cms-managed-grid")
+    .appendTo(section);
+}
+
 function applyCard(
   $: cheerio.CheerioAPI,
   anchor: cheerio.Cheerio<Element>,
@@ -238,7 +340,19 @@ function applySection(
   if (section.title && heading.length) heading.text(plainText(section.title));
 
   const body = directTextParagraph($, target);
-  if (section.body && body.length) body.text(plainText(section.body));
+  if (section.body && body.length) {
+    if (
+      ["text", "media", "feature"].includes(section.section_type || "") &&
+      hasManagedMarkup(section.body)
+    ) {
+      const richText = $("<div>")
+        .addClass("cms-managed-richtext")
+        .html(sanitizeManagedHtml(section.body));
+      body.replaceWith(richText);
+    } else {
+      body.text(plainText(section.body));
+    }
+  }
 
   if (section.eyebrow) {
     const eyebrow = target
@@ -270,9 +384,20 @@ function applySection(
 
   if (section.cta_url) {
     const normalizedCta = cleanPublicHref(section.cta_url);
-    const cta = target.find("a").filter((_index, item) => (
+    let cta = target.find("a").filter((_index, item) => (
       cleanPublicHref($(item).attr("href")) === normalizedCta
     )).first();
+    if (!cta.length && section.cta_label) {
+      const label = plainText(section.cta_label).toLowerCase();
+      cta = target.find("a").filter((_index, item) => (
+        plainText($(item).text()).toLowerCase() === label
+      )).first();
+    }
+    if (!cta.length && section.cta_label) {
+      cta = ($("<a>")
+        .addClass("cms-managed-section__cta")
+        .appendTo(target)) as cheerio.Cheerio<Element>;
+    }
     if (cta.length) {
       cta.attr("href", plainText(section.cta_url));
       if (section.cta_label && cta.find("h2, h3, h4").length === 0) {
@@ -282,17 +407,109 @@ function applySection(
   }
 
   const candidates = cardCandidates($, target);
+  const usedCandidates = new Set<Element>();
+  const container = cardContainer($, target, candidates);
   let appliedCards = 0;
   cards
     .filter((card) => !card.status || card.status === "published" || card.status === "active")
     .sort((left, right) => sortOrder(left) - sortOrder(right))
     .forEach((card, index) => {
-      if (applyCard($, findCardAnchor($, candidates, card, index), card)) {
+      const available = candidates.filter((_candidateIndex, element) => (
+        !usedCandidates.has(element)
+      ));
+      let anchor = findCardAnchor($, available, card, index);
+      if (!anchor.length) {
+        anchor = createManagedCard($, card);
+        container.append(anchor);
+      } else {
+        const element = anchor.get(0);
+        if (element) usedCandidates.add(element);
+      }
+      if (applyCard($, anchor, card)) {
         appliedCards += 1;
       }
     });
 
+  if (/(?:^|_)grid$/.test(section.section_type || "")) {
+    candidates.each((_index, element) => {
+      if (!usedCandidates.has(element)) $(element).remove();
+    });
+  }
+
   return appliedCards;
+}
+
+function createManagedSection(
+  $: cheerio.CheerioAPI,
+  section: WebsiteSection,
+  cards: WebsiteCard[],
+) : cheerio.Cheerio<Element> {
+  const target = ($("<section>").addClass(
+    `cms-managed-section cms-managed-section--${plainText(section.section_type || "text")}`,
+  )) as cheerio.Cheerio<Element>;
+  const inner = $("<div>").addClass("cms-managed-section__inner");
+
+  if (section.eyebrow) {
+    $("<p>")
+      .addClass("cms-managed-section__eyebrow uppercase")
+      .text(plainText(section.eyebrow))
+      .appendTo(inner);
+  }
+  if (section.title) {
+    $(section.section_type === "hero" ? "<h1>" : "<h2>")
+      .addClass("cms-managed-section__title")
+      .text(plainText(section.title))
+      .appendTo(inner);
+  }
+  if (section.body) {
+    if (
+      ["text", "media", "feature"].includes(section.section_type || "") &&
+      hasManagedMarkup(section.body)
+    ) {
+      $("<div>")
+        .addClass("cms-managed-section__body cms-managed-richtext")
+        .html(sanitizeManagedHtml(section.body))
+        .appendTo(inner);
+    } else {
+      $("<p>")
+        .addClass("cms-managed-section__body")
+        .text(plainText(section.body))
+        .appendTo(inner);
+    }
+  }
+
+  const normalizedImage = normalizeCmsImageUrl(section.image_url);
+  if (normalizedImage) {
+    $("<img>")
+      .attr({
+        src: normalizedImage,
+        alt: plainText(section.image_alt || section.title) || "4x4models",
+        loading: "lazy",
+        decoding: "async",
+      })
+      .addClass("cms-managed-section__image")
+      .appendTo(inner);
+  }
+  if (section.cta_url && section.cta_label) {
+    $("<a>")
+      .attr("href", plainText(section.cta_url))
+      .addClass("cms-managed-section__cta")
+      .text(plainText(section.cta_label))
+      .appendTo(inner);
+  }
+
+  target.append(inner);
+  if (cards.length) {
+    const grid = $("<div>").addClass("cms-managed-grid");
+    cards
+      .filter((card) => !card.status || card.status === "published" || card.status === "active")
+      .sort((left, right) => sortOrder(left) - sortOrder(right))
+      .forEach((card) => grid.append(createManagedCard($, card)));
+    target.append(grid);
+  }
+
+  applySection($, target.get(0) as Element, section, cards);
+  return target;
 }
 
 function applyPageMetadata(
@@ -318,6 +535,22 @@ function applyPageMetadata(
 
   const canonical = canonicalForPublicPath(page.canonical_url, publicPathname);
   if (canonical) $("link[rel='canonical']").first().attr("href", canonical);
+
+  const pageTitle = plainText(page.title);
+  if (pageTitle) $("main h1").first().text(pageTitle);
+
+  const featuredImage = normalizeCmsImageUrl(page.featured_image_url);
+  if (featuredImage) {
+    const hero = $("main section").first();
+    const image = hero.find("img").first();
+    if (image.length) {
+      image.attr("src", featuredImage).removeAttr("srcset");
+      image.attr("alt", pageTitle || "4x4models");
+    }
+    hero
+      .attr("data-cms-image", featuredImage)
+      .css("--cms-section-photo", `url('${featuredImage.replace(/['"\\]/g, "")}')`);
+  }
 
   $("body")
     .attr("data-cms-page-id", page.id)
@@ -420,6 +653,7 @@ export function applyMirrorCmsContent(
     .sort((left, right) => sortOrder(left) - sortOrder(right));
   const domSections = $("main section");
   const usedDomSections = new Set<number>();
+  const orderedSections: cheerio.Cheerio<Element>[] = [];
   let appliedSections = 0;
   let appliedCards = 0;
 
@@ -437,15 +671,33 @@ export function applyMirrorCmsContent(
     if (matchIndex < 0 && sectionIndex < domSections.length && !usedDomSections.has(sectionIndex)) {
       matchIndex = sectionIndex;
     }
-    if (matchIndex < 0) return;
-
-    usedDomSections.add(matchIndex);
     const sectionCards = bundle.cards.filter((card) => (
       card.section_id === section.id || card.section_key === section.section_key
     ));
-    appliedCards += applySection($, domSections.get(matchIndex)!, section, sectionCards);
+    let target: cheerio.Cheerio<Element>;
+    if (matchIndex < 0) {
+      target = createManagedSection($, section, sectionCards);
+    } else {
+      usedDomSections.add(matchIndex);
+      target = domSections.eq(matchIndex);
+      appliedCards += applySection($, target.get(0)!, section, sectionCards);
+    }
+    orderedSections.push(target);
+    if (matchIndex < 0) {
+      appliedCards += sectionCards.filter((card) => (
+        !card.status || card.status === "published" || card.status === "active"
+      )).length;
+    }
     appliedSections += 1;
   });
+
+  if (sections.length && domSections.length) {
+    const parent = domSections.first().parent();
+    domSections.each((domIndex, element) => {
+      if (!usedDomSections.has(domIndex)) $(element).remove();
+    });
+    orderedSections.forEach((section) => parent.append(section));
+  }
 
   const appliedGlobals = applyGlobalContent($, bundle.globalContent);
 
