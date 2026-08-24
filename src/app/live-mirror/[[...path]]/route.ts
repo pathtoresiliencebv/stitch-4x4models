@@ -24,7 +24,9 @@ import {
 } from "@/lib/mirror-cms";
 import {
   applyPublishedBlogPosts,
+  extractStructuredArticleContent,
   isBlogPublicSurface,
+  needsStructuredArticleFallback,
 } from "@/lib/mirror-blog";
 import { applyVehicleCarousels } from "@/lib/mirror-carousels";
 import type { WebsiteCard, WebsitePage, WebsiteSection } from "@/types/base44";
@@ -624,6 +626,42 @@ async function readBase44Entity<T>(
   return (await readBase44EntityResult<T>(entity, filter, options)).records;
 }
 
+async function preparePublishedBlogPosts(posts: BlogPost[]) {
+  const pages = (manifest as MirrorManifest).pages;
+  return Promise.all(posts.map(async (post) => {
+    const slug = (post.slug || "").trim();
+    if (!slug) return post;
+    const blogPath = `/blog/${slug}`;
+    const journalPath = `/journal/${slug}`;
+    const localPath = pages[blogPath]
+      ? blogPath
+      : pages[journalPath]
+        ? journalPath
+        : undefined;
+    const mirrorSurface = localPath?.startsWith("/journal/")
+      ? "journal"
+      : localPath?.startsWith("/blog/")
+        ? "blog"
+        : undefined;
+    const prepared = mirrorSurface
+      ? { ...post, _mirror_surface: mirrorSurface }
+      : post;
+
+    if (!localPath || !needsStructuredArticleFallback(post.content)) {
+      return prepared;
+    }
+
+    try {
+      const localHtml = await readLocalMirrorHtml(pages[localPath]);
+      const structuredContent = extractStructuredArticleContent(localHtml);
+      return structuredContent ? { ...prepared, content: structuredContent } : prepared;
+    } catch (error) {
+      console.warn(`Local article fallback read failed for ${localPath}`, error);
+      return prepared;
+    }
+  }));
+}
+
 async function readPublishedBlogPosts(pathname: string) {
   if (!isBlogPublicSurface(pathname)) {
     return { records: [], status: "not-requested" } satisfies Base44ReadResult<BlogPost>;
@@ -635,10 +673,14 @@ async function readPublishedBlogPosts(pathname: string) {
     status: "published",
     is_product: false,
   };
-  return readBase44EntityResult<BlogPost>("BlogPost", filter, {
+  const result = await readBase44EntityResult<BlogPost>("BlogPost", filter, {
     limit: 250,
     sortBy: "-published_at",
   });
+  return {
+    ...result,
+    records: await preparePublishedBlogPosts(result.records),
+  };
 }
 
 function recordsForLocale<T extends { locale?: string | null }>(

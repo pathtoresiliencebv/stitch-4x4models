@@ -6,6 +6,10 @@ import type { BlogPost } from "@/types/blog";
 
 export type BlogSurface = "blog" | "journal";
 
+type SurfaceAwareBlogPost = BlogPost & {
+  _mirror_surface?: BlogSurface;
+};
+
 export type MirrorBlogApplyResult = {
   html: string;
   applied: number;
@@ -72,7 +76,44 @@ function safeHtml(
         .attr({ tabindex: "0", role: "region", "aria-label": tableLabel }),
     );
   });
+
+  const rootChildren = fragment.root().children();
+  if (
+    rootChildren.length === 1 &&
+    rootChildren.first().is("p") &&
+    plainText(rootChildren.first().text()).length > 900
+  ) {
+    const sentences = plainText(rootChildren.first().text())
+      .split(/(?<=[.!?])\s+(?=[A-ZÀ-ÖØ-Þ])/)
+      .filter(Boolean);
+    if (sentences.length >= 6) {
+      rootChildren.first().remove();
+      for (let index = 0; index < sentences.length; index += 3) {
+        fragment("<p>")
+          .text(sentences.slice(index, index + 3).join(" "))
+          .appendTo(fragment.root());
+      }
+    }
+  }
   return fragment.root().html() || "";
+}
+
+export function needsStructuredArticleFallback(content?: string | null) {
+  if (!content) return true;
+  const fragment = cheerio.load(content, null, false);
+  const textLength = plainText(fragment.root().text()).length;
+  const meaningfulBlocks = fragment("p, h1, h2, h3, h4, blockquote, ul, ol, table, figure").length;
+  return textLength > 700 && meaningfulBlocks <= 1;
+}
+
+export function extractStructuredArticleContent(html: string) {
+  const page = cheerio.load(html);
+  const article = page(".prose-article").first();
+  if (!article.length) return "";
+  const content = article.html() || "";
+  const fragment = cheerio.load(content, null, false);
+  const blockCount = fragment("p, h2, h3, h4, blockquote, ul, ol, table, figure").length;
+  return blockCount >= 2 ? content : "";
 }
 
 function timestamp(post: BlogPost) {
@@ -82,7 +123,7 @@ function timestamp(post: BlogPost) {
 }
 
 export function blogSurfaceForPost(post: BlogPost): BlogSurface {
-  return post.journal_category ? "journal" : "blog";
+  return (post as SurfaceAwareBlogPost)._mirror_surface || (post.journal_category ? "journal" : "blog");
 }
 
 export function publishedPostsForLocale(posts: BlogPost[], locale: Locale) {

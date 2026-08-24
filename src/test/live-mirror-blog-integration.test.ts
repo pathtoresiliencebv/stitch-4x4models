@@ -88,4 +88,40 @@ describe("live mirror BlogPost integration", () => {
     expect(response.status).toBe(200);
     expect(counter).toBe("18 artikelen");
   });
+
+  it("restores structured local copy for a flattened legacy Base44 article", async () => {
+    const flattenedJournalPost = {
+      id: "flattened-journal",
+      title: "Toyota Land Cruiser 250: twee nieuwe Europa-trims voor modeljaar 2026",
+      slug: "toyota-land-cruiser-250-europa-2026-trims",
+      locale: "nl",
+      status: "published",
+      is_product: false,
+      excerpt: "Toyota voegt twee uitvoeringen toe.",
+      content: `<p>${"Vervuilde broninhoud zonder structuur. ".repeat(30)}</p>`,
+      featured_image_url: "/images/journal/toyota-land-cruiser-250-europa-2026-trims.jpg",
+      published_at: "2026-07-01T12:00:00.000Z",
+    };
+    vi.stubGlobal("fetch", vi.fn((input: string | URL | Request) => (
+      Promise.resolve(String(input).includes("/entities/BlogPost?")
+        ? new Response(JSON.stringify({ records: [flattenedJournalPost] }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+        : new Response(JSON.stringify({ records: [] }), { status: 200 }))
+    )));
+
+    const response = await GET(
+      new Request("https://www.4x4models.com/nl/journal/toyota-land-cruiser-250-europa-2026-trims"),
+      { params: Promise.resolve({ path: ["nl", "journal", "toyota-land-cruiser-250-europa-2026-trims"] }) },
+    );
+    const html = await response.text();
+    const $ = cheerio.load(html);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-cms-blog-read")).toBe("ok");
+    expect($(".cms-blog-detail__content h2").first().text()).toBe("Wat krijg je?");
+    expect($(".cms-blog-detail__content p").length).toBeGreaterThan(3);
+    expect(html).not.toContain("Vervuilde broninhoud zonder structuur");
+  });
 });

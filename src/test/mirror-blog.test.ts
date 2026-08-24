@@ -3,6 +3,8 @@ import * as cheerio from "cheerio";
 import {
   applyPublishedBlogPosts,
   blogSurfaceForPost,
+  extractStructuredArticleContent,
+  needsStructuredArticleFallback,
   publishedPostsForLocale,
 } from "@/lib/mirror-blog";
 import type { BlogPost } from "@/types/blog";
@@ -128,5 +130,26 @@ describe("published Base44 blog rendering", () => {
     const result = applyPublishedBlogPosts(shell, records, "/nl/blog/trailnieuws", "nl");
     expect(result.applied).toBe(0);
     expect(result.detail).toBe(false);
+  });
+
+  it("recognizes flattened legacy CMS articles and extracts structured fallback copy", () => {
+    const flattened = `<p>${"Een lange ongestructureerde zin. ".repeat(40)}</p>`;
+    const localPage = `
+      <article>
+        <div class="prose-article">
+          <p>Inleiding met context.</p>
+          <h2>Wat krijg je?</h2>
+          <p>De inhoud blijft netjes gestructureerd.</p>
+        </div>
+      </article>
+    `;
+
+    expect(needsStructuredArticleFallback(flattened)).toBe(true);
+    expect(needsStructuredArticleFallback("<p>Intro.</p><h2>Kop</h2><p>Inhoud.</p>")).toBe(false);
+    expect(extractStructuredArticleContent(localPage)).toContain("Wat krijg je?");
+    expect(blogSurfaceForPost({
+      id: "legacy-journal",
+      _mirror_surface: "journal",
+    } as BlogPost)).toBe("journal");
   });
 });
