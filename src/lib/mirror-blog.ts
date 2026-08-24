@@ -311,10 +311,13 @@ function updateListingCount(
     });
   if (!hrefs.size) return;
   const counter = $("main").find("p, span").filter((_index, element) => (
-    /\b\d+\s+(?:artikelen|articles)\b/i.test($(element).text().replace(/\s+/g, " "))
+    /\b\d+\s+(?:artikelen|articles|berichten|posts)\b/i.test($(element).text().replace(/\s+/g, " "))
   )).first();
   if (counter.length) {
-    counter.text(locale === "nl" ? `${hrefs.size} artikelen` : `${hrefs.size} articles`);
+    const label = surface === "journal"
+      ? (locale === "nl" ? "berichten" : "posts")
+      : (locale === "nl" ? "artikelen" : "articles");
+    counter.text(`${hrefs.size} ${label}`);
   }
 }
 

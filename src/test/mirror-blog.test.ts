@@ -94,6 +94,17 @@ describe("published Base44 blog rendering", () => {
     expect(result.html).not.toContain("Nog niet publiceren");
   });
 
+  it("updates the journal message counter after inserting CMS records", () => {
+    const journalShell = shell
+      .replace("1 artikelen", "1 berichten · nieuws en analyse")
+      .replaceAll("/blog/", "/journal/");
+    const result = applyPublishedBlogPosts(journalShell, records, "/nl/journal", "nl");
+
+    expect(result.applied).toBe(1);
+    expect(result.html).toContain("2 berichten");
+    expect(result.html).not.toContain("1 berichten · nieuws en analyse");
+  });
+
   it("renders a safe dynamic detail page from the published BlogPost record", () => {
     const result = applyPublishedBlogPosts(shell, records, "/nl/blog/nieuwe-4x4-test", "nl");
     expect(result.applied).toBe(1);
