@@ -22,7 +22,13 @@ import {
   mirrorCmsFallbackBundle,
   type MirrorCmsBundle,
 } from "@/lib/mirror-cms";
+import {
+  applyPublishedBlogPosts,
+  isBlogPublicSurface,
+} from "@/lib/mirror-blog";
+import { applyVehicleCarousels } from "@/lib/mirror-carousels";
 import type { WebsiteCard, WebsitePage, WebsiteSection } from "@/types/base44";
+import type { BlogPost } from "@/types/blog";
 import type { SiteContent } from "@/types/common";
 
 export const runtime = "nodejs";
@@ -36,6 +42,11 @@ type Base44WebsitePage = WebsitePage;
 
 type Base44ListResponse<T> = {
   records?: T[];
+};
+
+type Base44ReadResult<T> = {
+  records: T[];
+  status: "ok" | "not-requested" | "missing-key" | `http-${number}` | "network-error";
 };
 
 type MirrorSource =
@@ -150,6 +161,13 @@ function injectMirrorOverrides(html: string) {
 
 function addPremiumBodyClass(html: string) {
   return html.replace('<body class="', '<body class="mirror-premium ');
+}
+
+function fixMirrorA11ySemantics(html: string) {
+  return html.replace(
+    /(<div class="mt-5 flex items-center gap-2") role="list"(?= aria-label="(?:Volg|Follow))/g,
+    '$1 role="navigation"',
+  );
 }
 
 function rewriteBrandAssets(html: string) {
@@ -562,11 +580,11 @@ async function readLocalMirrorHtml(fileName: string) {
   );
 }
 
-async function readBase44Entity<T>(
+async function readBase44EntityResult<T>(
   entity: string,
-  filter: Record<string, string>,
+  filter: Record<string, unknown>,
   options: { limit?: number; sortBy?: string } = {},
-) {
+): Promise<Base44ReadResult<T>> {
   const query = new URLSearchParams({
     q: JSON.stringify(filter),
     limit: String(options.limit || 250),
@@ -584,15 +602,43 @@ async function readBase44Entity<T>(
 
     if (!response.ok) {
       console.warn(`Base44 ${entity} read failed: ${response.status}`);
-      return [] as T[];
+      return { records: [], status: `http-${response.status}` };
     }
 
     const payload = (await response.json()) as Base44ListResponse<T> | T[];
-    return Array.isArray(payload) ? payload : payload.records || [];
+    return {
+      records: Array.isArray(payload) ? payload : payload.records || [],
+      status: "ok",
+    };
   } catch (error) {
     console.warn(`Base44 ${entity} read failed`, error);
-    return [] as T[];
+    return { records: [], status: "network-error" };
   }
+}
+
+async function readBase44Entity<T>(
+  entity: string,
+  filter: Record<string, unknown>,
+  options: { limit?: number; sortBy?: string } = {},
+) {
+  return (await readBase44EntityResult<T>(entity, filter, options)).records;
+}
+
+async function readPublishedBlogPosts(pathname: string) {
+  if (!isBlogPublicSurface(pathname)) {
+    return { records: [], status: "not-requested" } satisfies Base44ReadResult<BlogPost>;
+  }
+  if (!process.env.BASE44_API_KEY) {
+    return { records: [], status: "missing-key" } satisfies Base44ReadResult<BlogPost>;
+  }
+  const filter: Record<string, unknown> = {
+    status: "published",
+    is_product: false,
+  };
+  return readBase44EntityResult<BlogPost>("BlogPost", filter, {
+    limit: 250,
+    sortBy: "-published_at",
+  });
 }
 
 function recordsForLocale<T extends { locale?: string | null }>(
@@ -703,30 +749,28 @@ async function readBase44MirrorPage(
 }
 
 function applyMirrorTransforms(html: string, pathname: string, locale: Locale) {
-  return injectMirrorOverrides(
-    addPremiumBodyClass(
-      rewriteHtmlLang(
-        rewriteCanonicalUrls(
-          injectMobileNav(
-            injectHeaderSearch(
-              rewriteLanguageSwitcher(
-                rewriteLocalizedInternalLinks(
-                  addCardImageVars(
-                    rewriteBrandAssets(rewriteLocalImageUrls(html))
-                  ),
-                  locale
-                ),
-                pathname
-              ),
-              pathname
+  const transformed = rewriteHtmlLang(
+    rewriteCanonicalUrls(
+      injectMobileNav(
+        injectHeaderSearch(
+          rewriteLanguageSwitcher(
+            rewriteLocalizedInternalLinks(
+              addCardImageVars(rewriteBrandAssets(rewriteLocalImageUrls(html))),
+              locale,
             ),
-            pathname
+            pathname,
           ),
-          pathname
+          pathname,
         ),
-        locale
-      )
-    )
+        pathname,
+      ),
+      pathname,
+    ),
+    locale,
+  );
+
+  return injectMirrorOverrides(
+    addPremiumBodyClass(fixMirrorA11ySemantics(transformed)),
   );
 }
 
@@ -820,18 +864,27 @@ export async function GET(
     resolved.publicPathname,
     resolved.locale,
   );
-  const base44Page = await readBase44MirrorPage(
-    cmsContentPathname,
-    resolved.html,
-    resolved.locale,
-  );
+  const [base44Page, publishedBlogRead] = await Promise.all([
+    readBase44MirrorPage(
+      cmsContentPathname,
+      resolved.html,
+      resolved.locale,
+    ),
+    readPublishedBlogPosts(resolved.publicPathname),
+  ]);
+  const publishedBlogPosts = publishedBlogRead.records;
   const hasDynamicCmsContent = Boolean(
     base44Page?.cms.page ||
     base44Page?.cms.sections.length ||
     base44Page?.cms.cards.length ||
     base44Page?.cms.pageContent.length
   );
-  if ("dynamic" in resolved && resolved.dynamic && !hasDynamicCmsContent) {
+  if (
+    "dynamic" in resolved &&
+    resolved.dynamic &&
+    !hasDynamicCmsContent &&
+    !publishedBlogPosts.length
+  ) {
     return notFoundResponse();
   }
   const html = base44Page?.html || resolved.html;
@@ -846,7 +899,22 @@ export async function GET(
     base44Page?.cms || mirrorCmsFallbackBundle(),
     resolved.publicPathname,
   );
-  const localizedHtml = rewriteLocalizedInternalLinks(cmsResult.html, resolved.locale);
+  const blogResult = applyPublishedBlogPosts(
+    cmsResult.html,
+    publishedBlogPosts,
+    resolved.publicPathname,
+    resolved.locale,
+  );
+  if (
+    "dynamic" in resolved &&
+    resolved.dynamic &&
+    !hasDynamicCmsContent &&
+    !blogResult.detail
+  ) {
+    return notFoundResponse();
+  }
+  const carouselResult = applyVehicleCarousels(blogResult.html, resolved.locale);
+  const localizedHtml = rewriteLocalizedInternalLinks(carouselResult.html, resolved.locale);
 
   return new Response(localizedHtml, {
     headers: {
@@ -860,6 +928,9 @@ export async function GET(
       "x-cms-sections": String(cmsResult.applied.sections),
       "x-cms-cards": String(cmsResult.applied.cards),
       "x-cms-globals": String(cmsResult.applied.globals),
+      "x-cms-blogposts": String(blogResult.applied),
+      "x-cms-blog-read": publishedBlogRead.status,
+      "x-cms-carousels": String(carouselResult.applied),
     },
   });
 }

@@ -24,6 +24,7 @@ const passThroughPrefixes = [
 const passThroughFiles = [
   "/favicon.ico",
   "/mirror-overrides.css",
+  "/mirror-carousel.js",
   "/robots.txt",
   "/sitemap.xml",
 ];
@@ -60,7 +61,7 @@ function shouldRedirectToDutch(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!live-mirror|api|_next|mirror-next-static|images|favicons|brand-kit|favicon\\.ico|mirror-overrides\\.css|robots\\.txt|sitemap\\.xml).*)",
+    "/((?!live-mirror|api|_next|mirror-next-static|images|favicons|brand-kit|favicon\\.ico|mirror-overrides\\.css|mirror-carousel\\.js|robots\\.txt|sitemap\\.xml).*)",
   ],
 };
 

@@ -28,13 +28,23 @@ export async function POST(req: Request) {
     revalidatePath("/collecties");
   } else if (type === "blog" && slug) {
     revalidatePath(`/blog/${slug}`);
+    revalidatePath(`/nl/blog/${slug}`);
+    revalidatePath(`/journal/${slug}`);
+    revalidatePath(`/nl/journal/${slug}`);
     revalidatePath("/blog");
+    revalidatePath("/nl/blog");
+    revalidatePath("/journal");
+    revalidatePath("/nl/journal");
+    revalidatePath("/nl");
   } else if (payload.path) {
     revalidatePath(payload.path);
   } else {
     revalidatePath("/producten");
     revalidatePath("/collecties");
     revalidatePath("/blog");
+    revalidatePath("/nl/blog");
+    revalidatePath("/journal");
+    revalidatePath("/nl/journal");
   }
 
   return NextResponse.json({ revalidated: true });
